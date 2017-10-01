@@ -1,0 +1,10 @@
+11 9 
+Q Q W W W V W W W V V
+Q W W V W W W V W W V 
+Q W V V V W V V V W V 
+S W W W W W W W W W s 
+S A W W W W W W W B s
+S W W W W W W W W W s
+V W V V V V V V V W q 
+V W W V V V V V W W q 
+V V W W W W W W W q q 
