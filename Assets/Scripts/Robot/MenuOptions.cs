@@ -4,7 +4,5 @@
     MOVE,
     ROTATE,
     ATTACK,
-    EQUIP,
-    EXECUTABLE,
     SUBMENU
 }

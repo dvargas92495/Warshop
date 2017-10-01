@@ -19,8 +19,6 @@ public class RobotMenuController : MonoBehaviour {
         { MenuOptions.MOVE, MOVE },
         { MenuOptions.ROTATE, ROTATE },
         { MenuOptions.SPAWN, SPAWN },
-        { MenuOptions.EQUIP, EQUIP },
-        { MenuOptions.EXECUTABLE, EXECUTABLE },
     };
 
     // Use this for initialization
