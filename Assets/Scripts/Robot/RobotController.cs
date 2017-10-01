@@ -21,8 +21,6 @@ public class RobotController : MonoBehaviour
         MenuOptions.MOVE,
         MenuOptions.ROTATE,
         MenuOptions.ATTACK,
-        //MenuOptions.EQUIP,
-        //MenuOptions.EXECUTABLE
     };
 
     //ui
