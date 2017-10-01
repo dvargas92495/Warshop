@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShowSubmittedActionsButton : MonoBehaviour
+public class ShowQueuedActionsButton : MonoBehaviour
 {
 
     private UIController UIController;
@@ -10,7 +10,7 @@ public class ShowSubmittedActionsButton : MonoBehaviour
     public void buttonPress()
     {
         UIController = GameObject.Find("Controllers").GetComponent<UIController>();
-        UIController.ShowSubmittedActionsButtonPress();
+        UIController.ShowQueuedActionsButtonPress();
     }
 
 }
