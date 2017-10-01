@@ -835,6 +835,15 @@ Prefab:
       propertyPath: m_isInputParsingRequired
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1565495255541040, guid: d66a8339f1e915f41b85bcd5a85f4d1f, type: 2}
+      propertyPath: m_Name
+      value: Queued Actions Button
+      objectReference: {fileID: 0}
+    - target: {fileID: 114549129298259616, guid: d66a8339f1e915f41b85bcd5a85f4d1f,
+        type: 2}
+      propertyPath: m_Text
+      value: Show Queued Actions
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: d66a8339f1e915f41b85bcd5a85f4d1f, type: 2}
   m_IsPrefabParent: 0

@@ -167,7 +167,7 @@ public class UIController : MonoBehaviour {
 
 
 
-    public void ShowSubmittedActionsButtonPress()
+    public void ShowQueuedActionsButtonPress()
     {
         formatActionsModalTextLines(submittedActions);
         modalPanelObject.SetActive(true);
