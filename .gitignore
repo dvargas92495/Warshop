@@ -3,3 +3,5 @@ Temp/*
 .vs/*
 Z8.csproj
 Z8.sln
+ProjectSettings.asset
+ProjectVersion.txt
