@@ -7,27 +7,59 @@ using Z8.Generic;
 
 public class InterpreterController : MonoBehaviour {
 
-	//Variables
+    // TODO: Define game start object
+    private class GameStartObject
+    {
 
-	private static PlayerTurnObject[] playerTurnObjectArray;
+    }
+
+    // TODO: Define turn object
+    private class TurnObject
+    {
+
+    }
+
+    //Variables
+
+    private PlayerTurnObject[] playerTurnObjectArray;
 
     private UIController UIController;
     private ProtoBoardController ProtoBoardController;
+    private ClientController ClientController;
+    private List<TurnObject> completedTurns = new List<TurnObject>();
 
-	// Initialize game by reading in turn info from config files.  Later will be server call
-	void Awake () {
-		//string mattsObj = parseConfigs();
-		// Call model.iniialize(mattsObj), return turnResolveObj
+    // Initialize game by reading in turn info from config files.  Later will be server call
+    void Awake () {
+        //string mattsObj = parseConfigs();
+        // Call model.iniialize(mattsObj), return turnResolveObj
 
-		//dummyParseConfigs will 
-		playerTurnObjectArray = DummyParseConfigs();
+        //dummyParseConfigs will  
+        playerTurnObjectArray = DummyParseConfigs();
+
+        ClientController = new ClientController();
+        ClientInitializationObject clientInitObject = ClientController.Initialize();
+        GameStartObject gameStartObject = TranslateClientInit(clientInitObject);
+
         UIController = this.gameObject.GetComponent<UIController>();
         UIController.InitializeUICanvas(playerTurnObjectArray);
         ProtoBoardController = FindObjectOfType<ProtoBoardController>();
+
+        // TODO: Change InitializeProtoBoard to take board layout as an argument
+        // i.e.
+        //
+        // BoardLayout boardLayout = gameStartObject.GetBoardLayout();
+        // ProtoBoardController.InitializeProtoBoard(boardLayout);
         ProtoBoardController.InitializeProtoBoard();
+
+        // TODO: Add initialization code
+        //
+        // RobotObject[] playerRobots = gameStartObject.GetPlayerRobots();
+        // RobotObject[] opponentRobots = gameStartObject.GetOpponentRobots();
 
         // function to get robots from playerTurnObjectArray
         // returns robots with info to send to ->
+
+        // TODO: Change InitializeRobots code to initialize player/opponent robots seperately
         InitializeRobots(playerTurnObjectArray);
 
 
@@ -73,6 +105,24 @@ public class InterpreterController : MonoBehaviour {
 
 		return playerTurnObjectArray;
 	}
+
+    // TODO: Define translator for game initialization
+    private GameStartObject TranslateClientInit(ClientInitializationObject clientInitObject)
+    {
+        return new GameStartObject();
+    }
+
+    // TODO: Define message generator for turns
+    private string MessageGenerator()
+    {
+        return "hi";
+    }
+
+    // TODO: Define translator for turn responses
+    private TurnObject TranslateTurnResponse(string turnResponse)
+    {
+        return new TurnObject();
+    }
 
 	// Parse lines of config files for initialize game (dummyParseConfigs)
 
@@ -145,20 +195,18 @@ public class InterpreterController : MonoBehaviour {
                 commands.Add(cmd);
             }
         }
-        DummyServer(commands); //TODO: Replace to sending request to actual server
+        // TODO: Replace to sending request to actual server
+        //
+        // string commandMessage = MessageGenerator(commands);
+        // completedTurns.Add(TranslateTurnResponse(ClientController.SubmitTurn(commandMessage)));
+        // PlayEvents(completedTurns.Last().GetEvents());
+        DummyServer(commands);
     }
 
+    // TODO: Add play events code
     public void PlayEvents()
     {
 
-    }
-
-	// Dummy data 
-	public static string[] GetPlayerNames(){
-		string playerAName = playerTurnObjectArray[0].PlayerName;
-		string playerBName = playerTurnObjectArray[1].PlayerName;
-		string[] playerNames = {playerAName, playerBName};
-		return playerNames;
     }
 
     private string ParseConfigs()
