@@ -8,5 +8,7 @@
     public const string TILE_MATERIAL_DIR = "Game/Tiles/Materials/";
     public const string PROTOBOARD_FILE = "Game/BoardFiles/ProtoBoard";
     public const string PROTOTILE_PREFAB = "Game/Tiles/ProtoTile";
+    public const string BOARDFILE_DIR = "Game/BoardFiles";
+    public const string LOADBOARD_BUTTON = "UI/BoardLoader";
     public const bool LOCAL_MODE = true;
 }

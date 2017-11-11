@@ -263,7 +263,7 @@ public class RobotController : MonoBehaviour
 
     public void ClickMenuOption(MenuOptions option, string value)
     {
-        ProtoBoardController board = FindObjectOfType<ProtoBoardController>();
+        BoardController board = FindObjectOfType<BoardController>();
         switch (option)
         {
             case MenuOptions.ATTACK:
@@ -358,7 +358,7 @@ public class RobotController : MonoBehaviour
 
     private void displayMove()
     {
-        ProtoBoardController board = FindObjectOfType<ProtoBoardController>();
+        BoardController board = FindObjectOfType<BoardController>();
         board.PlaceRobot(transform, (int) position.x, (int) position.y);
     }
 
