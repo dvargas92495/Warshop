@@ -1,11 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Linq;
 using Z8.Generic;
 
 public class InterpreterController : MonoBehaviour {
+
+    //Variables
+
+    private PlayerTurnObject[] playerTurnObjectArray;
+
+    private UIController UIController;
+    private BoardController BoardController;
+    public static string boardFile = GameConstants.PROTOBOARD_FILE;
+    public static string[] playerARobots = new string[0];
+    public static string[] playerBRobots = new string[0];
+    private ClientController ClientController;
+    private List<TurnObject> completedTurns = new List<TurnObject>();
 
     // TODO: Define game start object
     private class GameStartObject
@@ -13,20 +25,22 @@ public class InterpreterController : MonoBehaviour {
 
     }
 
+    void FixedUpdate()
+    {
+        if (GameConstants.LOCAL_MODE)
+        {
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                SceneManager.LoadScene("Initial");
+            }
+        }
+    }
+
     // TODO: Define turn object
     private class TurnObject
     {
 
     }
-
-    //Variables
-
-    private PlayerTurnObject[] playerTurnObjectArray;
-
-    private UIController UIController;
-    private ProtoBoardController ProtoBoardController;
-    private ClientController ClientController;
-    private List<TurnObject> completedTurns = new List<TurnObject>();
 
     // Initialize game by reading in turn info from config files.  Later will be server call
     void Awake () {
@@ -42,14 +56,14 @@ public class InterpreterController : MonoBehaviour {
 
         UIController = this.gameObject.GetComponent<UIController>();
         UIController.InitializeUICanvas(playerTurnObjectArray);
-        ProtoBoardController = FindObjectOfType<ProtoBoardController>();
+        BoardController = FindObjectOfType<BoardController>();
 
         // TODO: Change InitializeProtoBoard to take board layout as an argument
         // i.e.
         //
         // BoardLayout boardLayout = gameStartObject.GetBoardLayout();
         // ProtoBoardController.InitializeProtoBoard(boardLayout);
-        ProtoBoardController.InitializeProtoBoard();
+        BoardController.InitializeBoard(boardFile);
 
         // TODO: Add initialization code
         //
@@ -171,7 +185,7 @@ public class InterpreterController : MonoBehaviour {
                 robot.Owner = player.PlayerName;
                 robot.Identifier = robot.Owner + " " + robot.Name;
                 RobotController.Make(robot);
-                ProtoBoardController.PlaceRobotInQueue(robot.Identifier, playerCount == 1, robotCount);
+                BoardController.PlaceRobotInQueue(robot.Identifier, playerCount == 1, robotCount);
                 robotCount++;
             }
             robotCount = 0;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class ProtoBoardController : MonoBehaviour {
+public class BoardController : MonoBehaviour {
 
     //Area board is allowed to be in
     public float boardSpaceX;
@@ -19,9 +19,9 @@ public class ProtoBoardController : MonoBehaviour {
     // Use this for initialization
 
     //Makes board using read in text file
-    public void InitializeProtoBoard()
+    public void InitializeBoard(string boardfile)
     {
-        TextAsset content = Resources.Load<TextAsset>(GameConstants.PROTOBOARD_FILE);
+        TextAsset content = Resources.Load<TextAsset>(boardfile);
         string[] lines = content.text.Split('\n');
         GameObject tile = Resources.Load<GameObject>(GameConstants.PROTOTILE_PREFAB);
         int[] boardDimensions = lines[0].Trim().Split(null).Select(int.Parse).ToArray();

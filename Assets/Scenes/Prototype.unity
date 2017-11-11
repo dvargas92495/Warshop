@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.43632832, g: 0.474711, b: 0.51471263, a: 1}
+  m_IndirectSpecularColor: {r: 0.43632832, g: 0.47471094, b: 0.5147126, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -130,13 +130,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 245176729}
-  m_LocalRotation: {x: -0.9961947, y: 0, z: 0, w: 0.08715588}
+  m_LocalRotation: {x: 0, y: 0.08715588, z: 0.9961947, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 2.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 689802911}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: -170, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -170, y: 180, z: 0}
 --- !u!108 &245176731
 Light:
   m_ObjectHideFlags: 0
@@ -169,20 +169,6 @@ Light:
   m_Lightmapping: 2
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_FalloffTable:
-    m_Table[0]: 0
-    m_Table[1]: 0
-    m_Table[2]: 0
-    m_Table[3]: 0
-    m_Table[4]: 0
-    m_Table[5]: 0
-    m_Table[6]: 0
-    m_Table[7]: 0
-    m_Table[8]: 0
-    m_Table[9]: 0
-    m_Table[10]: 0
-    m_Table[11]: 0
-    m_Table[12]: 0
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
@@ -249,30 +235,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &647597432 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 1628397820275868, guid: 5dab4f01dfa9cf04fad51751a927c122,
-    type: 2}
-  m_PrefabInternal: {fileID: 2051030687}
---- !u!114 &647597433
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 647597432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dbb3b35710c3a514abec8440803b6c9c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  boardSpaceX: 10.65
-  boardSpaceY: 9
-  tileWidth: 0
-  tileHeight: 0
-  playerAQueueLocations: []
-  playerBQueueLocations: []
-  playerASpawnLocations: []
-  playerBSpawnLocations: []
 --- !u!1 &689802906
 GameObject:
   m_ObjectHideFlags: 0
@@ -916,35 +878,35 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 4907895975833814, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
+    - target: {fileID: 4360874973478952, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4907895975833814, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
+    - target: {fileID: 4360874973478952, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4907895975833814, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
+    - target: {fileID: 4360874973478952, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4907895975833814, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
+    - target: {fileID: 4360874973478952, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4907895975833814, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
+    - target: {fileID: 4360874973478952, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
       propertyPath: m_LocalRotation.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4907895975833814, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
+    - target: {fileID: 4360874973478952, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4907895975833814, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
+    - target: {fileID: 4360874973478952, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 4907895975833814, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
+    - target: {fileID: 4360874973478952, guid: 5dab4f01dfa9cf04fad51751a927c122, type: 2}
       propertyPath: m_RootOrder
       value: 2
       objectReference: {fileID: 0}

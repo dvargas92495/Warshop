@@ -1,0 +1,9 @@
+﻿5 8 
+Q Q Q Q Q
+S W A W S
+W W W W W
+W W W W W
+W W W W W
+W W W W W
+S W B W S
+q q q q q
