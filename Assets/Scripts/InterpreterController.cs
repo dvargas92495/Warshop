@@ -218,9 +218,8 @@ public class InterpreterController : MonoBehaviour {
         // completedTurns.Add(TranslateTurnResponse(ClientController.SubmitTurn(commandMessage)));
         // PlayEvents(completedTurns.Last().GetEvents());
         ClientController.SubmitTurn("Hello World");
-        DummyServer(commands);
-        //List<GameEvent> events = DummyServer(commands);
-        //StartCoroutine(PlayEvents(events));
+        List<GameEvent> events = DummyServer(commands);
+        StartCoroutine(PlayEvents(events));
     }
 
     // TODO: Add play events code

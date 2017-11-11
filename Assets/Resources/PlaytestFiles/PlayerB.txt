@@ -1,9 +1,9 @@
 4 32
 PlayerBName
+2 Flybot 4 2 12 N/A None
+4 Virusbot 4 5 4 N/A None
+7 Jaguar 8 4 6 N/A None
 3 Pithon 5 3 9 N/A None
-6 Hufflepuff 6 2 7 N/A None
-4 Trebuchebot 4 5 4 N/A None
-5 TRMP 6 2 8 N/A None
 0
 1
 2
