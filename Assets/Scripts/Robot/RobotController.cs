@@ -181,6 +181,12 @@ public class RobotController : MonoBehaviour
      * Robot Model During Turn Methods *
      ***********************************/
 
+    public void Spawn(int x, int y)
+    {
+        position = new Vector2(x, y);
+        displayMove();
+    } 
+
     public void MoveForward()
     {
         position += orientation;

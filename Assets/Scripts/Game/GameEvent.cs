@@ -50,16 +50,16 @@ public class RotateEvent : GameEvent
         {
             case RotateCommand.Direction.NORTH:
                 primaryRobot.RotateClockwise();
-                break;/*
-            case RotateCommand.Direction.FORWARD:
-                primaryRobot.MoveForward();
                 break;
-            case MoveCommand.Direction.LEFT:
-                primaryRobot.MoveLeft();
+            case RotateCommand.Direction.SOUTH:
+                primaryRobot.RotateClockwise();
                 break;
-            case MoveCommand.Direction.RIGHT:
-                primaryRobot.MoveRight();
-                break;*/
+            case RotateCommand.Direction.EAST:
+                primaryRobot.RotateClockwise();
+                break;
+            case RotateCommand.Direction.WEST:
+                primaryRobot.RotateClockwise();
+                break;
         }
     }
 }
@@ -70,7 +70,7 @@ public class SpawnEvent : GameEvent
     public override void playEvent()
     {
         int[] tilecoords = board.GetSpawn(spawnIndex, isOpponent);
-        board.PlaceRobot(primaryRobot.gameObject.transform, tilecoords[0], tilecoords[1]);
+        primaryRobot.Spawn(tilecoords[0], tilecoords[1]);
     }
 
     public override string ToString()

@@ -210,6 +210,7 @@ public class InterpreterController : MonoBehaviour {
                 cmd.isOpponent = robot.IsOpponent();
                 commands.Add(cmd);
             }
+            robot.ClearRobotCommands();
         }
         Debug.Log("Interpreter received commands");
         // TODO: Replace to sending request to actual server
@@ -217,7 +218,7 @@ public class InterpreterController : MonoBehaviour {
         // string commandMessage = MessageGenerator(commands);
         // completedTurns.Add(TranslateTurnResponse(ClientController.SubmitTurn(commandMessage)));
         // PlayEvents(completedTurns.Last().GetEvents());
-        ClientController.SubmitTurn("Hello World");
+        //ClientController.SubmitTurn("Fuck you Dan");
         List<GameEvent> events = DummyServer(commands);
         StartCoroutine(PlayEvents(events));
     }
@@ -263,10 +264,16 @@ public class InterpreterController : MonoBehaviour {
             }
             else if (cmd is RotateCommand)
             {
+                RotateEvent evt = new RotateEvent();
+                evt.direction = ((RotateCommand)cmd).getDirection();
+                e = evt;
 
             }
             else if (cmd is AttackCommand)
             {
+                AttackEvent evt = new AttackEvent();
+                //evt.direction = ((AttackCommand)cmd).getDirection();
+                e = evt;
 
             }
             else

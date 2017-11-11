@@ -12,7 +12,6 @@ public class ClientController {
         client = new NetClient(config);
         client.Start();
         NetConnection nc = client.Connect(host: GameConstants.SERVER_IP, port: 12345);
-        Debug.Log("connect... : " + nc.m_status);
         return new ClientInializationObject();
     }
 
