@@ -13,6 +13,7 @@ public class InterpreterController : MonoBehaviour {
 
     private UIController UIController;
     private BoardController BoardController;
+    public static int eventDelay = 1;
     public static string boardFile = GameConstants.PROTOBOARD_FILE;
     public static string[] playerARobots = new string[0];
     public static string[] playerBRobots = new string[0];
@@ -195,7 +196,7 @@ public class InterpreterController : MonoBehaviour {
 
     public void SubmitActions()
     {
-        Debug.Log("Interpreter received actions");
+        Debug.Log("Interpreter received end turn button");
         List<RobotCommand> commands = new List<RobotCommand>();
         RobotController[] robots = FindObjectsOfType<RobotController>();
         foreach(RobotController robot in robots)
@@ -206,9 +207,11 @@ public class InterpreterController : MonoBehaviour {
                 cmd.id = robot.GetId();
                 cmd.owner = (!GameConstants.LOCAL_MODE ? "ACTUAL_USERNAME":
                     (robot.IsOpponent() ? "opponent":"me"));
+                cmd.isOpponent = robot.IsOpponent();
                 commands.Add(cmd);
             }
         }
+        Debug.Log("Interpreter received commands");
         // TODO: Replace to sending request to actual server
         //
         // string commandMessage = MessageGenerator(commands);
@@ -216,12 +219,19 @@ public class InterpreterController : MonoBehaviour {
         // PlayEvents(completedTurns.Last().GetEvents());
         ClientController.SubmitTurn("Hello World");
         DummyServer(commands);
+        //List<GameEvent> events = DummyServer(commands);
+        //StartCoroutine(PlayEvents(events));
     }
 
     // TODO: Add play events code
-    public void PlayEvents()
+    public IEnumerator PlayEvents(List<GameEvent> events)
     {
-
+        foreach(GameEvent evt in events)
+        {
+            evt.playEvent();
+            Debug.Log("Output to history what happened: " + evt.ToString());
+            yield return new WaitForSeconds(eventDelay);
+        }
     }
 
     private string ParseConfigs()
@@ -229,14 +239,48 @@ public class InterpreterController : MonoBehaviour {
         return "Matt's object";
     }
 
-    private void DummyServer(List<RobotCommand> commands)
+    private List<GameEvent> DummyServer(List<RobotCommand> commands)
     {
         commands.Sort((a, b) =>
         {
-            RobotController aRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == a.id);
-            RobotController bRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == b.id);
-            return -2;
+            RobotController aRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == a.id && c.IsOpponent() == a.isOpponent);
+            RobotController bRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == b.id && c.IsOpponent() == b.isOpponent);
+            return -1;
         });
+        List<GameEvent> events = new List<GameEvent>();
+        foreach(RobotCommand cmd in commands)
+        {
+            GameEvent e = null;
+            if (cmd is SpawnCommand)
+            {
+                SpawnEvent evt = new SpawnEvent();
+                evt.spawnIndex = ((SpawnCommand)cmd).getSpawnIndex();
+                e = evt;
+            } else if (cmd is MoveCommand)
+            {
+                MoveEvent evt = new MoveEvent();
+                evt.direction = ((MoveCommand)cmd).getDirection();
+                e = evt;
+            }
+            else if (cmd is RotateCommand)
+            {
+
+            }
+            else if (cmd is AttackCommand)
+            {
+
+            }
+            else
+            {
+                Debug.Log("Bad Command: " + cmd.toString());
+                continue;
+            }
+            e.primaryRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == cmd.id && c.IsOpponent() == cmd.isOpponent);
+            e.board = BoardController;
+            e.isOpponent = cmd.isOpponent;
+            events.Add(e);
+        }
+        return events;
     }
 }
 

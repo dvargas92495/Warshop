@@ -128,9 +128,9 @@ public class RobotController : MonoBehaviour
         commands.Clear();
     }
 
-    public void AddSpawnCommand(int x, int y)
+    public void AddSpawnCommand(int index)
     {
-        addRobotCommand(new SpawnCommand(x, y));
+        addRobotCommand(new SpawnCommand(index));
     }
 
     public void AddMoveCommand(MoveCommand.Direction dir)
@@ -316,8 +316,7 @@ public class RobotController : MonoBehaviour
                         AddOptions(vals.ConvertAll(x => MenuOptions.SPAWN), vals, true);
                         break;
                     default:
-                        int[] coords = board.GetSpawn(int.Parse(value) - 1, isOpponent);
-                        AddSpawnCommand(coords[0], coords[1]);
+                        AddSpawnCommand(int.Parse(value));
                         break;
                 }
                 break;

@@ -3,27 +3,20 @@
 public class SpawnCommand : RobotCommand
 {
 
-    int spawnX;
-    int spawnY;
+    int spawnIndex;
 
-    public SpawnCommand(int x, int y)
+    public SpawnCommand(int index)
     {
-        spawnX = x;
-        spawnY = y;
+        spawnIndex = index - 1;
     }
     
-    public int getSpawnX()
+    public int getSpawnIndex()
     {
-        return spawnX;
-    }
-
-    public int getSpawnY()
-    {
-        return spawnY;
+        return spawnIndex;
     }
 
     public override string toString()
     {
-        return RobotMenuController.SPAWN + " on Space (" + spawnX + ", " + spawnY + ")";
+        return RobotMenuController.SPAWN + " on Spawn Space " + (spawnIndex + 1);
     }
 }
