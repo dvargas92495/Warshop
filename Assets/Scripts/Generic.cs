@@ -47,7 +47,7 @@ namespace Z8.Generic
         }
     }
 
-    public class ClientInitializationObject
+    public class ClientInializationObject
     {
 
     }
