@@ -37,7 +37,7 @@ public class InterpreterController : MonoBehaviour {
         playerTurnObjectArray = DummyParseConfigs();
 
         ClientController = new ClientController();
-        ClientInitializationObject clientInitObject = ClientController.Initialize();
+        ClientInializationObject clientInitObject = ClientController.Initialize();
         GameStartObject gameStartObject = TranslateClientInit(clientInitObject);
 
         UIController = this.gameObject.GetComponent<UIController>();
@@ -66,20 +66,20 @@ public class InterpreterController : MonoBehaviour {
 
         //foreach (PlayerTurnObject player in playerTurnObjectArray)
         //{
-          //  foreach (RobotObject robot in player.robotObjects)
-           // {   //Option 1, factory method that requires RobotController to do all the setting and know what RobotObject looks like
-            //    RobotController.Make(robot);
-                //Option 2, would be to have interpretercontroller call a bunch of setter methods
-                //RobotController rc = Instantiate(Resources.Load(blah blah blah...
-                //rc.setId(robot.Id);
-                //rc.setAttack(robot.Attack);
-                //etc
+        //  foreach (RobotObject robot in player.robotObjects)
+        // {   //Option 1, factory method that requires RobotController to do all the setting and know what RobotObject looks like
+        //    RobotController.Make(robot);
+        //Option 2, would be to have interpretercontroller call a bunch of setter methods
+        //RobotController rc = Instantiate(Resources.Load(blah blah blah...
+        //rc.setId(robot.Id);
+        //rc.setAttack(robot.Attack);
+        //etc
 
-                //I prefer option 2, but I'm currently too lazy to write all the setter methods
-                //This double for loop should probably be in its own method too.
-            //}
+        //I prefer option 2, but I'm currently too lazy to write all the setter methods
+        //This double for loop should probably be in its own method too.
         //}
-	}
+        //}
+    }
 
 	void Start () 
 	{
@@ -107,7 +107,7 @@ public class InterpreterController : MonoBehaviour {
 	}
 
     // TODO: Define translator for game initialization
-    private GameStartObject TranslateClientInit(ClientInitializationObject clientInitObject)
+    private GameStartObject TranslateClientInit(ClientInializationObject clientInitObject)
     {
         return new GameStartObject();
     }
@@ -200,6 +200,7 @@ public class InterpreterController : MonoBehaviour {
         // string commandMessage = MessageGenerator(commands);
         // completedTurns.Add(TranslateTurnResponse(ClientController.SubmitTurn(commandMessage)));
         // PlayEvents(completedTurns.Last().GetEvents());
+        ClientController.SubmitTurn("Hello World");
         DummyServer(commands);
     }
 

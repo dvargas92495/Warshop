@@ -9,4 +9,5 @@
     public const string PROTOBOARD_FILE = "Game/BoardFiles/ProtoBoard";
     public const string PROTOTILE_PREFAB = "Game/Tiles/ProtoTile";
     public const bool LOCAL_MODE = true;
+    public const string SERVER_IP = "127.0.0.1";
 }
