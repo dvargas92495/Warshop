@@ -1,7 +1,14 @@
 Library/*
 Temp/*
 .vs/*
-Z8.csproj
-Z8.sln
+*.sln
 ProjectSettings.asset
 ProjectVersion.txt
+*.csproj
+Z8GameModel/obj/*
+Z8GameModel/.vs/*
+Z8Server/bin/*
+Z8Server/Properties/*
+Z8Server/obj/*
+Z8Server/.vs/*
+App.xml

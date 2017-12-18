@@ -36,12 +36,12 @@ namespace Z8GameModel
             // push something if we're facing the right direction and there's something to push
             if (inDirection == Direction)
             {
-                GameObject o = Game.GetObjectFromID(objectID);
+                /*GameObject o = Game.GetObjectFromID(objectID);
                 if (o.Collidable)
                 {
                     o.Collide(ObjectID);
                     o.Move(inDirection, )
-                }
+                }*/
             }
         }
 
@@ -53,7 +53,7 @@ namespace Z8GameModel
         // Attacks the square in front of the actor
         internal void Attack(Map map)
         {
-            map.AttackFrom(Strength, ObjectID, Location, Direction);
+            //map.AttackFrom(Strength, ObjectID, Location, Direction);
         }
         
         internal new bool Attacked(int damage, int attackedByObjectID)

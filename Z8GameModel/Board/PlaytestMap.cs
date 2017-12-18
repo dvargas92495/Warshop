@@ -2,7 +2,7 @@
 {
     internal class PlaytestMap : Map
     {
-        internal PlaytestMap()
+        public PlaytestMap(int width, int length) : base(width, length)
         {
             Width = 4;
             Length = 6;
@@ -11,7 +11,7 @@
             {
                 for (int j = 0; j < Length; j++)
                 {
-                    Spaces.Add(new Space(Game.GetNewGuid()));
+                    //Spaces.Add(new Space(Game.GetNewGuid()));
                 }
             }
         }

@@ -3,3 +3,8 @@ C:\Users\Matt\Documents\Z8_Game\Z8GameModel\bin\Debug\Z8GameModel.pdb
 C:\Users\Matt\Documents\Z8_Game\Z8GameModel\obj\Debug\Z8GameModel.dll
 C:\Users\Matt\Documents\Z8_Game\Z8GameModel\obj\Debug\Z8GameModel.pdb
 C:\Users\Matt\Documents\Z8_Game\Z8GameModel\obj\Debug\Z8GameModel.csprojResolveAssemblyReference.cache
+C:\Users\David\Documents\UnityProjects\Z8\Z8GameModel\obj\Debug\Z8GameModel.csprojResolveAssemblyReference.cache
+C:\Users\David\Documents\UnityProjects\Z8\Z8GameModel\obj\Debug\Z8GameModel.dll
+C:\Users\David\Documents\UnityProjects\Z8\Z8GameModel\obj\Debug\Z8GameModel.pdb
+C:\Users\David\Documents\UnityProjects\Z8\Z8GameModel\bin\Debug\Z8GameModel.dll
+C:\Users\David\Documents\UnityProjects\Z8\Z8GameModel\bin\Debug\Z8GameModel.pdb

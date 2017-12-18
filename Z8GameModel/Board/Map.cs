@@ -24,10 +24,10 @@ namespace Z8GameModel
         internal void UpdateObjectLocation(int objectID, Point NewSpace)
         {
             Point oldPoint = objectToSpace[objectID];
-            spaces[oldPoint.X, oldPoint.Y].RemoveObject(objectID);
+            //spaces[oldPoint.X, oldPoint.Y].RemoveObject(objectID);
 
             objectToSpace[objectID] = NewSpace;
-            spaces[NewSpace.X, NewSpace.Y].AddObject(objectID);
+            //spaces[NewSpace.X, NewSpace.Y].AddObject(objectID);
         }
 
         internal void RemoveObject(int objectID)

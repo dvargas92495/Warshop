@@ -10,12 +10,12 @@ public class InitialController : MonoBehaviour {
     private float dx = 200;
     private float dy = 50;
     private int width = 2;
-    public Button playerAAdd;
-    public Button playerBAdd;
-    public Dropdown playerASelect;
-    public Dropdown playerBSelect;
-    public Text playerARoster;
-    public Text playerBRoster;
+    public Button myAdd;
+    public Button opponentAdd;
+    public Dropdown mySelect;
+    public Dropdown opponentSelect;
+    public Text myRoster;
+    public Text opponentRoster;
 
     // Use this for initialization
     void Start () {
@@ -41,21 +41,21 @@ public class InitialController : MonoBehaviour {
                 thisBoard.onClick.AddListener(() =>
                 {
                     InterpreterController.boardFile = GameConstants.BOARDFILE_DIR + "/" + f.Name.Substring(0, f.Name.Length - 4);
-                    InterpreterController.playerARobots = playerARoster.text.Split('\n');
-                    InterpreterController.playerBRobots = playerBRoster.text.Split('\n');
+                    InterpreterController.myRobots = myRoster.text.Split('\n');
+                    InterpreterController.opponentRobots = opponentRoster.text.Split('\n');
                     SceneManager.LoadScene("Prototype");
                 });
             }
         }
-        playerAAdd.onClick.AddListener(() =>
+        myAdd.onClick.AddListener(() =>
         {
-            string robot = playerASelect.options[playerASelect.value].text;
-            playerARoster.text += robot + "\n";
+            string robot = mySelect.options[mySelect.value].text;
+            myRoster.text += robot + "\n";
         });
-        playerBAdd.onClick.AddListener(() =>
+        opponentAdd.onClick.AddListener(() =>
         {
-            string robot = playerBSelect.options[playerBSelect.value].text;
-            playerBRoster.text += robot + "\n";
+            string robot = opponentSelect.options[opponentSelect.value].text;
+            opponentRoster.text += robot + "\n";
         });
         DirectoryInfo robotDir = new DirectoryInfo(GameConstants.RESOURCES + GameConstants.ROBOT_PREFAB_DIR);
         FileInfo[] robotInfo = robotDir.GetFiles("*.*");
@@ -69,8 +69,8 @@ public class InitialController : MonoBehaviour {
                 opts.Add(opt);
             }
         }
-        playerASelect.AddOptions(opts);
-        playerBSelect.AddOptions(opts);
+        mySelect.AddOptions(opts);
+        opponentSelect.AddOptions(opts);
     }
 
     // Update is called once per frame

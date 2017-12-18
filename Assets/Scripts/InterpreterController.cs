@@ -15,8 +15,8 @@ public class InterpreterController : MonoBehaviour {
     private BoardController BoardController;
     public static int eventDelay = 1;
     public static string boardFile = GameConstants.PROTOBOARD_FILE;
-    public static string[] playerARobots = new string[0];
-    public static string[] playerBRobots = new string[0];
+    public static string[] myRobots = new string[0];
+    public static string[] opponentRobots = new string[0];
     private ClientController ClientController;
     private List<TurnObject> completedTurns = new List<TurnObject>();
 

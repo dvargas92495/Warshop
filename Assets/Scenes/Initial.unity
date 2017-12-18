@@ -1159,7 +1159,7 @@ GameObject:
   - component: {fileID: 519562907}
   - component: {fileID: 519562906}
   m_Layer: 5
-  m_Name: PlayerARoster
+  m_Name: MyRoster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1403,7 +1403,7 @@ GameObject:
   - component: {fileID: 906937673}
   - component: {fileID: 906937672}
   m_Layer: 5
-  m_Name: PlayerBRoster
+  m_Name: OpponentRoster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1627,6 +1627,36 @@ Prefab:
       propertyPath: playerBRoster
       value: 
       objectReference: {fileID: 906937672}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: mySelect
+      value: 
+      objectReference: {fileID: 1806907595}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: opponentSelect
+      value: 
+      objectReference: {fileID: 1119444647}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: opponentAdd
+      value: 
+      objectReference: {fileID: 2084235387}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: myAdd
+      value: 
+      objectReference: {fileID: 1717226670}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: myRoster
+      value: 
+      objectReference: {fileID: 519562906}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: opponentRoster
+      value: 
+      objectReference: {fileID: 906937672}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 6e3e0d7b4af03eb42aea7e8698edab55, type: 2}
   m_IsPrefabParent: 0
@@ -1830,7 +1860,7 @@ GameObject:
   - component: {fileID: 1119444648}
   - component: {fileID: 1119444647}
   m_Layer: 5
-  m_Name: PlayerBSelection
+  m_Name: OpponentSelection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2444,7 +2474,7 @@ GameObject:
   - component: {fileID: 1717226671}
   - component: {fileID: 1717226670}
   m_Layer: 5
-  m_Name: PlayerAAdd
+  m_Name: MyAdd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2657,7 +2687,7 @@ GameObject:
   - component: {fileID: 1806907596}
   - component: {fileID: 1806907595}
   m_Layer: 5
-  m_Name: PlayerASelection
+  m_Name: MySelection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2860,7 +2890,7 @@ GameObject:
   - component: {fileID: 2084235388}
   - component: {fileID: 2084235387}
   m_Layer: 5
-  m_Name: PlayerBAdd
+  m_Name: OpponentAdd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
