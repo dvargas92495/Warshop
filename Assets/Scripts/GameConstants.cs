@@ -11,7 +11,8 @@
     public const string PROTOTILE_PREFAB = "Game/Tiles/ProtoTile";
     public const string BOARDFILE_DIR = "Game/BoardFiles";
     public const string LOADBOARD_BUTTON = "UI/BoardLoader";
-    public const bool LOCAL_MODE = true;
     public const string SERVER_IP = "10.189.100.74";
     public const string LOCAL_SERVER_IP = "127.0.0.1";
+
+    public static bool LOCAL_MODE = true;
 }

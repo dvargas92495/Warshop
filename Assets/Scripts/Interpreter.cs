@@ -5,75 +5,16 @@ using UnityEngine.SceneManagement;
 using System.Linq;
 using Z8.Generic;
 
-public class InterpreterController : MonoBehaviour {
-
-    //Variables
+public class Interpreter : MonoBehaviour {
 
     private static PlayerTurnObject[] playerTurnObjectArray;
 
-    private UIController UIController;
-    private BoardController BoardController;
+    private static UIController uiController;
+    private static BoardController boardController;
     public static int eventDelay = 1;
     public static string boardFile = GameConstants.PROTOBOARD_FILE;
     public static string[] myRobots = new string[0];
     public static string[] opponentRobots = new string[0];
-    private List<TurnObject> completedTurns = new List<TurnObject>();
-
-    // TODO: Define game start object
-    private class GameStartObject
-    {
-
-    }
-
-    // TODO: Define turn object
-    private class TurnObject
-    {
-
-    }
-
-    // Initialize game by reading in turn info from config files.  Later will be server call
-    void Awake () {
-
-        UIController = this.gameObject.GetComponent<UIController>();
-        //UIController.InitializeUICanvas(playerTurnObjectArray);
-        BoardController = FindObjectOfType<BoardController>();
-
-        // TODO: Change InitializeProtoBoard to take board layout as an argument
-        // i.e.
-        //
-        // BoardLayout boardLayout = gameStartObject.GetBoardLayout();
-        // ProtoBoardController.InitializeProtoBoard(boardLayout);
-        BoardController.InitializeBoard(boardFile);
-
-        // TODO: Add initialization code
-        //
-        // RobotObject[] playerRobots = gameStartObject.GetPlayerRobots();
-        // RobotObject[] opponentRobots = gameStartObject.GetOpponentRobots();
-
-        // function to get robots from playerTurnObjectArray
-        // returns robots with info to send to ->
-
-        // TODO: Change InitializeRobots code to initialize player/opponent robots seperately
-        InitializeRobots(playerTurnObjectArray);
-
-
-
-        //foreach (PlayerTurnObject player in playerTurnObjectArray)
-        //{
-        //  foreach (RobotObject robot in player.robotObjects)
-        // {   //Option 1, factory method that requires RobotController to do all the setting and know what RobotObject looks like
-        //    RobotController.Make(robot);
-        //Option 2, would be to have interpretercontroller call a bunch of setter methods
-        //RobotController rc = Instantiate(Resources.Load(blah blah blah...
-        //rc.setId(robot.Id);
-        //rc.setAttack(robot.Attack);
-        //etc
-
-        //I prefer option 2, but I'm currently too lazy to write all the setter methods
-        //This double for loop should probably be in its own method too.
-        //}
-        //}
-    }
 
     void FixedUpdate()
     {
@@ -88,24 +29,38 @@ public class InterpreterController : MonoBehaviour {
 
     public static void ConnectToServer()
     {
-        ClientController.Initialize();
+        GameClient.Initialize();
     }
 
     public static void SendPlayerInfo()
     {
         if (GameConstants.LOCAL_MODE)
         {
-            ClientController.SendBothTeams(myRobots, opponentRobots);
+            GameClient.SendLocalGameRequest(myRobots, opponentRobots);
         }
         else
         {
-            //TODO
+            GameClient.SendGameRequest(myRobots);
         }
     }
 
-    public static void LoadBoard()
+    public static void LoadBoard(PlayerTurnObject[] ptos)
     {
+        playerTurnObjectArray = ptos;
         SceneManager.LoadScene("Prototype");
+    }
+
+    public static void InitializeUI(UIController ui)
+    {
+        uiController = ui;
+        uiController.InitializeUICanvas(playerTurnObjectArray);
+    }
+
+    public static void InitializeBoard(BoardController board)
+    {
+        boardController = board;
+        boardController.InitializeBoard(boardFile);
+        InitializeRobots(playerTurnObjectArray);
     }
 
     // Parse the configs file to initialize game
@@ -129,22 +84,10 @@ public class InterpreterController : MonoBehaviour {
 		return playerTurnObjectArray;
 	}
 
-    // TODO: Define translator for game initialization
-    private GameStartObject TranslateClientInit(ClientInializationObject clientInitObject)
-    {
-        return new GameStartObject();
-    }
-
     // TODO: Define message generator for turns
     private string MessageGenerator()
     {
         return "hi";
-    }
-
-    // TODO: Define translator for turn responses
-    private TurnObject TranslateTurnResponse(string turnResponse)
-    {
-        return new TurnObject();
     }
 
 	// Parse lines of config files for initialize game (dummyParseConfigs)
@@ -178,7 +121,7 @@ public class InterpreterController : MonoBehaviour {
 		return playerXTurnObject;
 	}
 
-    private void InitializeRobots(PlayerTurnObject[] playerTurns)
+    private static void InitializeRobots(PlayerTurnObject[] playerTurns)
     {
         int playerCount = 0;
         int robotCount = 0;
@@ -189,7 +132,7 @@ public class InterpreterController : MonoBehaviour {
                 robot.Owner = player.PlayerName;
                 robot.Identifier = robot.Owner + " " + robot.Name;
                 RobotController.Make(robot);
-                BoardController.PlaceRobotInQueue(robot.Identifier, playerCount == 1, robotCount);
+                boardController.PlaceRobotInQueue(robot.Identifier, playerCount == 1, robotCount);
                 robotCount++;
             }
             robotCount = 0;
@@ -221,7 +164,7 @@ public class InterpreterController : MonoBehaviour {
         // string commandMessage = MessageGenerator(commands);
         // completedTurns.Add(TranslateTurnResponse(ClientController.SubmitTurn(commandMessage)));
         // PlayEvents(completedTurns.Last().GetEvents());
-        ClientController.SubmitTurn("Fuck you Dan");
+        GameClient.SubmitTurn("Fuck you Dan");
         List<GameEvent> events = DummyServer(commands);
         StartCoroutine(PlayEvents(events));
     }
@@ -285,7 +228,7 @@ public class InterpreterController : MonoBehaviour {
                 continue;
             }
             e.primaryRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == cmd.id && c.IsOpponent() == cmd.isOpponent);
-            e.board = BoardController;
+            e.board = boardController;
             e.isOpponent = cmd.isOpponent;
             events.Add(e);
         }

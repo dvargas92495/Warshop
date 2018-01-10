@@ -34,10 +34,13 @@ public class UIController : MonoBehaviour {
 	private Sprite robotSprite;
     private bool myTurn;
 
-    
-		
-	//Loads the UICanvas and it's child components
-	 public void InitializeUICanvas(PlayerTurnObject[] playerTurnObjects) 
+    void Start()
+    {
+        Interpreter.InitializeUI(this);
+    }
+
+    //Loads the UICanvas and it's child components
+    public void InitializeUICanvas(PlayerTurnObject[] playerTurnObjects) 
 	{
         // get child components  
         BackgroundPanel = GameObject.Find("UICanvas");
@@ -152,7 +155,7 @@ public class UIController : MonoBehaviour {
         GameObject Controllers = GameObject.Find("Controllers");
         if (!GameConstants.LOCAL_MODE || !myTurn) //Send if not Local, or is Local and opponent just submitted
         {
-            Controllers.GetComponent<InterpreterController>().SubmitActions();
+            Controllers.GetComponent<Interpreter>().SubmitActions();
         } else if (GameConstants.LOCAL_MODE)
         {
             myTurn = !myTurn;

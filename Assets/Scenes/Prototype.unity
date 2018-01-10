@@ -823,7 +823,6 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1906626247}
-  - component: {fileID: 1906626246}
   - component: {fileID: 1906626248}
   m_Layer: 0
   m_Name: Controllers
@@ -832,17 +831,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1906626246
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1906626245}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82553c7a22369a241b8bb1ee4b1d58b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1906626247
 Transform:
   m_ObjectHideFlags: 0

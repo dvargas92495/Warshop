@@ -8,6 +8,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Initial.unity
     guid: 2eda9aa455fb4fd43893f7f685620fc6
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/Prototype.unity
     guid: c10f8832158223b4bb0598e23d14b19f

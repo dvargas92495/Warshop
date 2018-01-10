@@ -17,6 +17,10 @@ public class BoardController : MonoBehaviour {
     public List< List<ProtoTileController>> allLocations = new List<List<ProtoTileController>>();
 
     // Use this for initialization
+    void Start()
+    {
+        Interpreter.InitializeBoard(this);
+    }
 
     //Makes board using read in text file
     public void InitializeBoard(string boardfile)
