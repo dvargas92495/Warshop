@@ -8,7 +8,6 @@ namespace Z8.Generic
     {
         public string PlayerName { get; set; }
         public List<RobotObject> robotObjects = new List<RobotObject>();
-        public List<int> handIDs = new List<int>();
 
         public PlayerTurnObject(string currentPlayerName)
         {
@@ -18,11 +17,6 @@ namespace Z8.Generic
         public void AddRobot(RobotObject robot)
         {
             robotObjects.Add(robot);
-        }
-
-        public void AddCard(int i)
-        {
-            handIDs.Add(i);
         }
     }
 

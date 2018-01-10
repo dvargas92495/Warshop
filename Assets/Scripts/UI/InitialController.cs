@@ -1,12 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 public class InitialController : MonoBehaviour {
 
+    private bool isServer;
     private float dx = 200;
     private float dy = 50;
     private int width = 2;
@@ -17,8 +19,18 @@ public class InitialController : MonoBehaviour {
     public Text myRoster;
     public Text opponentRoster;
 
+    public void Awake()
+    {
+        isServer = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null);
+    }
+
     // Use this for initialization
     void Start () {
+        if (isServer)
+        {
+            App.StartServer();
+            return;
+        }
         DirectoryInfo dir = new DirectoryInfo(GameConstants.RESOURCES + GameConstants.BOARDFILE_DIR);
         Button but = Resources.Load<Button>(GameConstants.LOADBOARD_BUTTON);
         FileInfo[] info = dir.GetFiles("*.*");
@@ -43,7 +55,7 @@ public class InitialController : MonoBehaviour {
                     InterpreterController.boardFile = GameConstants.BOARDFILE_DIR + "/" + f.Name.Substring(0, f.Name.Length - 4);
                     InterpreterController.myRobots = myRoster.text.Split('\n');
                     InterpreterController.opponentRobots = opponentRoster.text.Split('\n');
-                    SceneManager.LoadScene("Prototype");
+                    InterpreterController.ConnectToServer();
                 });
             }
         }
@@ -72,9 +84,4 @@ public class InitialController : MonoBehaviour {
         mySelect.AddOptions(opts);
         opponentSelect.AddOptions(opts);
     }
-
-    // Update is called once per frame
-    void Update () {
-		
-	}
 }

@@ -9,7 +9,7 @@ public class InterpreterController : MonoBehaviour {
 
     //Variables
 
-    private PlayerTurnObject[] playerTurnObjectArray;
+    private static PlayerTurnObject[] playerTurnObjectArray;
 
     private UIController UIController;
     private BoardController BoardController;
@@ -17,24 +17,12 @@ public class InterpreterController : MonoBehaviour {
     public static string boardFile = GameConstants.PROTOBOARD_FILE;
     public static string[] myRobots = new string[0];
     public static string[] opponentRobots = new string[0];
-    private ClientController ClientController;
     private List<TurnObject> completedTurns = new List<TurnObject>();
 
     // TODO: Define game start object
     private class GameStartObject
     {
 
-    }
-
-    void FixedUpdate()
-    {
-        if (GameConstants.LOCAL_MODE)
-        {
-            if (Input.GetKeyDown(KeyCode.B))
-            {
-                SceneManager.LoadScene("Initial");
-            }
-        }
     }
 
     // TODO: Define turn object
@@ -45,18 +33,9 @@ public class InterpreterController : MonoBehaviour {
 
     // Initialize game by reading in turn info from config files.  Later will be server call
     void Awake () {
-        //string mattsObj = parseConfigs();
-        // Call model.iniialize(mattsObj), return turnResolveObj
-
-        //dummyParseConfigs will  
-        playerTurnObjectArray = DummyParseConfigs();
-
-        ClientController = new ClientController();
-        ClientInializationObject clientInitObject = ClientController.Initialize();
-        GameStartObject gameStartObject = TranslateClientInit(clientInitObject);
 
         UIController = this.gameObject.GetComponent<UIController>();
-        UIController.InitializeUICanvas(playerTurnObjectArray);
+        //UIController.InitializeUICanvas(playerTurnObjectArray);
         BoardController = FindObjectOfType<BoardController>();
 
         // TODO: Change InitializeProtoBoard to take board layout as an argument
@@ -96,12 +75,41 @@ public class InterpreterController : MonoBehaviour {
         //}
     }
 
-	void Start () 
-	{
-	}
+    void FixedUpdate()
+    {
+        if (GameConstants.LOCAL_MODE)
+        {
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                SceneManager.LoadScene("Initial");
+            }
+        }
+    }
 
-	// Parse the configs file to initialize game
-	private PlayerTurnObject[] DummyParseConfigs(){
+    public static void ConnectToServer()
+    {
+        ClientController.Initialize();
+    }
+
+    public static void SendPlayerInfo()
+    {
+        if (GameConstants.LOCAL_MODE)
+        {
+            ClientController.SendBothTeams(myRobots, opponentRobots);
+        }
+        else
+        {
+            //TODO
+        }
+    }
+
+    public static void LoadBoard()
+    {
+        SceneManager.LoadScene("Prototype");
+    }
+
+    // Parse the configs file to initialize game
+    private PlayerTurnObject[] DummyParseConfigs(){
 
 		// load text files
 		TextAsset playerAContent = Resources.Load<TextAsset>("PlaytestFiles/PlayerA");
@@ -167,11 +175,6 @@ public class InterpreterController : MonoBehaviour {
 		}
 
 		currentLine += lengthIds[0];
-
-		//Card ids
-		for (int i = 0; i < 4; i++) {
-			playerXTurnObject.AddCard (int.Parse(playerXLines[currentLine + 1].Trim()));
-		}
 		return playerXTurnObject;
 	}
 
@@ -218,7 +221,7 @@ public class InterpreterController : MonoBehaviour {
         // string commandMessage = MessageGenerator(commands);
         // completedTurns.Add(TranslateTurnResponse(ClientController.SubmitTurn(commandMessage)));
         // PlayEvents(completedTurns.Last().GetEvents());
-        //ClientController.SubmitTurn("Fuck you Dan");
+        ClientController.SubmitTurn("Fuck you Dan");
         List<GameEvent> events = DummyServer(commands);
         StartCoroutine(PlayEvents(events));
     }
