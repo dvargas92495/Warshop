@@ -4,6 +4,7 @@ Temp/*
 obj/*
 *.sln
 *.csproj
+UnityPackageManager/*
 Z8GameModel/bin/*
 Z8GameModel/Properties/*
 Z8GameModel/obj/*
