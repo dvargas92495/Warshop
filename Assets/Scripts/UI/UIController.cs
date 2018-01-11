@@ -155,7 +155,7 @@ public class UIController : MonoBehaviour {
         GameObject Controllers = GameObject.Find("Controllers");
         if (!GameConstants.LOCAL_MODE || !myTurn) //Send if not Local, or is Local and opponent just submitted
         {
-            Controllers.GetComponent<Interpreter>().SubmitActions();
+            Interpreter.SubmitActions();
         } else if (GameConstants.LOCAL_MODE)
         {
             myTurn = !myTurn;

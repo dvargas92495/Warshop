@@ -53,8 +53,8 @@ public class InitialController : MonoBehaviour {
                 thisBoard.onClick.AddListener(() =>
                 {
                     Interpreter.boardFile = GameConstants.BOARDFILE_DIR + "/" + f.Name.Substring(0, f.Name.Length - 4);
-                    Interpreter.myRobots = myRoster.text.Split('\n');
-                    Interpreter.opponentRobots = opponentRoster.text.Split('\n');
+                    Interpreter.myRobots = myRoster.text.Substring(0, myRoster.text.Length-1).Split('\n');
+                    Interpreter.opponentRobots = opponentRoster.text.Substring(0, opponentRoster.text.Length - 1).Split('\n');
                     Interpreter.ConnectToServer();
                 });
             }
