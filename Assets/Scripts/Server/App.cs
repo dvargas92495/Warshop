@@ -4,12 +4,27 @@ using System.Collections.Generic;
 using Z8.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using Aws.GameLift;
+using Aws.GameLift.Server;
+using Aws.GameLift.Server.Model;
 
 public class App : MonoBehaviour {
 
     // Use this for initialization
     public static void StartServer()
     {
+        GenericOutcome outcome = GameLiftServerAPI.InitSDK();
+        GameLiftServerAPI.ProcessReady(new ProcessParameters(
+            OnGameSession,
+            OnProcessTerminate,
+            OnHealthCheck,
+            GameConstants.PORT,
+            new LogParameters(new List<string>()
+            {
+              "/local/game/logs",
+              "/local/game/error"
+            })
+        ));
         NetworkServer.RegisterHandler(MsgType.Connect, OnConnect);
         NetworkServer.RegisterHandler(Messages.START_LOCAL_GAME, OnStartLocalGame);
         NetworkServer.RegisterHandler(Messages.START_GAME, OnStartGame);
@@ -17,6 +32,31 @@ public class App : MonoBehaviour {
         NetworkServer.Listen(GameConstants.PORT);
         Console.WriteLine("Listening");
     }
+
+    // begin GameLift callbacks
+
+    static void OnGameSession(GameSession gameSession)
+    {
+        // game-specific tasks when starting a new game session, such as loading map
+        // When ready to receive players
+        GenericOutcome activateGameSessionOutcome = GameLiftServerAPI.ActivateGameSession();
+    }
+
+    static void OnProcessTerminate()
+    {
+        // game-specific tasks required to gracefully shut down a game session, 
+        // such as notifying players, preserving game state data, and other cleanup
+        GenericOutcome ProcessEndingOutcome = GameLiftServerAPI.ProcessEnding();
+        GameLiftServerAPI.Destroy();
+    }
+
+    static bool OnHealthCheck()
+    {
+        // complete health evaluation within 60 seconds and set health
+        return true;
+    }
+
+    // end GameLift callbacks
 
     private static void OnConnect(NetworkMessage netMsg)
     {

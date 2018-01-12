@@ -14,6 +14,6 @@
     public const string LOCAL_SERVER_IP = "127.0.0.1";
 
     public static bool LOCAL_MODE = true;
-    public static string SERVER_IP = "18.9.64.27";
+    public static string SERVER_IP = "35.163.93.183";
     public static int PORT = 12345;
 }
