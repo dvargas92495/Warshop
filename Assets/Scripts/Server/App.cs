@@ -8,7 +8,15 @@ using Aws.GameLift;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
 
-public class App : MonoBehaviour {
+public class App {
+
+    private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
+    {
+        { MsgType.Connect, OnConnect },
+        { Messages.START_LOCAL_GAME, OnStartLocalGame },
+        { Messages.START_GAME, OnStartGame },
+        { Messages.SUBMIT_COMMANDS, OnSubmitCommands}
+    };
 
     // Use this for initialization
     public static void StartServer()
@@ -21,16 +29,43 @@ public class App : MonoBehaviour {
             GameConstants.PORT,
             new LogParameters(new List<string>()
             {
-              "/local/game/logs",
-              "/local/game/error"
+              GameConstants.APP_LOG_DIR,
+              GameConstants.APP_ERROR_DIR
             })
         ));
-        NetworkServer.RegisterHandler(MsgType.Connect, OnConnect);
-        NetworkServer.RegisterHandler(Messages.START_LOCAL_GAME, OnStartLocalGame);
-        NetworkServer.RegisterHandler(Messages.START_GAME, OnStartGame);
-        NetworkServer.RegisterHandler(Messages.SUBMIT_COMMANDS, OnSubmitCommands);
+        foreach(KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
+        {
+            NetworkServer.RegisterHandler(pair.Key, pair.Value);
+        }
         NetworkServer.Listen(GameConstants.PORT);
-        Console.WriteLine("Listening");
+        Logger.ServerLog("Listening");
+    }
+
+    private static void Send(NetworkConnection conn, short msgType, MessageBase msg)
+    {
+        if (conn != null)
+        {
+            conn.Send(msgType, msg);
+        }
+        else
+        {
+            GameClient.Receive(msgType, msg);
+        }
+    }
+
+    internal static void Receive(short msgType, MessageBase message)
+    {
+        NetworkMessage netMsg = new NetworkMessage();
+        NetworkWriter writer = new NetworkWriter();
+        message.Serialize(writer);
+        NetworkReader reader = new NetworkReader(writer);
+        netMsg.msgType = msgType;
+        netMsg.reader = reader;
+        NetworkMessageDelegate handler;
+        if (handlers.TryGetValue(msgType, out handler))
+        {
+            handler(netMsg);
+        }
     }
 
     // begin GameLift callbacks
@@ -60,7 +95,11 @@ public class App : MonoBehaviour {
 
     private static void OnConnect(NetworkMessage netMsg)
     {
-        Console.WriteLine("Client Connected");
+        Logger.ServerLog("Client Connected");
+        if (!GameConstants.USE_SERVER)
+        {
+            GameClient.Receive(MsgType.Connect, Messages.EMPTY);
+        }
     }
 
     private static void OnStartLocalGame(NetworkMessage netMsg)
@@ -91,7 +130,7 @@ public class App : MonoBehaviour {
             resp.robotPriorities[i] = 5;
             resp.robotIsOpponents[i] = true;
         }
-        netMsg.conn.Send(Messages.GAME_READY, resp);
+        Send(netMsg.conn, Messages.GAME_READY, resp);
     }
 
     private static void OnStartGame(NetworkMessage netMsg)
@@ -100,13 +139,13 @@ public class App : MonoBehaviour {
         Messages.GameReadyMessage resp = new Messages.GameReadyMessage();
         resp.myname = "ME";
         resp.opponentname = "YOU";
-        netMsg.conn.Send(Messages.GAME_READY, resp);
+        Send(netMsg.conn, Messages.GAME_READY, resp);
     }
 
     private static void OnSubmitCommands(NetworkMessage netMsg)
     {
         Messages.SubmitCommandsMessage msg = netMsg.ReadMessage<Messages.SubmitCommandsMessage>();
         Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();
-        netMsg.conn.Send(Messages.TURN_EVENTS, resp);
+        Send(netMsg.conn, Messages.TURN_EVENTS, resp);
     }
 }

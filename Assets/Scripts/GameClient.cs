@@ -7,18 +7,59 @@ using Z8.Generic;
 public class GameClient : MonoBehaviour {
 
     private static Action onConnect;
-    private static NetworkClient client = new NetworkClient();
+    private static NetworkClient client;
+    private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
+    {
+        { MsgType.Connect, OnConnect },
+        { Messages.GAME_READY, OnGameReady },
+        { Messages.TURN_EVENTS, OnTurnEvents }
+    };
 
     public static void Initialize () {
-        client.RegisterHandler(MsgType.Connect, OnConnect);
-        client.RegisterHandler(Messages.GAME_READY, OnGameReady);
-        client.RegisterHandler(Messages.TURN_EVENTS, OnTurnEvents);
-        client.Connect(GameConstants.SERVER_IP, GameConstants.PORT);
+        if (GameConstants.USE_SERVER)
+        {
+            client = new NetworkClient();
+            foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
+            {
+                client.RegisterHandler(pair.Key, pair.Value);
+            }
+            client.Connect(GameConstants.SERVER_IP, GameConstants.PORT);
+            Logger.ClientLog("Attempting to connect to " + GameConstants.SERVER_IP + ":" + GameConstants.PORT);
+        } else
+        {
+            App.Receive(MsgType.Connect, Messages.EMPTY);
+        }
+    }
+
+    private static void Send(short msgType, MessageBase message)
+    {
+        if (GameConstants.USE_SERVER)
+        {
+            client.Send(msgType, message);
+        } else
+        {
+            App.Receive(msgType, message);
+        }
+    }
+
+    internal static void Receive(short msgType, MessageBase message)
+    {
+        NetworkMessage netMsg = new NetworkMessage();
+        NetworkWriter writer = new NetworkWriter();
+        message.Serialize(writer);
+        NetworkReader reader = new NetworkReader(writer);
+        netMsg.msgType = msgType;
+        netMsg.reader = reader;
+        NetworkMessageDelegate handler;
+        if (handlers.TryGetValue(msgType, out handler))
+        {
+            handler(netMsg);
+        }
     }
 
     private static void OnConnect(NetworkMessage netMsg)
     {
-        Debug.Log("Client Connected");
+        Logger.ClientLog("Connected");
         Interpreter.SendPlayerInfo();
     }
 
@@ -57,18 +98,18 @@ public class GameClient : MonoBehaviour {
         Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
         msg.myRobots = myRobots;
         msg.opponentRobots = opponentRobots;
-        client.Send(Messages.START_LOCAL_GAME, msg);
+        Send(Messages.START_LOCAL_GAME, msg);
     }
 
     public static void SendGameRequest(String[] myRobots)
     {
         Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
         msg.myRobots = myRobots;
-        client.Send(Messages.START_LOCAL_GAME, msg);
+        Send(Messages.START_LOCAL_GAME, msg);
     }
     
     public static void SendSubmitCommands (List<RobotCommand> commands) {
         Messages.SubmitCommandsMessage msg = new Messages.SubmitCommandsMessage();
-        client.Send(Messages.SUBMIT_COMMANDS, msg);
+        Send(Messages.SUBMIT_COMMANDS, msg);
     }
 }

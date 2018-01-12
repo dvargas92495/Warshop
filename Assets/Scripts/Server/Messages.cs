@@ -3,11 +3,13 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class Messages {
-    public static short START_LOCAL_GAME = MsgType.Highest + 1;
-    public static short START_GAME = MsgType.Highest + 2;
-    public static short GAME_READY = MsgType.Highest + 3;
-    public static short SUBMIT_COMMANDS = MsgType.Highest + 4;
-    public static short TURN_EVENTS = MsgType.Highest + 5;
+    public const short START_LOCAL_GAME = MsgType.Highest + 1;
+    public const short START_GAME = MsgType.Highest + 2;
+    public const short GAME_READY = MsgType.Highest + 3;
+    public const short SUBMIT_COMMANDS = MsgType.Highest + 4;
+    public const short TURN_EVENTS = MsgType.Highest + 5;
+    public class EmptyMessage : MessageBase { }
+    public static EmptyMessage EMPTY = new EmptyMessage();
     public class StartLocalGameMessage : MessageBase
     {
         public String[] myRobots;

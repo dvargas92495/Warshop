@@ -13,8 +13,8 @@ public class Interpreter : MonoBehaviour {
     private static BoardController boardController;
     public static int eventDelay = 1;
     public static string boardFile = GameConstants.PROTOBOARD_FILE;
-    public static string[] myRobots = new string[0];
-    public static string[] opponentRobots = new string[0];
+    public static string[] myRobotNames = new string[0];
+    public static string[] opponentRobotNames = new string[0];
 
     void FixedUpdate()
     {
@@ -36,11 +36,11 @@ public class Interpreter : MonoBehaviour {
     {
         if (GameConstants.LOCAL_MODE)
         {
-            GameClient.SendLocalGameRequest(myRobots, opponentRobots);
+            GameClient.SendLocalGameRequest(myRobotNames, opponentRobotNames);
         }
         else
         {
-            GameClient.SendGameRequest(myRobots);
+            GameClient.SendGameRequest(myRobotNames);
         }
     }
 
