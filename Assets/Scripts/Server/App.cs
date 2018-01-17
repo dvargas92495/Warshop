@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Z8.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using Aws.GameLift;
@@ -110,35 +109,19 @@ public class App {
         Messages.GameReadyMessage resp = new Messages.GameReadyMessage();
         resp.myname = "ME";
         resp.opponentname = "OPPONENT";
-        resp.numRobots = (byte) (msg.myRobots.Length + msg.opponentRobots.Length);
-        resp.robotNames = new string[resp.numRobots];
-        resp.robotHealth = new byte[resp.numRobots];
-        resp.robotAttacks = new byte[resp.numRobots];
-        resp.robotPriorities = new byte[resp.numRobots];
-        resp.robotIsOpponents = new bool[resp.numRobots];
-        Robot[] myrobots = new Robot[msg.myRobots.Length];
-        Robot[] opponentrobots = new Robot[msg.opponentRobots.Length];
+        resp.myTeam = new Robot[msg.myRobots.Length];
+        resp.opponentTeam = new Robot[msg.opponentRobots.Length];
         for (short i = 0; i < msg.myRobots.Length; i++)
         {
-            myrobots[i] = Robot.create(msg.myRobots[i]);
-            myrobots[i].id = i;
-            resp.robotNames[i] = myrobots[i].name;
-            resp.robotHealth[i] = (byte)myrobots[i].health;
-            resp.robotAttacks[i] = (byte)myrobots[i].attack;
-            resp.robotPriorities[i] = myrobots[i].priority;
-            resp.robotIsOpponents[i] = false;
+            resp.myTeam[i] = Robot.create(msg.myRobots[i]);
+            resp.myTeam[i].id = i;
         }
-        for (short i = (short)msg.myRobots.Length; i < resp.numRobots; i++)
+        for (short i = 0; i < msg.opponentRobots.Length; i++)
         {
-            opponentrobots[i - msg.myRobots.Length] = Robot.create(msg.opponentRobots[i - msg.myRobots.Length]);
-            opponentrobots[i - msg.myRobots.Length].id = i;
-            resp.robotNames[i] = opponentrobots[i - msg.myRobots.Length].name;
-            resp.robotHealth[i] = (byte)opponentrobots[i - msg.myRobots.Length].health;
-            resp.robotAttacks[i] = (byte)opponentrobots[i - msg.myRobots.Length].attack;
-            resp.robotPriorities[i] = opponentrobots[i - msg.myRobots.Length].priority;
-            resp.robotIsOpponents[i] = true;
+            resp.opponentTeam[i] = Robot.create(msg.opponentRobots[i]);
+            resp.opponentTeam[i].id = (short)(i + msg.myRobots.Length);
         }
-        appgame = new Game(myrobots, opponentrobots, resp.myname, resp.opponentname);
+        appgame = new Game(resp.myTeam, resp.opponentTeam, resp.myname, resp.opponentname);
         Send(netMsg.conn, Messages.GAME_READY, resp);
     }
 

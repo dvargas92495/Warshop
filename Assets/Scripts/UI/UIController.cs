@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using TMPro;
-using Z8.Generic;
 
 public class UIController : MonoBehaviour {
 
@@ -40,7 +39,7 @@ public class UIController : MonoBehaviour {
     }
 
     //Loads the UICanvas and it's child components
-    public void InitializeUICanvas(PlayerTurnObject[] playerTurnObjects) 
+    public void InitializeUICanvas(Game.Player[] playerTurnObjects) 
 	{
         // get child components  
         BackgroundPanel = GameObject.Find("UICanvas");
@@ -61,13 +60,13 @@ public class UIController : MonoBehaviour {
 	}
 
 	// Set's header text of UICanvas
-	void SetPlayerTurnText(TMP_Text playerTurnText, PlayerTurnObject currentPlayer)
+	void SetPlayerTurnText(TMP_Text playerTurnText, Game.Player currentPlayer)
 	{
-		playerTurnText.SetText(currentPlayer.PlayerName + "'s Turn");
+		playerTurnText.SetText(currentPlayer.name + "'s Turn");
 	}
 
 	// Sets each players panels on the UICanvas (Contains robot info)
-	void SetPlayerPanels (GameObject[] PlayerPanels, PlayerTurnObject[] PlayerTurnObjects)
+	void SetPlayerPanels (GameObject[] PlayerPanels, Game.Player[] PlayerTurnObjects)
 	{
 		// for each playerPanel
 			// Set headertext
@@ -79,35 +78,27 @@ public class UIController : MonoBehaviour {
 
 			TMP_Text playerPanelHeader = getChildTMP_Text(PlayerPanels [i], "Player Robots Summary");
 
-			playerPanelHeader.SetText(PlayerTurnObjects[i].PlayerName);
+			playerPanelHeader.SetText(PlayerTurnObjects[i].name);
 
-			for (int j = 1; j < 1 + PlayerTurnObjects[i].robotObjects.Count; j++){
+			for (int j = 1; j < 1 + PlayerTurnObjects[i].team.Length; j++){
 				string currentRobotInfoPanel = "RobotInfoPanel (" + (j) + ")";
-				RobotObject currentRobot = PlayerTurnObjects[i].robotObjects[j-1];
+				Robot currentRobot = PlayerTurnObjects[i].team[j-1];
 				robotInfoPanel = getChildGameObject(PlayerPanels[i], currentRobotInfoPanel);
 //			
 //
 //				//Robot name 
 				TMP_Text robotInfoPanelRobotText = getChildTMP_Text(robotInfoPanel, "RobotName");
-				robotInfoPanelRobotText.SetText(currentRobot.Name);
+				robotInfoPanelRobotText.SetText(currentRobot.name);
 //
 				//Robot sprite
 				robotInfoPanelRobotSprite = getChildGameObject(robotInfoPanel, "RobotSprite");
-				attachRobotSprite(robotInfoPanelRobotSprite, currentRobot.Name);
+				attachRobotSprite(robotInfoPanelRobotSprite, currentRobot.name);
 //
 //				//Robot attributes
 
 				TMP_Text robotInfoPanelRobotAttributes = getChildTMP_Text (robotInfoPanel, "Attributes");
-				robotInfoPanelRobotAttributes.SetText("A: " + currentRobot.Attack.ToString() + " P: " + currentRobot.Priority.ToString() + " H: " + currentRobot.Health.ToString());
-//
-//				//Robot status
+				robotInfoPanelRobotAttributes.SetText("A: " + currentRobot.attack.ToString() + " P: " + currentRobot.priority.ToString() + " H: " + currentRobot.health.ToString());
 
-				TMP_Text robotInfoPanelRobotStatus = getChildTMP_Text (robotInfoPanel, "Status");
-				robotInfoPanelRobotStatus.SetText("Status: " + currentRobot.Status);
-
-//				//Robot equipment
-				TMP_Text robotInfoPanelRobotEquipment = getChildTMP_Text (robotInfoPanel, "Equipment");
-				robotInfoPanelRobotEquipment.SetText("Eq: " + currentRobot.Equipment);
 			}
 		}
 

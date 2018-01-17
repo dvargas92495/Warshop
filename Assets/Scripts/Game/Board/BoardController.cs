@@ -77,21 +77,6 @@ public class BoardController : MonoBehaviour {
             lastTileYPos += tileHeight;
         }
     }
-
-    public void PlaceRobotInQueue(string robotIdentifer, bool isOpponent, int robotCount)
-    {
-        GameObject robot = GameObject.Find(robotIdentifer);
-        ProtoTileController tile;
-        if (isOpponent)
-        {
-            tile = playerBQueueLocations.ElementAt(robotCount);
-        }
-        else
-        {
-            tile = playerAQueueLocations.ElementAt(robotCount);
-        }
-        robot.GetComponent<RobotController>().Place(tile.RobotX, tile.RobotY);
-    }
 		
     public void PlaceRobot(Transform robot, int x, int y)
     {

@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Linq;
-using Z8.Generic;
 
 public class Interpreter : MonoBehaviour {
 
-    private static PlayerTurnObject[] playerTurnObjectArray;
+    private static Game.Player[] playerTurnObjectArray;
 
     private static UIController uiController;
     private static BoardController boardController;
@@ -26,15 +25,15 @@ public class Interpreter : MonoBehaviour {
     {
         if (GameConstants.LOCAL_MODE)
         {
-            GameClient.SendLocalGameRequest(myRobotNames, opponentRobotNames);
+            GameClient.SendLocalGameRequest(myRobotNames, opponentRobotNames, boardFile);
         }
         else
         {
-            GameClient.SendGameRequest(myRobotNames);
+            GameClient.SendGameRequest(myRobotNames, boardFile);
         }
     }
 
-    public static void LoadBoard(PlayerTurnObject[] ptos)
+    public static void LoadBoard(Game.Player[] ptos)
     {
         playerTurnObjectArray = ptos;
         SceneManager.LoadScene("Prototype");
@@ -53,20 +52,18 @@ public class Interpreter : MonoBehaviour {
         InitializeRobots(playerTurnObjectArray);
     }
 
-    private static void InitializeRobots(PlayerTurnObject[] playerTurns)
+    private static void InitializeRobots(Game.Player[] playerTurns)
     {
         int playerCount = 0;
         int robotCount = 0;
         int p1count = 0; //hack
-        robotControllers = new RobotController[playerTurns[0].robotObjects.Count + playerTurns[1].robotObjects.Count];
-        foreach (PlayerTurnObject player in playerTurns)
+        robotControllers = new RobotController[playerTurns[0].team.Length + playerTurns[1].team.Length];
+        foreach (Game.Player player in playerTurns)
         {
-            foreach(RobotObject robot in player.robotObjects)
+            foreach(Robot robot in player.team)
             {
-                robot.Owner = player.PlayerName;
-                robot.Identifier = robot.Owner + " " + robot.Name;
                 robotControllers[p1count + robotCount] = RobotController.Make(robot);
-                boardController.PlaceRobotInQueue(robot.Identifier, playerCount == 1, robotCount);
+                robotControllers[p1count + robotCount].isOpponent = playerCount == 1;
                 robotCount++;
             }
             p1count = robotCount;
@@ -105,21 +102,7 @@ public class Interpreter : MonoBehaviour {
             if (evt is GameEvent.Rotate)
             {
                 GameEvent.Rotate rot = (GameEvent.Rotate)evt;
-                switch(rot.destinationDir)
-                {
-                    case Robot.Orientation.NORTH:
-                        primaryRobot.Rotate(Vector2.down);
-                        break;
-                    case Robot.Orientation.SOUTH:
-                        primaryRobot.Rotate(Vector2.up);
-                        break;
-                    case Robot.Orientation.WEST:
-                        primaryRobot.Rotate(Vector2.left);
-                        break;
-                    case Robot.Orientation.EAST:
-                        primaryRobot.Rotate(Vector2.right);
-                        break;
-                }
+                primaryRobot.Rotate(Robot.OrientationToVector(rot.destinationDir));
             } else if (evt is GameEvent.Move)
             {
                 GameEvent.Move mov = (GameEvent.Move)evt;

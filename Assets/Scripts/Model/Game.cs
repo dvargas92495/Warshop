@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-internal class Game
+public class Game
 {
     Player primary;
     Player secondary;
@@ -17,7 +17,7 @@ internal class Game
         t2.CopyTo(allRobots, t1.Length);
     }
 
-    internal class Player
+    public class Player
     {
         internal string name;
         internal int battery;

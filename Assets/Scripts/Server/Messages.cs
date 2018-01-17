@@ -14,21 +14,43 @@ public class Messages {
     {
         public String[] myRobots;
         public String[] opponentRobots;
+        public String boardFile;
     }
     public class StartGameMessage : MessageBase
     {
         public String[] myRobots;
+        public String boardFile;
     }
     public class GameReadyMessage : MessageBase
     {
         public String myname;
         public String opponentname;
-        public byte numRobots;
-        public string[] robotNames;
-        public byte[] robotHealth;
-        public byte[] robotAttacks;
-        public byte[] robotPriorities;
-        public bool[] robotIsOpponents;
+        public Robot[] myTeam;
+        public Robot[] opponentTeam;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(myname);
+            writer.Write(opponentname);
+            writer.Write(myTeam.Length);
+            Array.ForEach(myTeam, (Robot robot) => robot.Serialize(writer));
+            writer.Write(opponentTeam.Length);
+            Array.ForEach(opponentTeam, (Robot robot) => robot.Serialize(writer));
+        }
+        public override void Deserialize(NetworkReader reader)
+        {
+            myname = reader.ReadString();
+            opponentname = reader.ReadString();
+            myTeam = new Robot[reader.ReadInt32()];
+            for (int i = 0; i < myTeam.Length; i++)
+            {
+                myTeam[i] = Robot.Deserialize(reader);
+            }
+            opponentTeam = new Robot[reader.ReadInt32()];
+            for (int i = 0; i < opponentTeam.Length; i++)
+            {
+                opponentTeam[i] = Robot.Deserialize(reader);
+            }
+        }
     }
     public class SubmitCommandsMessage : MessageBase
     {

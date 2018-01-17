@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using Z8.Generic;
 
 public class GameClient : MonoBehaviour {
 
@@ -65,23 +64,9 @@ public class GameClient : MonoBehaviour {
     private static void OnGameReady(NetworkMessage netMsg)
     {
         Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
-        PlayerTurnObject[] playerTurnObjects = new PlayerTurnObject[2];
-        playerTurnObjects[0] = new PlayerTurnObject(msg.myname);
-        playerTurnObjects[1] = new PlayerTurnObject(msg.opponentname);
-        for (int i = 0; i < msg.numRobots; i++)
-        {
-            RobotObject currentRobot = new RobotObject()
-            {
-                Id = i,
-                Name = msg.robotNames[i],
-                Health = msg.robotHealth[i],
-                Attack = msg.robotAttacks[i],
-                Priority = msg.robotPriorities[i]
-            };
-            currentRobot.Owner = msg.robotIsOpponents[i] ? msg.opponentname : msg.myname;
-            int playerIndex = msg.robotIsOpponents[i] ? 1 : 0;
-            playerTurnObjects[playerIndex].AddRobot(currentRobot);
-        }
+        Game.Player[] playerTurnObjects = new Game.Player[2];
+        playerTurnObjects[0] = new Game.Player(msg.myTeam, msg.myname);
+        playerTurnObjects[1] = new Game.Player(msg.opponentTeam, msg.opponentname);
         Interpreter.LoadBoard(playerTurnObjects);
     }
 
@@ -92,18 +77,20 @@ public class GameClient : MonoBehaviour {
         Interpreter.PlayEvents(events);
     }
 
-    public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots)
+    public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String boardFile)
     {
         Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
         msg.myRobots = myRobots;
         msg.opponentRobots = opponentRobots;
+        msg.boardFile = boardFile;
         Send(Messages.START_LOCAL_GAME, msg);
     }
 
-    public static void SendGameRequest(String[] myRobots)
+    public static void SendGameRequest(String[] myRobots, String boardFile)
     {
         Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
         msg.myRobots = myRobots;
+        msg.boardFile = boardFile;
         Send(Messages.START_LOCAL_GAME, msg);
     }
     

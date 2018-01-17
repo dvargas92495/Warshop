@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Z8.Generic;
 
 public class RobotController : MonoBehaviour
 {
@@ -10,7 +9,7 @@ public class RobotController : MonoBehaviour
     protected int health;
     protected int priority;
     public short id { get; protected set; }
-    protected bool isOpponent;
+    public bool isOpponent;
     protected bool equipped;
     protected Vector2 position;
     protected Vector2 orientation;
@@ -24,16 +23,17 @@ public class RobotController : MonoBehaviour
     protected string description;
 
 
-    public static RobotController Make(RobotObject robot)
+    public static RobotController Make(Robot robot)
     {
-        RobotController robotController = Instantiate(Resources.Load<GameObject>(GameConstants.ROBOT_PREFAB_DIR + robot.Name)).GetComponent<RobotController>();
-        robotController.name = robot.Identifier;
-        robotController.id = (short)robot.Id;
-        robotController.health = robot.Health;
-        robotController.attack = robot.Attack;
-        robotController.priority = robot.Priority;
-        robotController.isOpponent = robot.IsOpponent;
-        robotController.orientation = (robot.IsOpponent ? new Vector2(-1, 0) : new Vector2(1, 0));
+        RobotController robotController = Instantiate(Resources.Load<GameObject>(GameConstants.ROBOT_PREFAB_DIR + robot.name)).GetComponent<RobotController>();
+        robotController.name = robot.name;
+        robotController.id = robot.id;
+        robotController.health = robot.health;
+        robotController.attack = robot.attack;
+        robotController.priority = robot.priority;
+        robotController.position = robot.position;
+        robotController.orientation = Robot.OrientationToVector(robot.orientation);
+        robotController.displayMove();
         robotController.displayRotate();
         return robotController;
     }

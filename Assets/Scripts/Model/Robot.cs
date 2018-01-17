@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-internal class Robot
+public class Robot
 {
     internal readonly string name;
     internal readonly string description;
@@ -13,6 +14,11 @@ internal class Robot
     internal short id;
     internal Vector2 position;
     internal Orientation orientation;
+    private Robot(string _name, string _description)
+    {
+        name = _name;
+        description = _description;
+    }
     internal Robot(string _name, string _description, byte _priority, short _health, short _attack, Rating _rating)
     {
         name = _name;
@@ -42,7 +48,49 @@ internal class Robot
                 throw new Exception("Invalid Robot Name: " + robotName);
         }
     }
-    internal enum Orientation
+    public void Serialize(NetworkWriter writer)
+    {
+        writer.Write(name);
+        writer.Write(description);
+        writer.Write(priority);
+        writer.Write(health);
+        writer.Write(attack);
+        writer.Write((byte)rating);
+        writer.Write(id);
+        writer.Write(position);
+        writer.Write((byte)orientation);
+    }
+    public static Robot Deserialize(NetworkReader reader)
+    {
+        string _name = reader.ReadString();
+        string _description = reader.ReadString();
+        Robot robot = new Robot(_name, _description);
+        robot.priority = reader.ReadByte();
+        robot.health = reader.ReadInt16();
+        robot.attack = reader.ReadInt16();
+        robot.rating = (Rating)reader.ReadByte();
+        robot.id = reader.ReadInt16();
+        robot.position = reader.ReadVector2();
+        robot.orientation = (Orientation)reader.ReadByte();
+        return robot;
+    }
+    public static Vector2 OrientationToVector (Orientation orientation)
+    {
+        switch (orientation)
+        {
+            case Orientation.NORTH:
+                return Vector2.down;
+            case Orientation.SOUTH:
+                return Vector2.up;
+            case Orientation.WEST:
+                return Vector2.left;
+            case Orientation.EAST:
+                return Vector2.right;
+            default:
+                return Vector2.zero;
+        }
+    }
+    public enum Orientation
     {
         NORTH,
         SOUTH,
