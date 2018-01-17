@@ -23,19 +23,48 @@ public class Messages {
     {
         public String myname;
         public String opponentname;
-        public int numRobots;
+        public byte numRobots;
         public string[] robotNames;
-        public int[] robotHealth;
-        public int[] robotAttacks;
-        public int[] robotPriorities;
+        public byte[] robotHealth;
+        public byte[] robotAttacks;
+        public byte[] robotPriorities;
         public bool[] robotIsOpponents;
     }
     public class SubmitCommandsMessage : MessageBase
     {
-
+        public Command[] commands;
+        public string owner;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(commands.Length);
+            Array.ForEach(commands, (Command cmd) => cmd.Serialize(writer));
+            writer.Write(owner);
+        }
+        public override void Deserialize(NetworkReader reader)
+        {
+            commands = new Command[reader.ReadInt32()];
+            for (int i = 0; i < commands.Length; i++)
+            {
+                commands[i] = Command.Deserialize(reader);
+            }
+            owner = reader.ReadString();
+        }
     }
     public class TurnEventsMessage : MessageBase
     {
-
+        public GameEvent[] events;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(events.Length);
+            Array.ForEach(events, (GameEvent evt) => evt.Serialize(writer));
+        }
+        public override void Deserialize(NetworkReader reader)
+        {
+            events = new GameEvent[reader.ReadInt32()];
+            for (int i = 0; i < events.Length; i++)
+            {
+                events[i] = GameEvent.Deserialize(reader);
+            }
+        }
     }
 }

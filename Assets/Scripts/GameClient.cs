@@ -6,7 +6,6 @@ using Z8.Generic;
 
 public class GameClient : MonoBehaviour {
 
-    private static Action onConnect;
     private static NetworkClient client;
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
@@ -89,7 +88,7 @@ public class GameClient : MonoBehaviour {
     private static void OnTurnEvents(NetworkMessage netMsg)
     {
         Messages.TurnEventsMessage msg = netMsg.ReadMessage<Messages.TurnEventsMessage>();
-        List<GameEvent> events = new List<GameEvent>();
+        List<GameEvent> events = new List<GameEvent>(msg.events);
         Interpreter.PlayEvents(events);
     }
 
@@ -108,8 +107,10 @@ public class GameClient : MonoBehaviour {
         Send(Messages.START_LOCAL_GAME, msg);
     }
     
-    public static void SendSubmitCommands (List<RobotCommand> commands) {
+    public static void SendSubmitCommands (List<Command> commands) {
         Messages.SubmitCommandsMessage msg = new Messages.SubmitCommandsMessage();
+        msg.commands = commands.ToArray();
+        msg.owner = "ME";
         Send(Messages.SUBMIT_COMMANDS, msg);
     }
 }

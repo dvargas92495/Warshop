@@ -10,6 +10,8 @@ using Aws.GameLift.Server.Model;
 
 public class App {
 
+    private static Game appgame;
+
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
         { MsgType.Connect, OnConnect },
@@ -108,28 +110,35 @@ public class App {
         Messages.GameReadyMessage resp = new Messages.GameReadyMessage();
         resp.myname = "ME";
         resp.opponentname = "OPPONENT";
-        resp.numRobots = msg.myRobots.Length + msg.opponentRobots.Length;
-        resp.robotNames = new String[resp.numRobots];
-        resp.robotHealth = new int[resp.numRobots];
-        resp.robotAttacks = new int[resp.numRobots];
-        resp.robotPriorities = new int[resp.numRobots];
+        resp.numRobots = (byte) (msg.myRobots.Length + msg.opponentRobots.Length);
+        resp.robotNames = new string[resp.numRobots];
+        resp.robotHealth = new byte[resp.numRobots];
+        resp.robotAttacks = new byte[resp.numRobots];
+        resp.robotPriorities = new byte[resp.numRobots];
         resp.robotIsOpponents = new bool[resp.numRobots];
-        for (int i = 0; i < msg.myRobots.Length; i++)
+        Robot[] myrobots = new Robot[msg.myRobots.Length];
+        Robot[] opponentrobots = new Robot[msg.opponentRobots.Length];
+        for (short i = 0; i < msg.myRobots.Length; i++)
         {
-            resp.robotNames[i] = msg.myRobots[i];
-            resp.robotHealth[i] = 1;
-            resp.robotAttacks[i] = 2;
-            resp.robotPriorities[i] = 5;
+            myrobots[i] = Robot.create(msg.myRobots[i]);
+            myrobots[i].id = i;
+            resp.robotNames[i] = myrobots[i].name;
+            resp.robotHealth[i] = (byte)myrobots[i].health;
+            resp.robotAttacks[i] = (byte)myrobots[i].attack;
+            resp.robotPriorities[i] = myrobots[i].priority;
             resp.robotIsOpponents[i] = false;
         }
-        for (int i = msg.myRobots.Length; i < resp.numRobots; i++)
+        for (short i = (short)msg.myRobots.Length; i < resp.numRobots; i++)
         {
-            resp.robotNames[i] = msg.opponentRobots[i - msg.myRobots.Length];
-            resp.robotHealth[i] = 1;
-            resp.robotAttacks[i] = 2;
-            resp.robotPriorities[i] = 5;
+            opponentrobots[i - msg.myRobots.Length] = Robot.create(msg.opponentRobots[i - msg.myRobots.Length]);
+            opponentrobots[i - msg.myRobots.Length].id = i;
+            resp.robotNames[i] = opponentrobots[i - msg.myRobots.Length].name;
+            resp.robotHealth[i] = (byte)opponentrobots[i - msg.myRobots.Length].health;
+            resp.robotAttacks[i] = (byte)opponentrobots[i - msg.myRobots.Length].attack;
+            resp.robotPriorities[i] = opponentrobots[i - msg.myRobots.Length].priority;
             resp.robotIsOpponents[i] = true;
         }
+        appgame = new Game(myrobots, opponentrobots, resp.myname, resp.opponentname);
         Send(netMsg.conn, Messages.GAME_READY, resp);
     }
 
@@ -146,6 +155,9 @@ public class App {
     {
         Messages.SubmitCommandsMessage msg = netMsg.ReadMessage<Messages.SubmitCommandsMessage>();
         Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();
+        Logger.ServerLog(string.Join<Command>(" | ",msg.commands));
+        List<GameEvent> events = appgame.CommandsToEvents(new List<Command>(msg.commands));
+        resp.events = events.ToArray();
         Send(netMsg.conn, Messages.TURN_EVENTS, resp);
     }
 }

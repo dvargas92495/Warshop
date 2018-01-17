@@ -179,9 +179,9 @@ public class UIController : MonoBehaviour {
         cancelButton.gameObject.SetActive(true);
     }
 
-    public void addSubmittedCommand(RobotCommand cmd, string robotIdentifier)
+    public void addSubmittedCommand(Command cmd, string robotIdentifier)
     {
-        string CommandText = robotIdentifier + " " + cmd.toString();
+        string CommandText = robotIdentifier + " " + cmd.ToString();
         submittedActions.Add(CommandText);
         //Dropdown ActionsDropdown = GameObject.Find("Submitted Actions Dropdown").GetComponent<Dropdown>();
         //ActionsDropdown.AddOptions(submittedActions);

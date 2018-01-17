@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -11,21 +11,11 @@ public class Interpreter : MonoBehaviour {
 
     private static UIController uiController;
     private static BoardController boardController;
+    private static RobotController[] robotControllers;
     public static int eventDelay = 1;
     public static string boardFile = GameConstants.PROTOBOARD_FILE;
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
-
-    void FixedUpdate()
-    {
-        if (Application.isEditor)
-        {
-            if (Input.GetKeyDown(KeyCode.B))
-            {
-                SceneManager.LoadScene("Initial");
-            }
-        }
-    }
 
     public static void ConnectToServer()
     {
@@ -67,16 +57,19 @@ public class Interpreter : MonoBehaviour {
     {
         int playerCount = 0;
         int robotCount = 0;
+        int p1count = 0; //hack
+        robotControllers = new RobotController[playerTurns[0].robotObjects.Count + playerTurns[1].robotObjects.Count];
         foreach (PlayerTurnObject player in playerTurns)
         {
             foreach(RobotObject robot in player.robotObjects)
             {
                 robot.Owner = player.PlayerName;
                 robot.Identifier = robot.Owner + " " + robot.Name;
-                RobotController.Make(robot);
+                robotControllers[p1count + robotCount] = RobotController.Make(robot);
                 boardController.PlaceRobotInQueue(robot.Identifier, playerCount == 1, robotCount);
                 robotCount++;
             }
+            p1count = robotCount;
             robotCount = 0;
             playerCount++;
         }
@@ -84,87 +77,70 @@ public class Interpreter : MonoBehaviour {
 
     public static void SubmitActions()
     {
-        Debug.Log("Interpreter received end turn button");
-        List<RobotCommand> commands = new List<RobotCommand>();
+        List<Command> commands = new List<Command>();
         RobotController[] robots = FindObjectsOfType<RobotController>();
         foreach(RobotController robot in robots)
         {
-            List<RobotCommand> robotCommands = robot.GetCommands();
-            foreach(RobotCommand cmd in robotCommands)
+            List<Command> robotCommands = robot.GetCommands();
+            foreach(Command cmd in robotCommands)
             {
-                cmd.id = robot.GetId();
+                cmd.robotId = robot.id;
                 cmd.owner = (!GameConstants.LOCAL_MODE ? "ACTUAL_USERNAME":
                     (robot.IsOpponent() ? "opponent":"me"));
-                cmd.isOpponent = robot.IsOpponent();
                 commands.Add(cmd);
             }
             robot.ClearRobotCommands();
         }
-        Debug.Log("Interpreter received commands");
+        Logger.ClientLog("Sending Commands: " + commands.Count);
         GameClient.SendSubmitCommands(commands);
     }
 
     // TODO: Add time in between event
     public static void PlayEvents(List<GameEvent> events)
     {
-        Debug.Log("Received Events");
+        Logger.ClientLog("Received Events: " + events.Count);
         foreach(GameEvent evt in events)
         {
-            evt.playEvent();
-            Debug.Log("Output to history what happened: " + evt.ToString());
-        }
-        Debug.Log("Finished Events");
-    }
-
-    //TODO: Move this to Server
-    private List<GameEvent> DummyServer(List<RobotCommand> commands)
-    {
-        commands.Sort((a, b) =>
-        {
-            RobotController aRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == a.id && c.IsOpponent() == a.isOpponent);
-            RobotController bRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == b.id && c.IsOpponent() == b.isOpponent);
-            return -1;
-        });
-        List<GameEvent> events = new List<GameEvent>();
-        foreach(RobotCommand cmd in commands)
-        {
-            GameEvent e = null;
-            if (cmd is SpawnCommand)
+            RobotController primaryRobot = Array.Find(robotControllers, (RobotController r) => r.id == evt.primaryRobotId);
+            if (evt is GameEvent.Rotate)
             {
-                SpawnEvent evt = new SpawnEvent();
-                evt.spawnIndex = ((SpawnCommand)cmd).getSpawnIndex();
-                e = evt;
-            } else if (cmd is MoveCommand)
+                GameEvent.Rotate rot = (GameEvent.Rotate)evt;
+                switch(rot.destinationDir)
+                {
+                    case Robot.Orientation.NORTH:
+                        primaryRobot.Rotate(Vector2.down);
+                        break;
+                    case Robot.Orientation.SOUTH:
+                        primaryRobot.Rotate(Vector2.up);
+                        break;
+                    case Robot.Orientation.WEST:
+                        primaryRobot.Rotate(Vector2.left);
+                        break;
+                    case Robot.Orientation.EAST:
+                        primaryRobot.Rotate(Vector2.right);
+                        break;
+                }
+            } else if (evt is GameEvent.Move)
             {
-                MoveEvent evt = new MoveEvent();
-                evt.direction = ((MoveCommand)cmd).getDirection();
-                e = evt;
+                GameEvent.Move mov = (GameEvent.Move)evt;
+                primaryRobot.Place((int)mov.destinationPos.x, (int)mov.destinationPos.y);
             }
-            else if (cmd is RotateCommand)
+            else if (evt is GameEvent.Attack)
             {
-                RotateEvent evt = new RotateEvent();
-                evt.direction = ((RotateCommand)cmd).getDirection();
-                e = evt;
-
-            }
-            else if (cmd is AttackCommand)
-            {
-                AttackEvent evt = new AttackEvent();
-                //evt.direction = ((AttackCommand)cmd).getDirection();
-                e = evt;
-
+                GameEvent.Attack atk = (GameEvent.Attack)evt;
+                RobotController[] victims = Array.FindAll(robotControllers, (RobotController r) => Array.Exists(atk.victimIds, (short vid) => r.id == vid));
+                for (int i = 0; i < victims.Length; i++)
+                {
+                    victims[i].SetHealth(atk.victimHealth[i]);
+                }
             }
             else
             {
-                Debug.Log("Bad Command: " + cmd.toString());
-                continue;
+                Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());
             }
-            e.primaryRobot = FindObjectsOfType<RobotController>().First((c) => c.GetId() == cmd.id && c.IsOpponent() == cmd.isOpponent);
-            e.board = boardController;
-            e.isOpponent = cmd.isOpponent;
-            events.Add(e);
+            Logger.ClientLog("Output to history what happened: " + evt.ToString());
         }
-        return events;
+        Logger.ClientLog("Finished Events");
     }
 }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Z8.Generic;
@@ -9,19 +9,12 @@ public class RobotController : MonoBehaviour
     protected int attack;
     protected int health;
     protected int priority;
-    protected int id;
+    public short id { get; protected set; }
     protected bool isOpponent;
     protected bool equipped;
     protected Vector2 position;
     protected Vector2 orientation;
-    protected List<RobotCommand> commands = new List<RobotCommand>();
-    protected List<MenuOptions> options = new List<MenuOptions>//TODO:tmp
-    {
-        MenuOptions.SPAWN,
-        MenuOptions.MOVE,
-        MenuOptions.ROTATE,
-        MenuOptions.ATTACK,
-    };
+    protected List<Command> commands = new List<Command>();
 
     //ui
     protected bool inTurn;
@@ -31,17 +24,18 @@ public class RobotController : MonoBehaviour
     protected string description;
 
 
-    public static void Make(RobotObject robot)
+    public static RobotController Make(RobotObject robot)
     {
         RobotController robotController = Instantiate(Resources.Load<GameObject>(GameConstants.ROBOT_PREFAB_DIR + robot.Name)).GetComponent<RobotController>();
         robotController.name = robot.Identifier;
-        robotController.id = robot.Id;
+        robotController.id = (short)robot.Id;
         robotController.health = robot.Health;
         robotController.attack = robot.Attack;
         robotController.priority = robot.Priority;
         robotController.isOpponent = robot.IsOpponent;
         robotController.orientation = (robot.IsOpponent ? new Vector2(-1, 0) : new Vector2(1, 0));
         robotController.displayRotate();
+        return robotController;
     }
     
     /************************
@@ -50,33 +44,7 @@ public class RobotController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (GameConstants.LOCAL_MODE && isMenuShown)
-        {
-            if (Input.GetKeyDown(KeyCode.UpArrow))
-            {
-                MoveForward();
-            }
-            if (Input.GetKeyUp(KeyCode.DownArrow))
-            {
-                MoveBackward();
-            }
-            if (Input.GetKeyUp(KeyCode.LeftArrow))
-            {
-                MoveLeft();
-            }
-            if (Input.GetKeyUp(KeyCode.RightArrow))
-            {
-                MoveRight();
-            }
-            if (Input.GetKeyUp(KeyCode.A))
-            {
-                RotateClockwise();
-            }
-            if (Input.GetKeyUp(KeyCode.D))
-            {
-                RotateCounterclockwise();
-            }
-        }
+        
     }
 
     void OnMouseUp()
@@ -118,7 +86,7 @@ public class RobotController : MonoBehaviour
         return displayAbbreviation;
     }
 
-    public List<RobotCommand> GetCommands()
+    public List<Command> GetCommands()
     {
         return commands;
     }
@@ -128,30 +96,25 @@ public class RobotController : MonoBehaviour
         commands.Clear();
     }
 
-    public void AddSpawnCommand(int index)
+    public void AddMoveCommand(Command.Direction dir)
     {
-        addRobotCommand(new SpawnCommand(index));
+        addRobotCommand(new Command.Move(dir));
     }
 
-    public void AddMoveCommand(MoveCommand.Direction dir)
+    public void AddRotateCommand(Command.Direction dir)
     {
-        addRobotCommand(new MoveCommand(dir));
-    }
-
-    public void AddRotateCommand(RotateCommand.Direction dir)
-    {
-        addRobotCommand(new RotateCommand(dir));
+        addRobotCommand(new Command.Rotate(dir));
     }
 
     public void AddAttackCommand()
     {
-        addRobotCommand(new AttackCommand());
+        addRobotCommand(new Command.Attack());
     }
 
-    private void addRobotCommand(RobotCommand cmd)
+    private void addRobotCommand(Command cmd)
     {
         commands.Add(cmd);
-        displayAddingRobotCommand(cmd, this.gameObject.name);
+        displayAddingRobotCommand(cmd, gameObject.name);
         toggleMenu();
     }
 
@@ -181,57 +144,28 @@ public class RobotController : MonoBehaviour
      * Robot Model During Turn Methods *
      ***********************************/
 
-    public void Spawn(int x, int y)
-    {
-        position = new Vector2(x, y);
-        displayMove();
-    } 
-
-    public void MoveForward()
-    {
-        position += orientation;
-        displayMove();
-    }
-
-    public void MoveBackward()
-    {
-        position -= orientation;
-        displayMove();
-    }
-
-    public void MoveRight()
-    {
-        position += new Vector2(-orientation.y, orientation.x);
-        displayMove();
-    }
-
-    public void MoveLeft()
-    {
-        position += new Vector2(orientation.y, -orientation.x);
-        displayMove();
-    }
-
     public void Place(int x, int y)
     {
         position = new Vector2(x, y);
         displayMove();
     }
 
-    public void RotateClockwise()
+    public void Rotate(Vector2 orient)
     {
-        orientation = new Vector2(orientation.y, -orientation.x);
+        orientation = orient;
         displayRotate();
     }
     
+    public void SetHealth(int h)
+    {
+        health = h;
+        Logger.ClientLog("TODO: Update " + name + "'s health to " + h + " on UI");
+    }
+
     public void RotateCounterclockwise()
     {
         orientation = new Vector2(-orientation.y, orientation.x);
         displayRotate();
-    }
-
-    public int GetId()
-    {
-        return id;
     }
 
     public bool IsOpponent()
@@ -243,93 +177,60 @@ public class RobotController : MonoBehaviour
      * Robot UI Before Turn Methods *
      ********************************/
 
-    private void displayAddingRobotCommand(RobotCommand cmd, string robotIdentifer)
+    private void displayAddingRobotCommand(Command cmd, string robotIdentifer)
     {
         GameObject Controllers = GameObject.Find("Controllers");
         Controllers.GetComponent<UIController>().addSubmittedCommand(cmd, robotIdentifer); 
-        
     }
 
     private void displayShowMenu()
     {
-        AddOptions(options, options.ConvertAll(x => RobotMenuController.LABELS[x]),false);
+        List<String> dirList = new List<string>(){
+            Command.Direction.LEFT.ToString(),
+            Command.Direction.RIGHT.ToString(),
+            Command.Direction.UP.ToString(),
+            Command.Direction.DOWN.ToString()
+        };
+        AddOptions(new List<Action>() {
+            () => {
+                AddOptions(new List<Action>(){
+                    () => AddRotateCommand(Command.Direction.LEFT),
+                    () => AddRotateCommand(Command.Direction.RIGHT),
+                    () => AddRotateCommand(Command.Direction.UP),
+                    () => AddRotateCommand(Command.Direction.DOWN)
+                },dirList,true);
+            },
+            () => {
+                AddOptions(new List<Action>(){
+                    () => AddMoveCommand(Command.Direction.LEFT),
+                    () => AddMoveCommand(Command.Direction.RIGHT),
+                    () => AddMoveCommand(Command.Direction.UP),
+                    () => AddMoveCommand(Command.Direction.DOWN)
+                },dirList,true);
+            },
+            () => {
+                AddAttackCommand();
+            },
+        }, new List<string> {
+            Command.Rotate.DISPLAY,
+            Command.Move.DISPLAY,
+            Command.Attack.DISPLAY
+        },false);
     }
 
     private void displayHideMenu(bool onlySub)
     {
-        RobotMenuController[] menuItems = FindObjectsOfType<RobotMenuController>();
-        foreach(RobotMenuController menuItem in menuItems)
+        MenuItemController[] menuItems = FindObjectsOfType<MenuItemController>();
+        foreach(MenuItemController menuItem in menuItems)
         {
-            if (!onlySub || RobotMenuController.LABELS[menuItem.GetOption()] != menuItem.GetValue()) //hacky
+            if (!onlySub) //hacky
             {
                 Destroy(menuItem.gameObject);
             }
         }
     }
 
-    public void ClickMenuOption(MenuOptions option, string value)
-    {
-        BoardController board = FindObjectOfType<BoardController>();
-        switch (option)
-        {
-            case MenuOptions.ATTACK:
-                AddAttackCommand();
-                break;
-            case MenuOptions.MOVE:
-                switch (value)
-                {
-                    case RobotMenuController.MOVE:
-                        displayHideMenu(true);
-                        List<string> vals = new List<string>(MoveCommand.LABELTOENUM.Keys);
-                        AddOptions(vals.ConvertAll(x => MenuOptions.MOVE), vals, true);
-                        break;
-                    case MoveCommand.FORWARD:
-                    case MoveCommand.BACK:
-                    case MoveCommand.LEFT:
-                    case MoveCommand.RIGHT:
-                        AddMoveCommand(MoveCommand.LABELTOENUM[value]);
-                        break;
-
-                }
-                break;
-            case MenuOptions.ROTATE:
-                switch (value)
-                {
-                    case RobotMenuController.ROTATE:
-                        displayHideMenu(true);
-                        List<string> vals = new List<string>(RotateCommand.LABELTOENUM.Keys);
-                        AddOptions(vals.ConvertAll(x => MenuOptions.ROTATE), vals, true);
-                        break;
-                    case RotateCommand.NORTH:
-                    case RotateCommand.SOUTH:
-                    case RotateCommand.EAST:
-                    case RotateCommand.WEST:
-                        AddRotateCommand(RotateCommand.LABELTOENUM[value]);
-                        break;
-
-                }
-                break;
-            case MenuOptions.SPAWN:
-                switch (value)
-                {
-                    case RobotMenuController.SPAWN:
-                        displayHideMenu(true);
-                        List<string> vals = new List<string> ();
-                        for (int i = 1;i <= board.GetNumSpawnLocations(isOpponent); i++)
-                        {
-                            vals.Add(i.ToString());
-                        }
-                        AddOptions(vals.ConvertAll(x => MenuOptions.SPAWN), vals, true);
-                        break;
-                    default:
-                        AddSpawnCommand(int.Parse(value));
-                        break;
-                }
-                break;
-        }
-    }
-
-    private void AddOptions(List<MenuOptions> opts, List<string> vals, bool isSubmenu)
+    private void AddOptions(List<Action> opts, List<string> vals, bool isSubmenu)
     {
         GameObject menuItem = Resources.Load<GameObject>(GameConstants.ROBOT_MENU_PREFAB);
         int x = (isSubmenu ? 4 : 1);
@@ -341,9 +242,9 @@ public class RobotController : MonoBehaviour
             GameObject choice = Instantiate(menuItem, transform);
             choice.transform.localPosition = new Vector3(x*xmult + xoffset, i + yoffset, 0);
             choice.transform.RotateAround(transform.position, new Vector3(0, 0, 1), -getAngle());
-            RobotMenuController script = choice.GetComponent<RobotMenuController>();
-            script.SetOptionRobotValue(opts[i], this, vals[i]);
-            choice.GetComponent<TextMesh>().text = script.GetValue();
+            MenuItemController script = choice.GetComponent<MenuItemController>();
+            script.SetCallback(opts[i]);
+            choice.GetComponent<TextMesh>().text = vals[i];
         }
     }
 
@@ -351,9 +252,9 @@ public class RobotController : MonoBehaviour
     {
         string owner = (isOpponent ? "Opponent's " : "My ");
         Debug.Log(owner + displayName + " Commands:");
-        foreach (RobotCommand cmd in commands)
+        foreach (Command cmd in commands)
         {
-            Debug.Log(cmd.toString());
+            Debug.Log(cmd.ToString());
         }
     }
 
