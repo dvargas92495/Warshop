@@ -9,8 +9,8 @@ public class Interpreter : MonoBehaviour {
     private static Game.Player[] playerTurnObjectArray;
     private static Map board;
 
-    private static UIController uiController;
-    private static BoardController boardController;
+    internal static UIController uiController;
+    internal static BoardController boardController;
     private static RobotController[] robotControllers;
     public static int eventDelay = 1;
     public static string boardFile = GameConstants.PROTOBOARD_FILE;
@@ -64,8 +64,9 @@ public class Interpreter : MonoBehaviour {
         {
             foreach(Robot robot in player.team)
             {
-                robotControllers[p1count + robotCount] = RobotController.Make(robot);
-                robotControllers[p1count + robotCount].isOpponent = playerCount == 1;
+                RobotController r = RobotController.Make(robot);
+                r.isOpponent = playerCount == 1;
+                robotControllers[p1count + robotCount] = r;
                 robotCount++;
             }
             p1count = robotCount;

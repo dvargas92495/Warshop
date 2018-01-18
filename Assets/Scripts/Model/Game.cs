@@ -17,6 +17,23 @@ public class Game
         t1.CopyTo(allRobots, 0);
         t2.CopyTo(allRobots, t1.Length);
         board = b;
+        bool flip = false; //hack
+        foreach (Robot r in primary.team)
+        {
+            int x = flip ? board.Width - 1 : 0;
+            b.UpdateObjectLocation(x, 0, r.id);
+            r.position = new Vector2(x, 0);
+            r.orientation = Robot.Orientation.SOUTH;
+            flip = !flip;
+        }
+        foreach (Robot r in secondary.team)
+        {
+            int x = flip ? board.Width - 1 : 0;
+            b.UpdateObjectLocation(x, board.Height - 1, r.id);
+            r.position = new Vector2(x, board.Height - 1);
+            r.orientation = Robot.Orientation.NORTH;
+            flip = !flip;
+        }
     }
 
     public class Player

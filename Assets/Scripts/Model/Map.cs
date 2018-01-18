@@ -8,6 +8,7 @@ public class Map
     internal int Width { get; set; }
     internal int Height { get; set; }
     internal Space[,] spaces;
+    private Dictionary<short, Space> objectLocations;
 
     private Map(int width, int height)
     {
@@ -24,6 +25,7 @@ public class Map
         Width = boardDimensions[0];
         Height = boardDimensions[1];
         spaces = new Space[Width, Height];
+        int id = 0;
         for (int i = 1; i < lines.Length; i++)
         {
             string[] cells = lines[i].Trim().Split(' ');
@@ -31,10 +33,11 @@ public class Map
             for (int x = 0; x < cells.Length; x++)
             {
                 spaces[x, y] = new Space(cells[x]);
+                spaces[x, y].id = id;
+                id++;
             }
         }
-
-
+        objectLocations = new Dictionary<short, Space>();
     }
     public void Serialize(NetworkWriter writer)
     {
@@ -68,14 +71,8 @@ public class Map
         return spaces[x, y].spaceType;
     }
 
-    // This method only updates what space is holding the object
-    // It does not check that the object can move or cause any actions that would result from movement
-    internal void UpdateObjectLocation()//int objectID, Point NewSpace)
-    {
-        //Point oldPoint = objectToSpace[objectID];
-        //spaces[oldPoint.X, oldPoint.Y].RemoveObject(objectID);
-        //objectToSpace[objectID] = NewSpace;
-        //spaces[NewSpace.X, NewSpace.Y].AddObject(objectID);
+    internal void UpdateObjectLocation(int x, int y, short objectId) {
+        objectLocations[objectId] = spaces[x, y];
     }
 
     internal void RemoveObject(int objectID)
@@ -86,6 +83,7 @@ public class Map
     public class Space
     {
         internal SpaceType spaceType;
+        internal int id;
         internal Space(string s)
         {
             switch (s)
@@ -129,6 +127,14 @@ public class Map
         public static Space Deserialize(NetworkReader reader)
         {
             return new Space((SpaceType)reader.ReadByte());
+        }
+        public override bool Equals(object obj)
+        {
+            if (base.Equals(obj))
+            {
+                return id == ((Space)obj).id;
+            }
+            return false;
         }
     }
 }

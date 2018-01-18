@@ -14,8 +14,7 @@ public class RobotController : MonoBehaviour
     protected Vector2 position;
     protected Vector2 orientation;
     protected List<Command> commands = new List<Command>();
-
-    //ui
+    
     protected bool inTurn;
     protected bool isMenuShown;
     protected string displayName;
@@ -179,8 +178,7 @@ public class RobotController : MonoBehaviour
 
     private void displayAddingRobotCommand(Command cmd, string robotIdentifer)
     {
-        GameObject Controllers = GameObject.Find("Controllers");
-        Controllers.GetComponent<UIController>().addSubmittedCommand(cmd, robotIdentifer); 
+        Interpreter.uiController.addSubmittedCommand(cmd, robotIdentifer); 
     }
 
     private void displayShowMenu()
@@ -233,10 +231,12 @@ public class RobotController : MonoBehaviour
     private void AddOptions(List<Action> opts, List<string> vals, bool isSubmenu)
     {
         GameObject menuItem = Resources.Load<GameObject>(GameConstants.ROBOT_MENU_PREFAB);
+        int midx = Interpreter.boardController.boardCellsWide / 2;
+        int midy = Interpreter.boardController.boardCellsHeight / 2;
         int x = (isSubmenu ? 4 : 1);
-        int xmult = (position.x < 5 ? 1 : -1); //TODO 5 should be boardwidth/2
-        int xoffset = (position.x < 5 ? 0 : -3); //TODO 5 should be boardwidth/2
-        int yoffset = (position.y < 5 ? 0 : -opts.Count); //TODO 5 should be boardheight/2
+        int xmult = (position.x < midx ? 1 : -1);
+        int xoffset = (position.x < midx ? 0 : -3);
+        int yoffset = (position.y < midy ? 0 : -opts.Count);
         for (int i = 0; i < opts.Count; i++)
         {
             GameObject choice = Instantiate(menuItem, transform);
@@ -264,8 +264,7 @@ public class RobotController : MonoBehaviour
 
     private void displayMove()
     {
-        BoardController board = FindObjectOfType<BoardController>();
-        board.PlaceRobot(transform, (int) position.x, (int) position.y);
+        Interpreter.boardController.PlaceRobot(transform, (int) position.x, (int) position.y);
     }
 
     private void displayRotate()
@@ -277,10 +276,10 @@ public class RobotController : MonoBehaviour
     {
         //I can't do math
         float angle = 0;
-        if (orientation.x == 1) { angle = 90; }
-        else if (orientation.x == -1) { angle = 270; }
-        else if (orientation.y == 1) { angle = 180; }
-        else if (orientation.y == -1) { angle = 0; }
+        if (orientation.x == 1) { angle = 270; }
+        else if (orientation.x == -1) { angle = 90; }
+        else if (orientation.y == 1) { angle = 0; }
+        else if (orientation.y == -1) { angle = 180; }
         return angle;
     }
     

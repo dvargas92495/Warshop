@@ -8,13 +8,11 @@ public class BoardController : MonoBehaviour {
     //Area board is allowed to be in
     public float boardSpaceX;
     public float boardSpaceY;
+    public int boardCellsWide;
+    public int boardCellsHeight;
     private float tileWidth;
     private float tileHeight;
     public GameObject tile;
-    public List <TileController> playerAQueueLocations = new List<TileController>();
-    public List <TileController> playerBQueueLocations = new List<TileController>();
-    public List<TileController> playerASpawnLocations = new List<TileController>();
-    public List<TileController> playerBSpawnLocations = new List<TileController>();
     public List< List<TileController>> allLocations = new List<List<TileController>>();
 
     // Use this for initialization
@@ -25,8 +23,8 @@ public class BoardController : MonoBehaviour {
 
     public void InitializeBoard(Map board)
     {
-        int boardCellsWide = board.Width;
-        int boardCellsHeight = board.Height;
+        boardCellsWide = board.Width;
+        boardCellsHeight = board.Height;
         tileWidth = boardSpaceX / boardCellsWide;
         tileHeight = boardSpaceY / boardCellsHeight;
         float lastTileYPos = 0;

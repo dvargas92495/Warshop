@@ -14,6 +14,7 @@ public class Robot
     internal short id;
     internal Vector2 position;
     internal Orientation orientation;
+    internal bool inQueue;
     private Robot(string _name, string _description)
     {
         name = _name;
@@ -29,6 +30,7 @@ public class Robot
         rating = _rating;
         position = new Vector2(0, 0);
         orientation = Orientation.NORTH;
+        inQueue = true;
     }
     internal static Robot create(string robotName)
     {
@@ -59,6 +61,7 @@ public class Robot
         writer.Write(id);
         writer.Write(position);
         writer.Write((byte)orientation);
+        writer.Write(inQueue);
     }
     public static Robot Deserialize(NetworkReader reader)
     {
@@ -72,6 +75,7 @@ public class Robot
         robot.id = reader.ReadInt16();
         robot.position = reader.ReadVector2();
         robot.orientation = (Orientation)reader.ReadByte();
+        robot.inQueue = reader.ReadBoolean();
         return robot;
     }
     public static Vector2 OrientationToVector (Orientation orientation)
@@ -99,6 +103,7 @@ public class Robot
     }
     internal enum Rating
     {
+        PLATINUM = 4,
         GOLD = 3,
         SILVER = 2,
         BRONZE = 1
