@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -95,8 +96,12 @@ public class Interpreter : MonoBehaviour {
         GameClient.SendSubmitCommands(commands);
     }
 
-    // TODO: Add time in between event
     public static void PlayEvents(List<GameEvent> events)
+    {
+        uiController.StartCoroutine(EventsRoutine(events));
+    }
+
+    public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
         Logger.ClientLog("Received Events: " + events.Count);
         foreach(GameEvent evt in events)
@@ -125,6 +130,7 @@ public class Interpreter : MonoBehaviour {
                 Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());
             }
             Logger.ClientLog("Output to history what happened: " + evt.ToString());
+            yield return new WaitForSeconds(eventDelay);
         }
         Logger.ClientLog("Finished Events");
     }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using TMPro;
 
 public class UIController : MonoBehaviour {
@@ -218,6 +217,5 @@ public class UIController : MonoBehaviour {
         modalPanelObject.SetActive(false);
         resetModal();
     }
-
 
 }

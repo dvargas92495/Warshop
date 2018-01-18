@@ -139,7 +139,6 @@ public class App {
     {
         Messages.SubmitCommandsMessage msg = netMsg.ReadMessage<Messages.SubmitCommandsMessage>();
         Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();
-        Logger.ServerLog(string.Join<Command>(" | ",msg.commands));
         List<GameEvent> events = appgame.CommandsToEvents(new List<Command>(msg.commands));
         resp.events = events.ToArray();
         Send(netMsg.conn, Messages.TURN_EVENTS, resp);
