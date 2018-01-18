@@ -121,7 +121,8 @@ public class App {
             resp.opponentTeam[i] = Robot.create(msg.opponentRobots[i]);
             resp.opponentTeam[i].id = (short)(i + msg.myRobots.Length);
         }
-        appgame = new Game(resp.myTeam, resp.opponentTeam, resp.myname, resp.opponentname);
+        resp.board = new Map(msg.boardFile);
+        appgame = new Game(resp.myTeam, resp.opponentTeam, resp.myname, resp.opponentname, resp.board);
         Send(netMsg.conn, Messages.GAME_READY, resp);
     }
 

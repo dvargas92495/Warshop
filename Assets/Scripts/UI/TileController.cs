@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ProtoTileController : MonoBehaviour {
+public class TileController : MonoBehaviour {
 
     //Model
     int points;
@@ -20,33 +20,26 @@ public class ProtoTileController : MonoBehaviour {
     public float BoardY { get; set; }
 
 
-    public void LoadTile(string description)
+    public void LoadTile(Map.Space.SpaceType spaceType)
     {
-        switch (description)
+        switch (spaceType)
         {
-            case "V":
+            case Map.Space.SpaceType.VOID:
                 becomeVoid();
                 break;
-            case "W":
+            case Map.Space.SpaceType.BLANK:
                 becomeBlank();
                 break;
-            case "S":
-            case "s":
+            case Map.Space.SpaceType.SPAWN:
                 becomeSpawn();
                 break;
-            case "A":
-            case "B":
+            case Map.Space.SpaceType.BASE:
                 becomeBase();
                 break;
-            case "Q":
-                becomeAQueue();
-                break;
-            case "q":
-                becomeBQueue();
+            case Map.Space.SpaceType.QUEUE:
+                becomeQueue();
                 break;
         }
-
-		// InfoTile on side
     }
 
     public void SetScore(int score)
@@ -87,14 +80,7 @@ public class ProtoTileController : MonoBehaviour {
         displayBase();
     }
 
-    void becomeAQueue()
-    {
-        isQueue = true;
-        canSpawn = false;
-        canTraverse = false;
-        displayQueue();
-    }
-    void becomeBQueue()
+    void becomeQueue()
     {
         isQueue = true;
         canSpawn = false;

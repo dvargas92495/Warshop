@@ -7,14 +7,16 @@ public class Game
     Player primary;
     Player secondary;
     Robot[] allRobots;
+    Map board;
 
-    internal Game(Robot[] t1, Robot[] t2, string n1, string n2)
+    internal Game(Robot[] t1, Robot[] t2, string n1, string n2, Map b)
     {
         primary = new Player(t1, n1);
         secondary = new Player(t2, n2);
         allRobots = new Robot[t1.Length + t2.Length];
         t1.CopyTo(allRobots, 0);
         t2.CopyTo(allRobots, t1.Length);
+        board = b;
     }
 
     public class Player

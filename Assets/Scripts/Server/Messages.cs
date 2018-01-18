@@ -27,6 +27,7 @@ public class Messages {
         public String opponentname;
         public Robot[] myTeam;
         public Robot[] opponentTeam;
+        public Map board;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(myname);
@@ -35,6 +36,7 @@ public class Messages {
             Array.ForEach(myTeam, (Robot robot) => robot.Serialize(writer));
             writer.Write(opponentTeam.Length);
             Array.ForEach(opponentTeam, (Robot robot) => robot.Serialize(writer));
+            board.Serialize(writer);
         }
         public override void Deserialize(NetworkReader reader)
         {
@@ -50,6 +52,7 @@ public class Messages {
             {
                 opponentTeam[i] = Robot.Deserialize(reader);
             }
+            board = Map.Deserialize(reader);
         }
     }
     public class SubmitCommandsMessage : MessageBase

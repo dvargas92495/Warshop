@@ -7,6 +7,7 @@ using System.Linq;
 public class Interpreter : MonoBehaviour {
 
     private static Game.Player[] playerTurnObjectArray;
+    private static Map board;
 
     private static UIController uiController;
     private static BoardController boardController;
@@ -33,9 +34,10 @@ public class Interpreter : MonoBehaviour {
         }
     }
 
-    public static void LoadBoard(Game.Player[] ptos)
+    public static void LoadBoard(Game.Player[] ptos, Map b)
     {
         playerTurnObjectArray = ptos;
+        board = b;
         SceneManager.LoadScene("Prototype");
     }
 
@@ -45,10 +47,10 @@ public class Interpreter : MonoBehaviour {
         uiController.InitializeUICanvas(playerTurnObjectArray);
     }
 
-    public static void InitializeBoard(BoardController board)
+    public static void InitializeBoard(BoardController bc)
     {
-        boardController = board;
-        boardController.InitializeBoard(boardFile);
+        boardController = bc;
+        boardController.InitializeBoard(board);
         InitializeRobots(playerTurnObjectArray);
     }
 

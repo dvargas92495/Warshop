@@ -53,8 +53,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boardSpaceX: 10.65
   boardSpaceY: 9
-  tileWidth: 0
-  tileHeight: 0
+  tile: {fileID: 1144096399303530, guid: e34801bf32e9d344c8c0fc20ed6b89c7, type: 2}
   playerAQueueLocations: []
   playerBQueueLocations: []
   playerASpawnLocations: []

@@ -67,7 +67,7 @@ public class GameClient : MonoBehaviour {
         Game.Player[] playerTurnObjects = new Game.Player[2];
         playerTurnObjects[0] = new Game.Player(msg.myTeam, msg.myname);
         playerTurnObjects[1] = new Game.Player(msg.opponentTeam, msg.opponentname);
-        Interpreter.LoadBoard(playerTurnObjects);
+        Interpreter.LoadBoard(playerTurnObjects, msg.board);
     }
 
     private static void OnTurnEvents(NetworkMessage netMsg)
