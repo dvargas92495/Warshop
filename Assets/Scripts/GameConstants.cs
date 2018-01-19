@@ -13,6 +13,6 @@
 
     public static bool LOCAL_MODE = true;
     public static bool USE_SERVER = false;
-    public static string SERVER_IP = "35.163.93.183";
+    public static string SERVER_IP = "54.218.111.136";
     public static int PORT = 12345;
 }

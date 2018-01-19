@@ -67,6 +67,7 @@ public class GameClient : MonoBehaviour {
         Game.Player[] playerTurnObjects = new Game.Player[2];
         playerTurnObjects[0] = new Game.Player(msg.myTeam, msg.myname);
         playerTurnObjects[1] = new Game.Player(msg.opponentTeam, msg.opponentname);
+        Logger.ClientLog("Received Game Information");
         Interpreter.LoadBoard(playerTurnObjects, msg.board);
     }
 

@@ -19,6 +19,8 @@ public class InitialController : MonoBehaviour {
     public Dropdown opponentSelect;
     public Text myRoster;
     public Text opponentRoster;
+    public Text loadingText;
+    public TextAsset playtest;
     public TextAsset[] boardfiles;
     public GameObject[] robotDir;
 
@@ -32,6 +34,16 @@ public class InitialController : MonoBehaviour {
         if (isServer)
         {
             App.StartServer();
+            return;
+        }
+        if (playtest != null)
+        {
+            string[] lines = playtest.text.Split('\n');
+            Interpreter.boardFile = lines[0].Trim();
+            Interpreter.myRobotNames = lines[1].Trim().Split(',');
+            Interpreter.opponentRobotNames = lines[2].Trim().Split(',');
+            Interpreter.ConnectToServer();
+            loadingText.text = "Loading...";
             return;
         }
         int x = -1;
@@ -60,6 +72,7 @@ public class InitialController : MonoBehaviour {
                     Interpreter.opponentRobotNames = opponentRoster.text.Substring(0, opponentRoster.text.Length - 1).Split('\n');
                 }
                 Interpreter.ConnectToServer();
+                loadingText.text = "Loading...";
             });
         }
         myAdd.onClick.AddListener(() =>
