@@ -9,14 +9,15 @@ public class RobotController : MonoBehaviour
     protected int health;
     protected int priority;
     public short id { get; protected set; }
-    public bool isOpponent;
+    internal bool isOpponent;
+    internal bool canCommand;
     protected bool equipped;
     protected Vector2 position;
     protected Vector2 orientation;
     protected List<Command> commands = new List<Command>();
     
     protected bool inTurn;
-    protected bool isMenuShown;
+    internal bool isMenuShown;
     protected string displayName;
     protected string displayAbbreviation;
     protected string description;
@@ -119,23 +120,16 @@ public class RobotController : MonoBehaviour
 
     private void toggleMenu()
     {
-        RobotController[] allRobots = FindObjectsOfType<RobotController>();
-        foreach (RobotController robot in allRobots)
-        {
-            if (robot.isMenuShown && !(robot.id == id && robot.isOpponent == isOpponent))
-            {
-                robot.toggleMenu();
-                break;
-            }
-        }
-        isMenuShown = !isMenuShown;
+        if (!canCommand) return;
         if (isMenuShown)
         {
-            displayShowMenu();
-        }
-        else
-        {
+            isMenuShown = false;
             displayHideMenu(false);
+        } else
+        {
+            Interpreter.DestroyCommandMenu();
+            isMenuShown = true;
+            displayShowMenu();
         }
     }
 
@@ -165,11 +159,6 @@ public class RobotController : MonoBehaviour
     {
         orientation = new Vector2(-orientation.y, orientation.x);
         displayRotate();
-    }
-
-    public bool IsOpponent()
-    {
-        return isOpponent;
     }
 
     /********************************
@@ -216,7 +205,7 @@ public class RobotController : MonoBehaviour
         },false);
     }
 
-    private void displayHideMenu(bool onlySub)
+    public void displayHideMenu(bool onlySub)
     {
         MenuItemController[] menuItems = FindObjectsOfType<MenuItemController>();
         foreach(MenuItemController menuItem in menuItems)

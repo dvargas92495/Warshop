@@ -9,6 +9,8 @@ public class Game
     Player secondary;
     Robot[] allRobots;
     Map board;
+    internal bool gotSomeCommands;
+    List<Command> commands;
 
     internal Game(Robot[] t1, Robot[] t2, string n1, string n2, Map b)
     {
@@ -35,6 +37,7 @@ public class Game
             r.orientation = Robot.Orientation.NORTH;
             flip = !flip;
         }
+        commands = new List<Command>();
     }
 
     public class Player
@@ -51,8 +54,11 @@ public class Game
     }
 
     //TODO: Move this to Server
-    public List<GameEvent> CommandsToEvents(List<Command> commands)
+    public List<GameEvent> CommandsToEvents(List<Command> cmds)
     {
+        commands.AddRange(cmds);
+        gotSomeCommands = !gotSomeCommands;
+        if (gotSomeCommands) return new List<GameEvent>();
         Dictionary<byte, HashSet<Command>> priorityToCommands = new Dictionary<byte, HashSet<Command>>();
         Dictionary<short, byte> robotIdToCurrentPriority = new Dictionary<short, byte>();
         Array.ForEach(allRobots, (Robot r) => robotIdToCurrentPriority[r.id] = r.priority);
@@ -70,20 +76,21 @@ public class Game
         for (byte p = GameConstants.MAX_PRIORITY; p > 0; p--)
         {
             HashSet<Command> currentCmds = priorityToCommands[p];
+            List<GameEvent> priorityEvents = new List<GameEvent>();
 
             HashSet<Command> rotateCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Rotate));
             IEnumerable<GameEvent> rotateEvents = rotateCmds.ToList().ConvertAll(((Command c) => {
                 Robot primaryRobot = Array.Find(allRobots, (Robot r) => r.id == c.robotId);
                 return new GameEvent.Rotate(primaryRobot, ((Command.Rotate)c).direction);
             }));
-            events.AddRange(rotateEvents);
+            priorityEvents.AddRange(rotateEvents);
 
             HashSet<Command> movCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Move));
             IEnumerable<GameEvent> movEvents = movCmds.ToList().ConvertAll(((Command c) => {
                 Robot primaryRobot = Array.Find(allRobots, (Robot r) => r.id == c.robotId);
                 return new GameEvent.Move(primaryRobot, ((Command.Move)c).direction);
             }));
-            events.AddRange(movEvents);
+            priorityEvents.AddRange(movEvents);
 
             HashSet<Command> attackCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Attack));
             IEnumerable<GameEvent> attackEvents = attackCmds.ToList().ConvertAll(((Command c) => {
@@ -92,11 +99,13 @@ public class Game
                 Robot[] victims = Array.FindAll(allRobots, (robot) => locs.Contains(robot.position));
                 return new GameEvent.Attack(primaryRobot, victims);
             }));
-            events.AddRange(attackEvents);
+            priorityEvents.AddRange(attackEvents);
 
             HashSet<Command> specialCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Special));
-
+            priorityEvents.ForEach((GameEvent e) => e.priority = p);
+            events.AddRange(priorityEvents);
         }
+        commands.Clear();
         return events;
     }
 }

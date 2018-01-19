@@ -54,7 +54,6 @@ public class UIController : MonoBehaviour {
         // set the components of the uicanvas
         SetPlayerTurnText(playerTurnText, playerTurnObjects[0]);
         SetPlayerPanels(playerPanels, playerTurnObjects);
-        myTurn = true;
 
 	}
 
@@ -142,14 +141,7 @@ public class UIController : MonoBehaviour {
 
     public void SubmitActionsButtonPress()
     {
-        GameObject Controllers = GameObject.Find("Controllers");
-        if (!GameConstants.LOCAL_MODE || !myTurn) //Send if not Local, or is Local and opponent just submitted
-        {
-            Interpreter.SubmitActions();
-        } else if (GameConstants.LOCAL_MODE)
-        {
-            myTurn = !myTurn;
-        }
+        Interpreter.SubmitActions();
         submittedActions.Clear();
     }
 
@@ -183,7 +175,7 @@ public class UIController : MonoBehaviour {
         modalTextBackdrop = getChildGameObject(modalDisplayPanel, "Text Backdrop");
         foreach (Transform child in modalTextBackdrop.transform)
         {
-            GameObject.Destroy(child.gameObject);
+            Destroy(child.gameObject);
         }
     }
     public void formatActionsModalTextLines(List<string> textLines)

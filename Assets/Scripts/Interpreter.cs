@@ -12,11 +12,12 @@ public class Interpreter : MonoBehaviour {
 
     internal static UIController uiController;
     internal static BoardController boardController;
-    private static RobotController[] robotControllers;
+    internal static RobotController[] robotControllers;
     public static int eventDelay = 1;
     public static string boardFile = GameConstants.PROTOBOARD_FILE;
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
+    private static bool myturn;
 
     public static void ConnectToServer()
     {
@@ -39,6 +40,7 @@ public class Interpreter : MonoBehaviour {
     {
         playerTurnObjectArray = ptos;
         board = b;
+        myturn = true;
         SceneManager.LoadScene("Prototype");
     }
 
@@ -67,6 +69,7 @@ public class Interpreter : MonoBehaviour {
             {
                 RobotController r = RobotController.Make(robot);
                 r.isOpponent = playerCount == 1;
+                r.canCommand = !r.isOpponent;
                 robotControllers[p1count + robotCount] = r;
                 robotCount++;
             }
@@ -78,20 +81,32 @@ public class Interpreter : MonoBehaviour {
 
     public static void SubmitActions()
     {
+        DestroyCommandMenu();
+        if (!GameConstants.LOCAL_MODE && !myturn)
+        {
+            return;
+        } else if (GameConstants.LOCAL_MODE && !myturn)
+        {
+            Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
+        } else
+        {
+            Array.ForEach(robotControllers, (RobotController r) => r.canCommand = r.isOpponent);
+        }
         List<Command> commands = new List<Command>();
         RobotController[] robots = FindObjectsOfType<RobotController>();
         foreach(RobotController robot in robots)
         {
             List<Command> robotCommands = robot.GetCommands();
-            foreach(Command cmd in robotCommands)
+            string username = (robot.isOpponent ? playerTurnObjectArray[1].name : playerTurnObjectArray[0].name);
+            foreach (Command cmd in robotCommands)
             {
                 cmd.robotId = robot.id;
-                cmd.owner = (!GameConstants.LOCAL_MODE ? "ACTUAL_USERNAME":
-                    (robot.IsOpponent() ? "opponent":"me"));
+                cmd.owner = username;
                 commands.Add(cmd);
             }
             robot.ClearRobotCommands();
         }
+        myturn = false;
         Logger.ClientLog("Sending Commands: " + commands.Count);
         GameClient.SendSubmitCommands(commands);
     }
@@ -133,6 +148,21 @@ public class Interpreter : MonoBehaviour {
             yield return new WaitForSeconds(eventDelay);
         }
         Logger.ClientLog("Finished Events");
+        myturn = true;
+        Array.ForEach(robotControllers, (RobotController r) => r.canCommand = !r.isOpponent);
+    }
+
+    public static void DestroyCommandMenu()
+    {
+        foreach (RobotController robot in robotControllers)
+        {
+            if (robot.isMenuShown)
+            {
+                robot.isMenuShown = false;
+                robot.displayHideMenu(false);
+                break;
+            }
+        }
     }
 }
 
