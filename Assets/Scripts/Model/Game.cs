@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -52,35 +53,49 @@ public class Game
     //TODO: Move this to Server
     public List<GameEvent> CommandsToEvents(List<Command> commands)
     {
-        commands.Sort((a, b) =>
+        Dictionary<byte, HashSet<Command>> priorityToCommands = new Dictionary<byte, HashSet<Command>>();
+        Dictionary<short, byte> robotIdToCurrentPriority = new Dictionary<short, byte>();
+        Array.ForEach(allRobots, (Robot r) => robotIdToCurrentPriority[r.id] = r.priority);
+        for (byte p = GameConstants.MAX_PRIORITY; p > 0; p--)
         {
-            return -1;
+            priorityToCommands[p] = new HashSet<Command>();
+        }
+        commands.ForEach((Command c) =>
+        {
+            short robotId = c.robotId;
+            priorityToCommands[robotIdToCurrentPriority[robotId]].Add(c);
+            robotIdToCurrentPriority[robotId]--;
         });
         List<GameEvent> events = new List<GameEvent>();
-        foreach (Command cmd in commands)
+        for (byte p = GameConstants.MAX_PRIORITY; p > 0; p--)
         {
-            GameEvent e = null;
-            Robot primaryRobot = Array.Find(allRobots, (Robot r) => r.id == cmd.robotId);
-            if (cmd is Command.Move)
-            {
-                e = new GameEvent.Move(primaryRobot, ((Command.Move)cmd).direction);
-            }
-            else if (cmd is Command.Rotate)
-            {
-                e = new GameEvent.Rotate(primaryRobot, ((Command.Rotate)cmd).direction);
-            }
-            else if (cmd is Command.Attack)
-            {
+            HashSet<Command> currentCmds = priorityToCommands[p];
+
+            HashSet<Command> rotateCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Rotate));
+            IEnumerable<GameEvent> rotateEvents = rotateCmds.ToList().ConvertAll(((Command c) => {
+                Robot primaryRobot = Array.Find(allRobots, (Robot r) => r.id == c.robotId);
+                return new GameEvent.Rotate(primaryRobot, ((Command.Rotate)c).direction);
+            }));
+            events.AddRange(rotateEvents);
+
+            HashSet<Command> movCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Move));
+            IEnumerable<GameEvent> movEvents = movCmds.ToList().ConvertAll(((Command c) => {
+                Robot primaryRobot = Array.Find(allRobots, (Robot r) => r.id == c.robotId);
+                return new GameEvent.Move(primaryRobot, ((Command.Move)c).direction);
+            }));
+            events.AddRange(movEvents);
+
+            HashSet<Command> attackCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Attack));
+            IEnumerable<GameEvent> attackEvents = attackCmds.ToList().ConvertAll(((Command c) => {
+                Robot primaryRobot = Array.Find(allRobots, (Robot r) => r.id == c.robotId);
                 List<Vector2> locs = primaryRobot.GetVictimLocations();
                 Robot[] victims = Array.FindAll(allRobots, (robot) => locs.Contains(robot.position));
-                e = new GameEvent.Attack(primaryRobot, victims);
-            }
-            else
-            {
-                Logger.ServerLog("Bad Command: " + cmd.ToString());
-                continue;
-            }
-            events.Add(e);
+                return new GameEvent.Attack(primaryRobot, victims);
+            }));
+            events.AddRange(attackEvents);
+
+            HashSet<Command> specialCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Special));
+
         }
         return events;
     }

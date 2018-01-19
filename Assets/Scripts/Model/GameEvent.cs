@@ -4,6 +4,7 @@ using UnityEngine.Networking;
 public abstract class GameEvent
 {
     internal short primaryRobotId;
+    internal byte priority;
     public GameEvent() { }
     public abstract void Serialize(NetworkWriter writer);
     public static GameEvent Deserialize(NetworkReader reader)
@@ -25,11 +26,16 @@ public abstract class GameEvent
                 return null; //TODO: Throw an error
         }
         evt.primaryRobotId = reader.ReadInt16();
+        evt.priority = reader.ReadByte();
         return evt;
     }
     public override string ToString()
     {
         return "Empty Event";
+    }
+    public string ToString(string message)
+    {
+        return "Robot " + primaryRobotId + " " + message + " on priority " + priority;
     }
 
     public class Rotate : GameEvent
@@ -69,6 +75,7 @@ public abstract class GameEvent
             writer.Write((byte)sourceDir);
             writer.Write((byte)destinationDir);
             writer.Write(primaryRobotId);
+            writer.Write(priority);
         }
         public new static Rotate Deserialize(NetworkReader reader)
         {
@@ -78,7 +85,7 @@ public abstract class GameEvent
         }
         public override string ToString()
         {
-            return "Robot " + primaryRobotId + " rotated from " + sourceDir + " to " + destinationDir;
+            return ToString("rotated from " + sourceDir + " to " + destinationDir);
         }
     }
 
@@ -119,6 +126,7 @@ public abstract class GameEvent
             writer.Write(sourcePos);
             writer.Write(destinationPos);
             writer.Write(primaryRobotId);
+            writer.Write(priority);
         }
         public new static Move Deserialize(NetworkReader reader)
         {
@@ -128,7 +136,7 @@ public abstract class GameEvent
         }
         public override string ToString()
         {
-            return "Robot " + primaryRobotId + " moved from " + sourcePos + " to " + destinationPos;
+            return ToString("moved from " + sourcePos + " to " + destinationPos);
         }
     }
 
@@ -165,6 +173,7 @@ public abstract class GameEvent
                 writer.Write(victimHealth[i]);
             }
             writer.Write(primaryRobotId);
+            writer.Write(priority);
         }
         public new static Attack Deserialize(NetworkReader reader)
         {
@@ -180,7 +189,7 @@ public abstract class GameEvent
         }
         public override string ToString()
         {
-            return "Robot " + primaryRobotId + " attacked " + string.Join(",",victimIds) + " down to " + string.Join(",", victimHealth);
+            return ToString("attacked " + string.Join(",", victimIds) + " down to " + string.Join(",", victimHealth));
         }
     }
 
