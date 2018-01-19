@@ -14,7 +14,7 @@ public class Interpreter : MonoBehaviour {
     internal static BoardController boardController;
     internal static RobotController[] robotControllers;
     public static int eventDelay = 1;
-    public static string boardFile = GameConstants.PROTOBOARD_FILE;
+    public static string boardFile = "";
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
     private static bool myturn;

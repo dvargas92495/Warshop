@@ -15,7 +15,8 @@ public class RobotController : MonoBehaviour
     protected Vector2 position;
     protected Vector2 orientation;
     protected List<Command> commands = new List<Command>();
-    
+
+    public GameObject menuItem;
     protected bool inTurn;
     internal bool isMenuShown;
     protected string displayName;
@@ -219,7 +220,6 @@ public class RobotController : MonoBehaviour
 
     private void AddOptions(List<Action> opts, List<string> vals, bool isSubmenu)
     {
-        GameObject menuItem = Resources.Load<GameObject>(GameConstants.ROBOT_MENU_PREFAB);
         int midx = Interpreter.boardController.boardCellsWide / 2;
         int midy = Interpreter.boardController.boardCellsHeight / 2;
         int x = (isSubmenu ? 4 : 1);

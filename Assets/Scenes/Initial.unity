@@ -182,6 +182,16 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.size
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: boardfiles.Array.size
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 224431126543656574, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
         type: 2}
       propertyPath: m_LocalPosition.x
@@ -272,6 +282,52 @@ Prefab:
       propertyPath: m_Pivot.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: boardfiles.Array.data[0]
+      value: 
+      objectReference: {fileID: 4900000, guid: e3fc191eedea8f343a82bbf5f9a1e104, type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: boardfiles.Array.data[1]
+      value: 
+      objectReference: {fileID: 4900000, guid: 5a078c2e9a8f116478feef553b110430, type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: loadBoardButton
+      value: 
+      objectReference: {fileID: 114315801055340028, guid: 48309b7c6598fd74084627135ce35346,
+        type: 2}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[0]
+      value: 
+      objectReference: {fileID: 1616122726720972, guid: 8b69cb870873b244b9c3e55505434564,
+        type: 2}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[1]
+      value: 
+      objectReference: {fileID: 1205652597181426, guid: 6325210885d258649b74911e5f9dd09b,
+        type: 2}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[2]
+      value: 
+      objectReference: {fileID: 1740523018903644, guid: 707740899261abf479f0a5b2ceed339b,
+        type: 2}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[3]
+      value: 
+      objectReference: {fileID: 1972851358837626, guid: 74de15ebb989fe745bd64b501f1f6a30,
+        type: 2}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[4]
+      value: 
+      objectReference: {fileID: 1082346195968820, guid: 50bb500b7324c4d4d96a6901d5c9a0ca,
+        type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 6e3e0d7b4af03eb42aea7e8698edab55, type: 2}
   m_IsPrefabParent: 0

@@ -12,12 +12,15 @@ public class InitialController : MonoBehaviour {
     private float dx = 200;
     private float dy = 50;
     private int width = 2;
+    public Button loadBoardButton;
     public Button myAdd;
     public Button opponentAdd;
     public Dropdown mySelect;
     public Dropdown opponentSelect;
     public Text myRoster;
     public Text opponentRoster;
+    public TextAsset[] boardfiles;
+    public GameObject[] robotDir;
 
     public void Awake()
     {
@@ -31,39 +34,33 @@ public class InitialController : MonoBehaviour {
             App.StartServer();
             return;
         }
-        DirectoryInfo dir = new DirectoryInfo(GameConstants.RESOURCES + GameConstants.BOARDFILE_DIR);
-        Button but = Resources.Load<Button>(GameConstants.LOADBOARD_BUTTON);
-        FileInfo[] info = dir.GetFiles("*.*");
         int x = -1;
         int y = 2;
-        foreach (FileInfo f in info)
+        foreach (TextAsset t in boardfiles)
         {
-            if (!f.Name.EndsWith(".meta"))
+            Button thisBoard = Instantiate(loadBoardButton, transform);
+            thisBoard.GetComponentInChildren<Text>().text = t.name;
+            RectTransform rect = thisBoard.GetComponent<RectTransform>();
+            rect.anchoredPosition = new Vector2(x * dx, y * dy);
+            x++;
+            if (x >= width)
             {
-                Button thisBoard = Instantiate(but, transform);
-                thisBoard.GetComponentInChildren<Text>().text = f.Name.Substring(0,f.Name.Length-4); // remove .txt
-                RectTransform rect = thisBoard.GetComponent<RectTransform>();
-                rect.anchoredPosition = new Vector2(x * dx, y * dy);
-                x++;
-                if (x >= width)
-                {
-                    x = -2;
-                    y--;
-                }
-                thisBoard.onClick.AddListener(() =>
-                {
-                    Interpreter.boardFile = GameConstants.BOARDFILE_DIR + "/" + f.Name.Substring(0, f.Name.Length - 4);
-                    if (myRoster.text.Length > 0)
-                    {
-                        Interpreter.myRobotNames = myRoster.text.Substring(0, myRoster.text.Length - 1).Split('\n');
-                    }
-                    if (opponentRoster.text.Length > 0 && GameConstants.LOCAL_MODE)
-                    {
-                        Interpreter.opponentRobotNames = opponentRoster.text.Substring(0, opponentRoster.text.Length - 1).Split('\n');
-                    }
-                    Interpreter.ConnectToServer();
-                });
+                x = -2;
+                y--;
             }
+            thisBoard.onClick.AddListener(() =>
+            {
+                Interpreter.boardFile = t.name;
+                if (myRoster.text.Length > 0)
+                {
+                    Interpreter.myRobotNames = myRoster.text.Substring(0, myRoster.text.Length - 1).Split('\n');
+                }
+                if (opponentRoster.text.Length > 0 && GameConstants.LOCAL_MODE)
+                {
+                    Interpreter.opponentRobotNames = opponentRoster.text.Substring(0, opponentRoster.text.Length - 1).Split('\n');
+                }
+                Interpreter.ConnectToServer();
+            });
         }
         myAdd.onClick.AddListener(() =>
         {
@@ -75,17 +72,12 @@ public class InitialController : MonoBehaviour {
             string robot = opponentSelect.options[opponentSelect.value].text;
             opponentRoster.text += robot + "\n";
         });
-        DirectoryInfo robotDir = new DirectoryInfo(GameConstants.RESOURCES + GameConstants.ROBOT_PREFAB_DIR);
-        FileInfo[] robotInfo = robotDir.GetFiles("*.*");
         List<Dropdown.OptionData> opts = new List<Dropdown.OptionData>();
-        foreach (FileInfo f in robotInfo)
+        foreach (GameObject r in robotDir)
         {
-            if (!f.Name.EndsWith(".meta"))
-            {
-                Dropdown.OptionData opt = new Dropdown.OptionData();
-                opt.text = f.Name.Substring(0, f.Name.Length - 7); //.prefab
-                opts.Add(opt);
-            }
+            Dropdown.OptionData opt = new Dropdown.OptionData();
+            opt.text = r.name;
+            opts.Add(opt);
         }
         mySelect.AddOptions(opts);
         opponentSelect.AddOptions(opts);
