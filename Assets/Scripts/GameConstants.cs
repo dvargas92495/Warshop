@@ -14,7 +14,6 @@
     //TODO: Bring these out to a config file
     public static bool LOCAL_MODE = false;
     public static bool USE_SERVER = true;
-    public static string SERVER_IP = "18.9.64.24";
-    //public static string SERVER_IP = "54.218.111.136";
+    public static string SERVER_IP = "54.202.247.134";
     public static int PORT = 12345;
 }

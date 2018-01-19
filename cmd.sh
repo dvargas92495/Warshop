@@ -32,9 +32,9 @@ deployCmd() {
 	    RESULT=$(aws gamelift create-fleet --name "Z8_App" --description "Z8 App Server" --build-id $BUILD_ID --ec2-instance-type "c4.large" --runtime-configuration "GameSessionActivationTimeoutSeconds=300, MaxConcurrentGameSessionActivations=2, ServerProcesses=[{LaunchPath=/local/game/App.x86_64, ConcurrentExecutions=1}]" --new-game-session-protection-policy "FullProtection" --resource-creation-limit-policy "NewGameSessionsPerCreator=3,PolicyPeriodInMinutes=15" --ec2-inbound-permissions "FromPort=12345,ToPort=12345,IpRange=0.0.0.0/0,Protocol=UDP" --query "FleetAttributes.Status" --output text);
 	    if [[ $RESULT = "NEW"* ]]; then
 		    echo "Fleet Created!";
-		    NEW_FLEET_ID=$(aws gamelift describe-fleet-attributes --query "FleetAttributes[?BuildId==$BUILD_ID].FleetId" --output text);
-			echo "New Fleet: $NEW_FLEET_ID";
-			echo "Done!";
+		    NEW_FLEET_ID=$(aws gamelift describe-fleet-attributes --query "FleetAttributes[?BuildId=='$BUILD_ID'].FleetId" --output text);
+			echo "New Fleet: ${NEW_FLEET_ID%?}";
+			fleetCmd ${NEW_FLEET_ID%?};
 		else
 		    echo $RESULT;
 			echo "Fleet failed to be created";
@@ -42,6 +42,23 @@ deployCmd() {
     else
 		echo "Build $BUILD_ID Not Ready, STATUS=$STATUS";
 	fi 
+}
+
+FLEET_STATUS="";
+fleetCmd(){
+	NEW_FLEET_STATUS=$(aws gamelift describe-fleet-attributes --fleet-id $1 --query "FleetAttributes[0].Status" --output text);
+	if [[ $NEW_FLEET_STATUS = "ACTIVE"* ]]; then
+		echo "Fleet Active!"
+		FLEET_STATUS="";
+	    IP_ADRESS=$(aws gamelift describe-instances --fleet-id $1 --query "Instances[0].IpAddress" --output text);
+		echo "Fleet $1 running on ${IP_ADRESS%?}";
+	elif [[ $NEW_FLEET_STATUS = $FLEET_STATUS ]]; then
+		fleetCmd;
+	else
+		FLEET_STATUS=NEW_FLEET_STATUS;
+		echo "Status: $FLEET_STATUS";
+		fleetCmd;
+	fi
 }
 
 openCmd() {
@@ -68,6 +85,8 @@ elif [[ $1 = "clean" ]]; then
 	cleanCmd;
 elif [[ $1 = "deploy" ]]; then
     deployCmd;
+elif [[ $1 = "fleet" ]]; then
+    fleetCmd;
 elif [[ $1 = "open" ]]; then
     openCmd;
 elif [[ $1 = "server" ]]; then
