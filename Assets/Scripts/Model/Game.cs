@@ -40,7 +40,6 @@ public class Game
         foreach (Robot r in primary.team)
         {
             int x = flip ? board.Width - 1 : 0;
-            b.UpdateObjectLocation(x, 0, r.id);
             r.position = new Vector2(x, 0);
             r.orientation = Robot.Orientation.SOUTH;
             flip = !flip;
@@ -48,7 +47,6 @@ public class Game
         foreach (Robot r in secondary.team)
         {
             int x = flip ? board.Width - 1 : 0;
-            b.UpdateObjectLocation(x, board.Height - 1, r.id);
             r.position = new Vector2(x, board.Height - 1);
             r.orientation = Robot.Orientation.NORTH;
             flip = !flip;
@@ -66,7 +64,6 @@ public class Game
         foreach (Robot r in secondary.team)
         {
             int x = flip ? board.Width - 1 : 0;
-            board.UpdateObjectLocation(x, board.Height - 1, r.id);
             r.position = new Vector2(x, board.Height - 1);
             r.orientation = Robot.Orientation.NORTH;
             flip = !flip;
@@ -135,6 +132,11 @@ public class Game
             priorityEvents.AddRange(attackEvents);
 
             HashSet<Command> specialCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Special));
+            IEnumerable<GameEvent> specialEvents = specialCmds.ToList().ConvertAll(((Command c) => {
+                return new GameEvent.Empty();
+            }));
+            priorityEvents.AddRange(specialEvents);
+
             priorityEvents.ForEach((GameEvent e) => e.priority = p);
             events.AddRange(priorityEvents);
         }

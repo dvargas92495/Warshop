@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,6 +10,7 @@ public class App {
 
     private static Game appgame;
     private static NetworkConnection tempConn; //TODO: hack
+    private static TextAsset[] boardFiles;
 
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
@@ -20,21 +20,29 @@ public class App {
         { Messages.SUBMIT_COMMANDS, OnSubmitCommands}
     };
 
+    public static void LinkAssets(TextAsset[] boards)
+    {
+        boardFiles = boards;
+    }
+
     // Use this for initialization
     public static void StartServer()
     {
         GenericOutcome outcome = GameLiftServerAPI.InitSDK();
-        GameLiftServerAPI.ProcessReady(new ProcessParameters(
-            OnGameSession,
-            OnProcessTerminate,
-            OnHealthCheck,
-            GameConstants.PORT,
-            new LogParameters(new List<string>()
-            {
-              GameConstants.APP_LOG_DIR,
-              GameConstants.APP_ERROR_DIR
-            })
-        ));
+        if (outcome.Success)
+        {
+            GameLiftServerAPI.ProcessReady(new ProcessParameters(
+                OnGameSession,
+                OnProcessTerminate,
+                OnHealthCheck,
+                GameConstants.PORT,
+                new LogParameters(new List<string>()
+                {
+                    GameConstants.APP_LOG_DIR,
+                    GameConstants.APP_ERROR_DIR
+                })
+            ));
+        }
         foreach(KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
         {
             NetworkServer.RegisterHandler(pair.Key, pair.Value);
@@ -76,14 +84,14 @@ public class App {
     {
         // game-specific tasks when starting a new game session, such as loading map
         // When ready to receive players
-        GenericOutcome activateGameSessionOutcome = GameLiftServerAPI.ActivateGameSession();
+        //GenericOutcome activateGameSessionOutcome = GameLiftServerAPI.ActivateGameSession();
     }
 
     static void OnProcessTerminate()
     {
         // game-specific tasks required to gracefully shut down a game session, 
         // such as notifying players, preserving game state data, and other cleanup
-        GenericOutcome ProcessEndingOutcome = GameLiftServerAPI.ProcessEnding();
+        //GenericOutcome ProcessEndingOutcome = GameLiftServerAPI.ProcessEnding();
         GameLiftServerAPI.Destroy();
     }
 
@@ -122,7 +130,8 @@ public class App {
             resp.opponentTeam[i] = Robot.create(msg.opponentRobots[i]);
             resp.opponentTeam[i].id = (short)(i + msg.myRobots.Length);
         }
-        resp.board = new Map(msg.boardFile);
+        TextAsset boardContent = Array.Find(boardFiles, (TextAsset t) => t.name == msg.boardFile);
+        resp.board = new Map(boardContent);
         appgame = new Game(resp.myTeam, resp.opponentTeam, resp.myname, resp.opponentname, resp.board);
         Send(netMsg.conn, Messages.GAME_READY, resp);
     }
@@ -139,7 +148,8 @@ public class App {
                 primaryTeam[i] = Robot.create(msg.myRobots[i]);
                 primaryTeam[i].id = i;
             }
-            appgame = new Game(primaryTeam, primaryname, new Map(msg.boardFile));
+            TextAsset boardContent = Array.Find(boardFiles, (TextAsset t) => t.name == msg.boardFile);
+            appgame = new Game(primaryTeam, primaryname, new Map(boardContent));
             tempConn = netMsg.conn;
         } else if (appgame.secondary == null)
         {

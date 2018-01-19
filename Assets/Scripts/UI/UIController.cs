@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,7 +25,7 @@ public class UIController : MonoBehaviour {
     public Text placeholder;
     public GameObject modalPanelObject;
     public Button cancelButton;
-
+    public Sprite[] sprites;
 
 	private GameObject robotImagePanel;
 
@@ -103,8 +104,7 @@ public class UIController : MonoBehaviour {
 	}
 
 	void attachRobotSprite(GameObject robotImagePanel, string robotName){
-		string spriteDir = "Robots/Sprites/" + robotName + " small";
-		robotSprite = Resources.Load<Sprite>(spriteDir);
+        robotSprite = Array.Find(sprites, (Sprite s) => s.name.StartsWith(robotName));
 		robotImagePanel.GetComponent<Image>().sprite = robotSprite;
 	}
 
@@ -184,7 +184,7 @@ public class UIController : MonoBehaviour {
         modalDisplayPanel = getChildGameObject(modalPanelObject, "ModalDisplay");
         modalTextBackdrop = getChildGameObject(modalDisplayPanel, "Text Backdrop");
         float xWidth = 390f - 35;
-        float yWidth = 575f;
+        //float yWidth = 575f;
         float ySpacer = 0;
         float yStart = -200;
         // For each textline in textLines, create new gameObject with text in it

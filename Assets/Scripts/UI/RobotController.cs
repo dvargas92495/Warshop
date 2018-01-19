@@ -24,19 +24,17 @@ public class RobotController : MonoBehaviour
     protected string description;
 
 
-    public static RobotController Make(Robot robot)
+    public void Load(Robot robot)
     {
-        RobotController robotController = Instantiate(Resources.Load<GameObject>(GameConstants.ROBOT_PREFAB_DIR + robot.name)).GetComponent<RobotController>();
-        robotController.name = robot.name;
-        robotController.id = robot.id;
-        robotController.health = robot.health;
-        robotController.attack = robot.attack;
-        robotController.priority = robot.priority;
-        robotController.position = robot.position;
-        robotController.orientation = Robot.OrientationToVector(robot.orientation);
-        robotController.displayMove();
-        robotController.displayRotate();
-        return robotController;
+        name = robot.name;
+        id = robot.id;
+        health = robot.health;
+        attack = robot.attack;
+        priority = robot.priority;
+        position = robot.position;
+        orientation = Robot.OrientationToVector(robot.orientation);
+        displayMove();
+        displayRotate();
     }
     
     /************************

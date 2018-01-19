@@ -5,6 +5,7 @@ using UnityEngine.Networking;
 
 public class Map
 {
+    public TextAsset[] boardfiles;
     internal int Width { get; set; }
     internal int Height { get; set; }
     internal Space[,] spaces;
@@ -17,9 +18,8 @@ public class Map
         spaces = new Space[width, height];
     }
 
-    internal Map(string boardfile)
+    internal Map(TextAsset content)
     {
-        TextAsset content = Resources.Load<TextAsset>(GameConstants.BOARDFILE_DIR + boardfile);
         string[] lines = content.text.Split('\n');
         int[] boardDimensions = lines[0].Trim().Split(null).Select(int.Parse).ToArray();
         Width = boardDimensions[0];
@@ -127,6 +127,10 @@ public class Map
         public static Space Deserialize(NetworkReader reader)
         {
             return new Space((SpaceType)reader.ReadByte());
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
         public override bool Equals(object obj)
         {

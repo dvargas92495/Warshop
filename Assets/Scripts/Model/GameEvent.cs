@@ -23,7 +23,8 @@ public abstract class GameEvent
                 evt = Attack.Deserialize(reader);
                 break;
             default:
-                return null; //TODO: Throw an error
+                evt = new Empty();
+                break;//TODO: Log an error
         }
         evt.primaryRobotId = reader.ReadInt16();
         evt.priority = reader.ReadByte();
@@ -36,6 +37,17 @@ public abstract class GameEvent
     public string ToString(string message)
     {
         return "Robot " + primaryRobotId + " " + message + " on priority " + priority;
+    }
+
+    public class Empty : GameEvent
+    {
+        internal const byte EVENT_ID = 0;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(primaryRobotId);
+            writer.Write(priority);
+        }
     }
 
     public class Rotate : GameEvent

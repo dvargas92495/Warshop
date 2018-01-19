@@ -13,6 +13,7 @@ public class Interpreter : MonoBehaviour {
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static RobotController[] robotControllers;
+    internal static GameObject[] robotDir;
     public static int eventDelay = 1;
     public static string boardFile = "";
     public static string[] myRobotNames = new string[0];
@@ -67,7 +68,8 @@ public class Interpreter : MonoBehaviour {
         {
             foreach(Robot robot in player.team)
             {
-                RobotController r = RobotController.Make(robot);
+                RobotController r = Instantiate(Array.Find(robotDir, (GameObject g) => g.name.Equals(robot.name))).GetComponent<RobotController>();
+                r.Load(robot);
                 r.isOpponent = playerCount == 1;
                 r.canCommand = !r.isOpponent;
                 robotControllers[p1count + robotCount] = r;
@@ -93,8 +95,7 @@ public class Interpreter : MonoBehaviour {
             Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
         }
         List<Command> commands = new List<Command>();
-        RobotController[] robots = FindObjectsOfType<RobotController>();
-        foreach(RobotController robot in robots)
+        foreach(RobotController robot in robotControllers)
         {
             List<Command> robotCommands = robot.GetCommands();
             string username = (robot.isOpponent ? playerTurnObjectArray[1].name : playerTurnObjectArray[0].name);

@@ -1,23 +1,18 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class TileController : MonoBehaviour {
 
     //Model
-    int points;
-    bool canSpawn;
-    bool isBase;
-    bool isQueue;
-    bool canTraverse = true;
-    int AQueueCount = 0;
-    int BQueueCount = 0;
     public int RobotX { get; set; }
     public int RobotY { get; set; }
 
     //View
     public float BoardX { get; set; }
     public float BoardY { get; set; }
+    public Material[] tileMaterials;
 
 
     public void LoadTile(Map.Space.SpaceType spaceType)
@@ -50,65 +45,31 @@ public class TileController : MonoBehaviour {
 
     void becomeVoid()
     {
-        canSpawn = false;
-        canTraverse = false;
-        points = 0;
-        displayVoid();
+        displayMaterial("Void");
     }
 
     void becomeBlank()
     {
-        canSpawn = false;
-        canTraverse = true;
-        points = 0;
-        displayBlank();
+        displayMaterial("White");
     }
 
     void becomeSpawn()
     {
-        canSpawn = true;
-        canTraverse = true;
-        points = 0;
-        displaySpawn();
+        displayMaterial("Spawn");
     }
 
     void becomeBase()
     {
-        canSpawn = false;
-        canTraverse = true;
-        points = 8;
-        displayBase();
+        displayMaterial("Base");
     }
 
     void becomeQueue()
     {
-        isQueue = true;
-        canSpawn = false;
-        canTraverse = false;
-        displayQueue();
-    }
-    void displayVoid()
-    {
-        gameObject.GetComponent<Renderer>().material = Resources.Load<Material>(GameConstants.TILE_MATERIAL_DIR + "Void");
-
+        displayMaterial("Queue");
     }
 
-    void displayBlank()
+    void displayMaterial(string mat)
     {
-        gameObject.GetComponent<Renderer>().material = Resources.Load<Material>(GameConstants.TILE_MATERIAL_DIR + "White");
-    }
-
-    void displaySpawn()
-    {
-        gameObject.GetComponent<Renderer>().material = Resources.Load<Material>(GameConstants.TILE_MATERIAL_DIR + "Spawn");
-    }
-
-    void displayBase()
-    {
-        gameObject.GetComponent<Renderer>().material = Resources.Load<Material>(GameConstants.TILE_MATERIAL_DIR + "Base");
-    }
-    void displayQueue()
-    {
-        gameObject.GetComponent<Renderer>().material = Resources.Load<Material>(GameConstants.TILE_MATERIAL_DIR + "Queue");
+        gameObject.GetComponent<Renderer>().material = Array.Find(tileMaterials, (Material m) => m.name.Equals(mat));
     }	
 }

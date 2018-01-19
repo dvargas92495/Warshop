@@ -876,6 +876,8 @@ MonoBehaviour:
   placeholder: {fileID: 0}
   modalPanelObject: {fileID: 1040746444}
   cancelButton: {fileID: 1847891392}
+  sprites:
+  - {fileID: 21300000, guid: d139b40016b3ed84faf2581f789411ba, type: 3}
 --- !u!1001 &2051030687
 Prefab:
   m_ObjectHideFlags: 0

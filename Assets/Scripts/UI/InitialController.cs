@@ -33,12 +33,14 @@ public class InitialController : MonoBehaviour {
     void Start () {
         if (isServer)
         {
+            App.LinkAssets(boardfiles);
             App.StartServer();
             return;
         }
         if (playtest != null)
         {
             string[] lines = playtest.text.Split('\n');
+            Interpreter.robotDir = robotDir;
             Interpreter.boardFile = lines[0].Trim();
             Interpreter.myRobotNames = lines[1].Trim().Split(',');
             Interpreter.opponentRobotNames = lines[2].Trim().Split(',');
@@ -62,6 +64,7 @@ public class InitialController : MonoBehaviour {
             }
             thisBoard.onClick.AddListener(() =>
             {
+                Interpreter.robotDir = robotDir;
                 Interpreter.boardFile = t.name;
                 if (myRoster.text.Length > 0)
                 {

@@ -113,6 +113,7 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
+  m_DynamicOccludee: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -128,6 +129,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -145,6 +147,7 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -160,6 +163,7 @@ MeshRenderer:
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -219,6 +223,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8db3f0a5568f4449946288f8248313a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tileMaterials:
+  - {fileID: 2100000, guid: c9f7fcc718db9bf44aa81526d46ffd48, type: 2}
+  - {fileID: 2100000, guid: 2cf9b6d9b2be8b641b325248d034bd96, type: 2}
+  - {fileID: 2100000, guid: 0d193790d47ada94e8ea5d0b575877b0, type: 2}
+  - {fileID: 2100000, guid: c8b8ef59edf8f6549adfae858973f456, type: 2}
+  - {fileID: 2100000, guid: 8515adbd96b182a4585e155ba882107e, type: 2}
 --- !u!212 &212360197405547058
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -228,6 +238,7 @@ SpriteRenderer:
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -243,6 +254,7 @@ SpriteRenderer:
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 0
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
