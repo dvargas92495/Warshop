@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using Amazon.GameLift;
 
 public class GameClient : MonoBehaviour {
 
     private static NetworkClient client;
+    private static AmazonGameLiftClient amazonClient;
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
         { MsgType.Connect, OnConnect },
@@ -89,10 +91,10 @@ public class GameClient : MonoBehaviour {
 
     public static void SendGameRequest(String[] myRobots, String boardFile)
     {
-        Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
+        Messages.StartGameMessage msg = new Messages.StartGameMessage();
         msg.myRobots = myRobots;
         msg.boardFile = boardFile;
-        Send(Messages.START_LOCAL_GAME, msg);
+        Send(Messages.START_GAME, msg);
     }
     
     public static void SendSubmitCommands (List<Command> commands) {

@@ -11,8 +11,10 @@
     public const string APP_LOG_DIR = "/local/game/logs";
     public const string APP_ERROR_DIR = "/local/game/error";
 
-    public static bool LOCAL_MODE = true;
-    public static bool USE_SERVER = false;
-    public static string SERVER_IP = "54.218.111.136";
+    //TODO: Bring these out to a config file
+    public static bool LOCAL_MODE = false;
+    public static bool USE_SERVER = true;
+    public static string SERVER_IP = "18.9.64.24";
+    //public static string SERVER_IP = "54.218.111.136";
     public static int PORT = 12345;
 }

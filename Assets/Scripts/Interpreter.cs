@@ -85,12 +85,12 @@ public class Interpreter : MonoBehaviour {
         if (!GameConstants.LOCAL_MODE && !myturn)
         {
             return;
-        } else if (GameConstants.LOCAL_MODE && !myturn)
-        {
-            Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
-        } else
+        } else if (GameConstants.LOCAL_MODE && myturn)
         {
             Array.ForEach(robotControllers, (RobotController r) => r.canCommand = r.isOpponent);
+        } else
+        {
+            Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
         }
         List<Command> commands = new List<Command>();
         RobotController[] robots = FindObjectsOfType<RobotController>();
