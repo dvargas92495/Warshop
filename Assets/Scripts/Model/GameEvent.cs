@@ -22,6 +22,12 @@ public abstract class GameEvent
             case Attack.EVENT_ID:
                 evt = Attack.Deserialize(reader);
                 break;
+            case Block.EVENT_ID:
+                evt = Block.Deserialize(reader);
+                break;
+            case Push.EVENT_ID:
+                evt = Push.Deserialize(reader);
+                break;
             default:
                 evt = new Empty();
                 break;//TODO: Log an error
@@ -106,24 +112,10 @@ public abstract class GameEvent
         internal const byte EVENT_ID = 2;
         internal Vector2 sourcePos { get; }
         internal Vector2 destinationPos { get; }
-        internal Move(Robot robot, Command.Direction dir)
+        internal Move(Robot robot, Vector2 diff)
         {
             sourcePos = robot.position;
-            switch (dir)
-            {
-                case Command.Direction.UP:
-                    robot.position += new Vector2(0, -1);
-                    break;
-                case Command.Direction.DOWN:
-                    robot.position += new Vector2(0, 1);
-                    break;
-                case Command.Direction.LEFT:
-                    robot.position += new Vector2(-1, 0);
-                    break;
-                case Command.Direction.RIGHT:
-                    robot.position += new Vector2(1, 0);
-                    break;
-            }
+            robot.position += diff;
             destinationPos = robot.position;
             primaryRobotId = robot.id;
         }
@@ -202,6 +194,66 @@ public abstract class GameEvent
         public override string ToString()
         {
             return ToString("attacked " + string.Join(",", victimIds) + " down to " + string.Join(",", victimHealth));
+        }
+    }
+
+    public class Block : GameEvent
+    {
+        internal const byte EVENT_ID = 4;
+        internal string blockingObject;
+        internal Block(Robot robot, string blocker)
+        {
+            primaryRobotId = robot.id;
+            blockingObject = blocker;
+        }
+        private Block(string blocker)
+        {
+            blockingObject = blocker;
+        }
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(blockingObject);
+            writer.Write(primaryRobotId);
+            writer.Write(priority);
+        }
+        public new static Block Deserialize(NetworkReader reader)
+        {
+            return new Block(reader.ReadString());
+        }
+        public override string ToString()
+        {
+            return ToString("blocked by " + blockingObject);
+        }
+    }
+
+    public class Push : GameEvent
+    {
+        internal const byte EVENT_ID = 5;
+        internal short pushBy;
+        internal Push(Robot robot, short pusher)
+        {
+            primaryRobotId = robot.id;
+            pushBy = pusher;
+        }
+        private Push(short pusher)
+        {
+            pushBy = pusher;
+        }
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(pushBy);
+            writer.Write(primaryRobotId);
+            writer.Write(priority);
+        }
+        public new static Push Deserialize(NetworkReader reader)
+        {
+            return new Push(reader.ReadInt16());
+        }
+        public override string ToString()
+        {
+            return ToString("pushed by " + pushBy);
         }
     }
 

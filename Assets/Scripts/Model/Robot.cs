@@ -32,6 +32,10 @@ public class Robot
         orientation = Orientation.NORTH;
         inQueue = true;
     }
+    public static Robot Get(Robot[] allRobots, short id)
+    {
+        return Array.Find(allRobots, (Robot r) => r.id == id);
+    }
     internal static Robot create(string robotName)
     {
         switch(robotName)

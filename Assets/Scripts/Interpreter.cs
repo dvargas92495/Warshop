@@ -141,6 +141,14 @@ public class Interpreter : MonoBehaviour {
                     victims[i].SetHealth(atk.victimHealth[i]);
                 }
             }
+            else if (evt is GameEvent.Block)
+            {
+               //TODO: Blocked animation?
+            }
+            else if (evt is GameEvent.Push)
+            {
+                //TODO: Push animation?
+            }
             else
             {
                 Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());

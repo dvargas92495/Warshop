@@ -41,6 +41,7 @@ public class Game
         {
             int x = flip ? board.Width - 1 : 0;
             r.position = new Vector2(x, 0);
+            board.UpdateObjectLocation(x, 0, r.id);
             r.orientation = Robot.Orientation.SOUTH;
             flip = !flip;
         }
@@ -48,6 +49,7 @@ public class Game
         {
             int x = flip ? board.Width - 1 : 0;
             r.position = new Vector2(x, board.Height - 1);
+            board.UpdateObjectLocation(x, board.Height - 1, r.id);
             r.orientation = Robot.Orientation.NORTH;
             flip = !flip;
         }
@@ -65,6 +67,7 @@ public class Game
         {
             int x = flip ? board.Width - 1 : 0;
             r.position = new Vector2(x, board.Height - 1);
+            board.UpdateObjectLocation(x, board.Height - 1, r.id);
             r.orientation = Robot.Orientation.NORTH;
             flip = !flip;
         }
@@ -115,11 +118,8 @@ public class Game
             }));
             priorityEvents.AddRange(rotateEvents);
 
-            HashSet<Command> movCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Move));
-            IEnumerable<GameEvent> movEvents = movCmds.ToList().ConvertAll(((Command c) => {
-                Robot primaryRobot = Array.Find(allRobots, (Robot r) => r.id == c.robotId);
-                return new GameEvent.Move(primaryRobot, ((Command.Move)c).direction);
-            }));
+            HashSet<Command.Move> movCmds = new HashSet<Command.Move>(currentCmds.Where((Command c) => c is Command.Move).Select((Command c) => (Command.Move)c));
+            IEnumerable<GameEvent> movEvents = board.processMoveCommands(movCmds, allRobots, primary.name);
             priorityEvents.AddRange(movEvents);
 
             HashSet<Command> attackCmds = new HashSet<Command>(currentCmds.Where((Command c) => c is Command.Attack));
