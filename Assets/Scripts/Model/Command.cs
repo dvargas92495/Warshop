@@ -33,6 +33,7 @@ public abstract class Command
                 return null; //TODO: Throw an error
         }
         cmd.robotId = reader.ReadInt16();
+        cmd.owner = reader.ReadString();
         return cmd;
     }
 
@@ -59,6 +60,7 @@ public abstract class Command
             writer.Write(COMMAND_ID);
             writer.Write((byte)direction);
             writer.Write(robotId);
+            writer.Write(owner);
         }
         public new static Rotate Deserialize(NetworkReader reader)
         {
@@ -85,6 +87,7 @@ public abstract class Command
             writer.Write(COMMAND_ID);
             writer.Write((byte)direction);
             writer.Write(robotId);
+            writer.Write(owner);
         }
         public new static Move Deserialize(NetworkReader reader)
         {
@@ -105,6 +108,7 @@ public abstract class Command
         {
             writer.Write(COMMAND_ID);
             writer.Write(robotId);
+            writer.Write(owner);
         }
         public new static Attack Deserialize(NetworkReader reader)
         {
@@ -120,6 +124,7 @@ public abstract class Command
         {
             writer.Write(COMMAND_ID);
             writer.Write(robotId);
+            writer.Write(owner);
         }
         public new static Special Deserialize(NetworkReader reader)
         {

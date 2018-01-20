@@ -141,7 +141,7 @@ public class App {
         Messages.StartGameMessage msg = netMsg.ReadMessage<Messages.StartGameMessage>();
         if (appgame == null || appgame.secondary != null)
         {
-            string primaryname = "ME";
+            string primaryname = "PRIMARY";
             Robot[] primaryTeam = new Robot[msg.myRobots.Length];
             for (short i = 0; i < msg.myRobots.Length; i++)
             {
@@ -155,7 +155,7 @@ public class App {
         {
             Messages.GameReadyMessage forPrimary = new Messages.GameReadyMessage();
             Messages.GameReadyMessage forSecondary = new Messages.GameReadyMessage();
-            string secondaryname = "OPPONENT";
+            string secondaryname = "SECONDARY";
             Robot[] secondaryTeam = new Robot[msg.myRobots.Length];
             for (short i = 0; i < msg.myRobots.Length; i++)
             {
