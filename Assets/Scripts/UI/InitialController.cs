@@ -20,6 +20,8 @@ public class InitialController : MonoBehaviour {
     public Text myRoster;
     public Text opponentRoster;
     public Text loadingText;
+    public Toggle localModeToggle;
+    public Toggle useServerToggle;
     public TextAsset playtest;
     public TextAsset[] boardfiles;
     public GameObject[] robotDir;
@@ -30,10 +32,12 @@ public class InitialController : MonoBehaviour {
     }
 
     // Use this for initialization
-    void Start () {
+    void Start ()
+    {
+        App.LinkAssets(boardfiles);
         if (isServer)
         {
-            App.LinkAssets(boardfiles);
+            GameConstants.USE_SERVER = true;
             App.StartServer();
             return;
         }
@@ -48,6 +52,17 @@ public class InitialController : MonoBehaviour {
             loadingText.text = "Loading...";
             return;
         }
+        localModeToggle.onValueChanged.AddListener((bool val) =>
+        {
+            GameConstants.LOCAL_MODE = val;
+            opponentAdd.gameObject.SetActive(val);
+            opponentSelect.gameObject.SetActive(val);
+            opponentRoster.gameObject.SetActive(val);
+        });
+        useServerToggle.onValueChanged.AddListener((bool val) =>
+        {
+            GameConstants.USE_SERVER = val;
+        });
         int x = -1;
         int y = 2;
         foreach (TextAsset t in boardfiles)
