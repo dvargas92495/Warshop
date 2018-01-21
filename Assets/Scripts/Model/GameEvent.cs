@@ -43,6 +43,9 @@ public abstract class GameEvent
             case Battery.EVENT_ID:
                 evt = Battery.Deserialize(reader);
                 break;
+            case Fail.EVENT_ID:
+                evt = Fail.Deserialize(reader);
+                break;
             default:
                 evt = new Empty();
                 break;//TODO: Log an error
@@ -239,7 +242,7 @@ public abstract class GameEvent
 
     public class Battery : GameEvent
     {
-        internal const byte EVENT_ID = 8;
+        internal const byte EVENT_ID = 7;
         internal short damage;
         internal bool opponentsBase;
         public override void Serialize(NetworkWriter writer)
@@ -258,6 +261,27 @@ public abstract class GameEvent
         public override string ToString()
         {
             return ToString("attacked " + (opponentsBase ? "opponent's":"its own") + " battery with " + damage + " damage.");
+        }
+    }
+
+    public class Fail : GameEvent
+    {
+        internal const byte EVENT_ID = 8;
+        internal string failedCmd;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(failedCmd);
+        }
+        public new static Fail Deserialize(NetworkReader reader)
+        {
+            Fail evt = new Fail();
+            evt.failedCmd = reader.ReadString();
+            return evt;
+        }
+        public override string ToString()
+        {
+            return ToString("failed to execute " + failedCmd + " due to limit.");
         }
     }
 

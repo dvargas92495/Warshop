@@ -164,6 +164,10 @@ public class Interpreter : MonoBehaviour {
             {
                 //TODO: Battery animation?
             }
+            else if (evt is GameEvent.Fail)
+            {
+                //TODO: Fail animation?
+            }
             else
             {
                 Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());
