@@ -156,6 +156,10 @@ public class Interpreter : MonoBehaviour {
                 primaryRobot.Place(push.transferPos.x, push.transferPos.y);
                 Array.Find(robotControllers, (RobotController r) => r.id == push.victim).Place(push.destinationPos.x, push.destinationPos.y);
             }
+            else if (evt is GameEvent.Miss)
+            {
+                //TODO: Miss animation?
+            }
             else
             {
                 Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());

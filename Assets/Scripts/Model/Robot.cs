@@ -171,15 +171,24 @@ public class Robot
     }
     internal List<GameEvent> Attack(Robot[] victims, bool isPrimary)
     {
-        GameEvent.Attack evt = new GameEvent.Attack();
-        evt.victimIds = new short[victims.Length];
-        evt.victimHealth = new short[victims.Length];
-        for (int i = 0; i < victims.Length; i++)
+        GameEvent evt;
+        if (victims.Length == 0)
         {
-            Robot victim = victims[i];
-            evt.victimIds[i] = victim.id;
-            victim.health -= attack;
-            evt.victimHealth[i] = victim.health;
+            evt = new GameEvent.Miss();
+        }
+        else
+        {
+            evt = new GameEvent.Attack();
+            GameEvent.Attack e = (GameEvent.Attack)evt;
+            e.victimIds = new short[victims.Length];
+            e.victimHealth = new short[victims.Length];
+            for (int i = 0; i < victims.Length; i++)
+            {
+                Robot victim = victims[i];
+                e.victimIds[i] = victim.id;
+                victim.health -= attack;
+                e.victimHealth[i] = victim.health;
+            }
         }
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);

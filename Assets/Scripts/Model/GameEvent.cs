@@ -37,6 +37,9 @@ public abstract class GameEvent
             case Push.EVENT_ID:
                 evt = Push.Deserialize(reader);
                 break;
+            case Miss.EVENT_ID:
+                evt = Miss.Deserialize(reader);
+                break;
             default:
                 evt = new Empty();
                 break;//TODO: Log an error
@@ -210,6 +213,24 @@ public abstract class GameEvent
         public override string ToString()
         {
             return ToString("pushed " + victim + " from " + sourcePos + " through " + transferPos + " to " + destinationPos);
+        }
+    }
+
+    public class Miss : GameEvent
+    {
+        internal const byte EVENT_ID = 6;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+        }
+        public new static Miss Deserialize(NetworkReader reader)
+        {
+            Miss evt = new Miss();
+            return evt;
+        }
+        public override string ToString()
+        {
+            return ToString("attacked but missed");
         }
     }
 
