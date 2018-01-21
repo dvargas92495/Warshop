@@ -8,13 +8,14 @@ public class Robot
     internal readonly string name;
     internal readonly string description;
     internal byte priority;
+    internal short startingHealth;
     internal short health;
     internal short attack;
     internal Rating rating;
     internal short id;
     internal Vector2Int position;
     internal Orientation orientation;
-    internal bool inQueue;
+    internal byte queueSpot;
     private Robot(string _name, string _description)
     {
         name = _name;
@@ -25,12 +26,11 @@ public class Robot
         name = _name;
         description = _description;
         priority = _priority;
-        health = _health;
+        startingHealth = health = _health;
         attack = _attack;
         rating = _rating;
         position = Vector2Int.zero;
         orientation = Orientation.NORTH;
-        inQueue = true;
     }
     public static Robot Get(Robot[] allRobots, short id)
     {
@@ -66,7 +66,7 @@ public class Robot
         writer.Write(position.x);
         writer.Write(position.y);
         writer.Write((byte)orientation);
-        writer.Write(inQueue);
+        writer.Write(queueSpot);
     }
     public static Robot Deserialize(NetworkReader reader)
     {
@@ -82,7 +82,7 @@ public class Robot
         robot.position.x = reader.ReadInt32();
         robot.position.y = reader.ReadInt32();
         robot.orientation = (Orientation)reader.ReadByte();
-        robot.inQueue = reader.ReadBoolean();
+        robot.queueSpot = reader.ReadByte();
         return robot;
     }
     public static Vector2Int OrientationToVector (Orientation orientation)
@@ -186,8 +186,20 @@ public class Robot
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
         return new List<GameEvent>() { evt };
     }
+    internal List<GameEvent> Death(Vector2Int loc, bool isPrimary)
+    {
+        GameEvent.Death death = new GameEvent.Death();
+        health = startingHealth;
+        position = loc;
+        death.returnLocation = loc;
+        death.returnHealth = startingHealth;
+        death.primaryRobotId = id;
+        death.primaryBattery = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)rating : 0);
+        death.secondaryBattery = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)rating);
+        return new List<GameEvent>() { death };
+    }
 
-    internal IEnumerable<GameEvent> Miss(bool isPrimary)
+    internal List<GameEvent> Miss(bool isPrimary)
     {
         GameEvent.Miss evt = new GameEvent.Miss();
         evt.primaryRobotId = id;

@@ -46,6 +46,9 @@ public abstract class GameEvent
             case Fail.EVENT_ID:
                 evt = Fail.Deserialize(reader);
                 break;
+            case Death.EVENT_ID:
+                evt = Death.Deserialize(reader);
+                break;
             default:
                 evt = new Empty();
                 break;//TODO: Log an error
@@ -282,6 +285,33 @@ public abstract class GameEvent
         public override string ToString()
         {
             return ToString("failed to execute " + failedCmd + " due to limit.");
+        }
+    }
+
+    public class Death: GameEvent
+    {
+        internal const byte EVENT_ID = 9;
+        internal Vector2Int returnLocation;
+        internal short returnHealth;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(returnLocation.x);
+            writer.Write(returnLocation.y);
+            writer.Write(returnHealth);
+        }
+        public new static Death Deserialize(NetworkReader reader)
+        {
+            Death evt = new Death();
+            evt.returnLocation = new Vector2Int();
+            evt.returnLocation.x = reader.ReadInt32();
+            evt.returnLocation.y = reader.ReadInt32();
+            evt.returnHealth = reader.ReadInt16();
+            return evt;
+        }
+        public override string ToString()
+        {
+            return ToString("dies and returns to queue");
         }
     }
 

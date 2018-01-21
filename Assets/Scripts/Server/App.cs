@@ -120,15 +120,17 @@ public class App {
         resp.opponentname = "OPPONENT";
         resp.myTeam = new Robot[msg.myRobots.Length];
         resp.opponentTeam = new Robot[msg.opponentRobots.Length];
-        for (short i = 0; i < msg.myRobots.Length; i++)
+        for (byte i = 0; i < msg.myRobots.Length; i++)
         {
             resp.myTeam[i] = Robot.create(msg.myRobots[i]);
             resp.myTeam[i].id = i;
+            resp.myTeam[i].queueSpot = i;
         }
-        for (short i = 0; i < msg.opponentRobots.Length; i++)
+        for (byte i = 0; i < msg.opponentRobots.Length; i++)
         {
             resp.opponentTeam[i] = Robot.create(msg.opponentRobots[i]);
             resp.opponentTeam[i].id = (short)(i + msg.myRobots.Length);
+            resp.opponentTeam[i].queueSpot = i;
         }
         TextAsset boardContent = Array.Find(boardFiles, (TextAsset t) => t.name == msg.boardFile);
         resp.board = new Map(boardContent);
@@ -143,10 +145,11 @@ public class App {
         {
             string primaryname = "PRIMARY";
             Robot[] primaryTeam = new Robot[msg.myRobots.Length];
-            for (short i = 0; i < msg.myRobots.Length; i++)
+            for (byte i = 0; i < msg.myRobots.Length; i++)
             {
                 primaryTeam[i] = Robot.create(msg.myRobots[i]);
                 primaryTeam[i].id = i;
+                primaryTeam[i].queueSpot = i;
             }
             TextAsset boardContent = Array.Find(boardFiles, (TextAsset t) => t.name == msg.boardFile);
             appgame = new Game(primaryTeam, primaryname, new Map(boardContent));
@@ -157,10 +160,11 @@ public class App {
             Messages.GameReadyMessage forSecondary = new Messages.GameReadyMessage();
             string secondaryname = "SECONDARY";
             Robot[] secondaryTeam = new Robot[msg.myRobots.Length];
-            for (short i = 0; i < msg.myRobots.Length; i++)
+            for (byte i = 0; i < msg.myRobots.Length; i++)
             {
                 secondaryTeam[i] = Robot.create(msg.myRobots[i]);
                 secondaryTeam[i].id = (short)(i + appgame.primary.team.Length);
+                secondaryTeam[i].queueSpot = i;
             }
             appgame.Join(secondaryTeam, secondaryname);
             forPrimary.myname = forSecondary.opponentname = appgame.primary.name;

@@ -168,6 +168,11 @@ public class Interpreter : MonoBehaviour {
             {
                 //TODO: Fail animation?
             }
+            else if (evt is GameEvent.Death)
+            {
+                GameEvent.Death death = (GameEvent.Death)evt;
+                primaryRobot.Place(death.returnLocation.x, death.returnLocation.y);
+            }
             else
             {
                 Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());

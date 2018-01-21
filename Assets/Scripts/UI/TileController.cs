@@ -32,7 +32,8 @@ public class TileController : MonoBehaviour {
             case Map.Space.SpaceType.SECONDARY_BASE:
                 becomeBase();
                 break;
-            case Map.Space.SpaceType.QUEUE:
+            case Map.Space.SpaceType.PRIMARY_QUEUE:
+            case Map.Space.SpaceType.SECONDARY_QUEUE:
                 becomeQueue();
                 break;
         }

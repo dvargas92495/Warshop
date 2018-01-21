@@ -76,6 +76,13 @@ public class Map
         return spaces[y * Width + x].spaceType;
     }
 
+    public Vector2Int GetQueuePosition(byte i, bool isPrimary)
+    {
+        Space[] queueSpaces = Array.FindAll(spaces, (Space s) => s.spaceType == (isPrimary ? Space.SpaceType.PRIMARY_QUEUE : Space.SpaceType.SECONDARY_QUEUE));
+        Space queueSpace = queueSpaces[i % queueSpaces.Length];
+        return new Vector2Int(queueSpace.x, queueSpace.y);
+    }
+
     public bool IsSpaceOccupied(Space s)
     {
         return objectLocations.ContainsValue(s);
@@ -116,8 +123,10 @@ public class Map
                     spaceType = SpaceType.SECONDARY_BASE;
                     break;
                 case "Q":
+                    spaceType = SpaceType.PRIMARY_QUEUE;
+                    break;
                 case "q":
-                    spaceType = SpaceType.QUEUE;
+                    spaceType = SpaceType.SECONDARY_QUEUE;
                     break;
             }
         }
@@ -132,7 +141,8 @@ public class Map
             SECONDARY_BASE,
             BLANK,
             SPAWN,
-            QUEUE
+            PRIMARY_QUEUE,
+            SECONDARY_QUEUE
         }
         public void Serialize(NetworkWriter writer)
         {

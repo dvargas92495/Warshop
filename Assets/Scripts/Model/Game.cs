@@ -16,14 +16,11 @@ public class Game
     {
         primary = new Player(t, n);
         board = b;
-        bool flip = false; //hack
         foreach (Robot r in primary.team)
         {
-            int x = flip ? board.Width - 1 : 0;
-            b.UpdateObjectLocation(x, 0, r.id);
-            r.position = new Vector2Int(x, 0);
+            r.position = board.GetQueuePosition(r.queueSpot, true);
+            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
             r.orientation = Robot.Orientation.SOUTH;
-            flip = !flip;
         }
         commands = new List<Command>();
     }
@@ -36,22 +33,17 @@ public class Game
         t1.CopyTo(allRobots, 0);
         t2.CopyTo(allRobots, t1.Length);
         board = b;
-        bool flip = false; //hack
         foreach (Robot r in primary.team)
         {
-            int x = flip ? board.Width - 1 : 0;
-            r.position = new Vector2Int(x, 0);
-            board.UpdateObjectLocation(x, 0, r.id);
+            r.position = board.GetQueuePosition(r.queueSpot, true);
+            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
             r.orientation = Robot.Orientation.SOUTH;
-            flip = !flip;
         }
         foreach (Robot r in secondary.team)
         {
-            int x = flip ? board.Width - 1 : 0;
-            r.position = new Vector2Int(x, board.Height - 1);
-            board.UpdateObjectLocation(x, board.Height - 1, r.id);
+            r.position = board.GetQueuePosition(r.queueSpot, false);
+            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
             r.orientation = Robot.Orientation.NORTH;
-            flip = !flip;
         }
         commands = new List<Command>();
     }
@@ -62,14 +54,11 @@ public class Game
         allRobots = new Robot[t.Length + primary.team.Length];
         primary.team.CopyTo(allRobots, 0);
         t.CopyTo(allRobots, primary.team.Length);
-        bool flip = false; //hack
         foreach (Robot r in secondary.team)
         {
-            int x = flip ? board.Width - 1 : 0;
-            r.position = new Vector2Int(x, board.Height - 1);
-            board.UpdateObjectLocation(x, board.Height - 1, r.id);
+            r.position = board.GetQueuePosition(r.queueSpot, false);
+            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
             r.orientation = Robot.Orientation.NORTH;
-            flip = !flip;
         }
     }
 
@@ -204,6 +193,9 @@ public class Game
             }));
             priorityEvents.AddRange(specialEvents);
 
+            priorityEvents.AddRange(processFinish(primary.team, true));
+            priorityEvents.AddRange(processFinish(secondary.team, false));
+
             processBatteryLoss(priorityEvents, p);
             events.AddRange(priorityEvents);
         }
@@ -284,6 +276,7 @@ public class Game
                         evt.blockingObject = blocker;
                         evt.primaryBattery = (c.owner.Equals(primary.name) ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
                         evt.secondaryBattery = (c.owner.Equals(primary.name) ? (short)0:GameConstants.DEFAULT_MOVE_POWER);
+                        events.Add(evt);
                         return true;
                     }
                     return false;
@@ -296,14 +289,14 @@ public class Game
             Robot primaryRobot = Robot.Get(allRobots, c.robotId);
             Vector2Int diff = idsToDiffs[c.robotId];
 
-            Vector2 newspace = primaryRobot.position + diff;
+            Vector2Int newspace = primaryRobot.position + diff;
             Action<string> generateBlockEvent = (string s) =>
             {
                 GameEvent.Block evt = new GameEvent.Block();
                 evt.primaryRobotId = c.robotId;
                 evt.blockingObject = s;
                 evt.primaryBattery = (c.owner.Equals(primary.name) ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
-                evt.secondaryBattery = (c.owner.Equals(secondary.name) ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
+                evt.secondaryBattery = (c.owner.Equals(primary.name) ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
                 events.Add(evt);
                 moves.Remove(c);
             };
@@ -318,7 +311,7 @@ public class Game
                 generateBlockEvent("Base");
                 return;
             }
-            if (space.spaceType == Map.Space.SpaceType.QUEUE)
+            if (space.spaceType == Map.Space.SpaceType.PRIMARY_QUEUE && space.spaceType == Map.Space.SpaceType.SECONDARY_QUEUE)
             {
                 generateBlockEvent("Queue");
                 return;
@@ -388,6 +381,21 @@ public class Game
     private List<GameEvent> processSpecialCommands(HashSet<Command.Special> rotateCmds)
     {
         return new List<GameEvent>();
+    }
+
+    private List<GameEvent> processFinish(Robot[] team, bool isPrimary)
+    {
+        List<GameEvent> evts = new List<GameEvent>();
+        Array.ForEach(team, (Robot r) =>
+        {
+            if (r.health <= 0)
+            {
+                Vector2Int v = board.GetQueuePosition(r.queueSpot, isPrimary);
+                evts.AddRange(r.Death(v, isPrimary));
+                board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
+            }
+        });
+        return evts;
     }
 
     private void processBatteryLoss(List<GameEvent> evts, byte p)
