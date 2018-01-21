@@ -160,6 +160,10 @@ public class Interpreter : MonoBehaviour {
             {
                 //TODO: Miss animation?
             }
+            else if (evt is GameEvent.Battery)
+            {
+                //TODO: Battery animation?
+            }
             else
             {
                 Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());

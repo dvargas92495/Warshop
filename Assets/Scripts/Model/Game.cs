@@ -237,7 +237,7 @@ public class Game
                 return;
             }
             Map.Space space = board.spaces[(int)newspace.y * board.Width + (int)newspace.x];
-            if (space.spaceType == Map.Space.SpaceType.BASE)
+            if (space.spaceType == Map.Space.SpaceType.PRIMARY_BASE || space.spaceType == Map.Space.SpaceType.SECONDARY_BASE)
             {
                 generateBlockEvent("Base");
                 return;
@@ -282,8 +282,28 @@ public class Game
         attackCmds.ToList().ForEach(((Command.Attack c) => {
             Robot primaryRobot = Robot.Get(allRobots, c.robotId);
             List<Vector2Int> locs = primaryRobot.GetVictimLocations();
+            List<GameEvent> evts = new List<GameEvent>();
+            locs.ForEach((Vector2Int v) =>
+            {
+                bool isPrimary = c.owner.Equals(primary.name);
+                if (board.getSpaceType(v.x,v.y) == Map.Space.SpaceType.PRIMARY_BASE)
+                {
+                    evts.AddRange(primaryRobot.Battery(!isPrimary, isPrimary));
+                }
+                else if(board.getSpaceType(v.x, v.y) == Map.Space.SpaceType.SECONDARY_BASE)
+                {
+                    evts.AddRange(primaryRobot.Battery(isPrimary, isPrimary));
+                }
+            });
             Robot[] victims = Array.FindAll(allRobots, (robot) => locs.Contains(robot.position));
-            List<GameEvent> evts = primaryRobot.Attack(victims, c.owner.Equals(primary.name));
+            if (victims.Length == 0 && evts.Count == 0)
+            {
+                evts.AddRange(primaryRobot.Miss(c.owner.Equals(primary.name)));
+            }
+            else if (victims.Length > 0)
+            {
+                evts.AddRange(primaryRobot.Attack(victims, c.owner.Equals(primary.name)));
+            }
             events.AddRange(evts);
         }));
         return events;

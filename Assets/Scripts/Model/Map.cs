@@ -110,8 +110,10 @@ public class Map
                     spaceType = SpaceType.SPAWN;
                     break;
                 case "A":
+                    spaceType = SpaceType.PRIMARY_BASE;
+                    break;
                 case "B":
-                    spaceType = SpaceType.BASE;
+                    spaceType = SpaceType.SECONDARY_BASE;
                     break;
                 case "Q":
                 case "q":
@@ -126,7 +128,8 @@ public class Map
         public enum SpaceType
         {
             VOID,
-            BASE,
+            PRIMARY_BASE,
+            SECONDARY_BASE,
             BLANK,
             SPAWN,
             QUEUE

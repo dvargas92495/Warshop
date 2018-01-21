@@ -40,6 +40,9 @@ public abstract class GameEvent
             case Miss.EVENT_ID:
                 evt = Miss.Deserialize(reader);
                 break;
+            case Battery.EVENT_ID:
+                evt = Battery.Deserialize(reader);
+                break;
             default:
                 evt = new Empty();
                 break;//TODO: Log an error
@@ -231,6 +234,30 @@ public abstract class GameEvent
         public override string ToString()
         {
             return ToString("attacked but missed");
+        }
+    }
+
+    public class Battery : GameEvent
+    {
+        internal const byte EVENT_ID = 8;
+        internal short damage;
+        internal bool opponentsBase;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(damage);
+            writer.Write(opponentsBase);
+        }
+        public new static Battery Deserialize(NetworkReader reader)
+        {
+            Battery evt = new Battery();
+            evt.damage = reader.ReadInt16();
+            evt.opponentsBase = reader.ReadBoolean();
+            return evt;
+        }
+        public override string ToString()
+        {
+            return ToString("attacked " + (opponentsBase ? "opponent's":"its own") + " battery with " + damage + " damage.");
         }
     }
 

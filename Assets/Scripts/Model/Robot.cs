@@ -171,28 +171,46 @@ public class Robot
     }
     internal List<GameEvent> Attack(Robot[] victims, bool isPrimary)
     {
-        GameEvent evt;
-        if (victims.Length == 0)
+        GameEvent.Attack evt = new GameEvent.Attack();
+        evt.victimIds = new short[victims.Length];
+        evt.victimHealth = new short[victims.Length];
+        for (int i = 0; i < victims.Length; i++)
         {
-            evt = new GameEvent.Miss();
-        }
-        else
-        {
-            evt = new GameEvent.Attack();
-            GameEvent.Attack e = (GameEvent.Attack)evt;
-            e.victimIds = new short[victims.Length];
-            e.victimHealth = new short[victims.Length];
-            for (int i = 0; i < victims.Length; i++)
-            {
-                Robot victim = victims[i];
-                e.victimIds[i] = victim.id;
-                victim.health -= attack;
-                e.victimHealth[i] = victim.health;
-            }
+            Robot victim = victims[i];
+            evt.victimIds[i] = victim.id;
+            victim.health -= attack;
+            evt.victimHealth[i] = victim.health;
         }
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
+        return new List<GameEvent>() { evt };
+    }
+
+    internal IEnumerable<GameEvent> Miss(bool isPrimary)
+    {
+        GameEvent.Miss evt = new GameEvent.Miss();
+        evt.primaryRobotId = id;
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
+        return new List<GameEvent>() { evt };
+    }
+    internal List<GameEvent> Battery(bool opponentsBase, bool isPrimary)
+    {
+        GameEvent.Battery evt = new GameEvent.Battery();
+        evt.opponentsBase = opponentsBase;
+        evt.damage = attack;
+        evt.primaryRobotId = id;
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
+        short drain = (short)(GameConstants.DEFAULT_BATTERY_MULTIPLIER * attack);
+        if ((opponentsBase && !isPrimary) || (!opponentsBase && isPrimary))
+        {
+            evt.primaryBattery += drain;
+        } else
+        {
+            evt.secondaryBattery += drain;
+        }
         return new List<GameEvent>() { evt };
     }
     private class Slinkbot : Robot
