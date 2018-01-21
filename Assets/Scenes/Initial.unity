@@ -673,37 +673,37 @@ Prefab:
         type: 2}
       propertyPath: robotDir.Array.data[0]
       value: 
-      objectReference: {fileID: 1616122726720972, guid: 8b69cb870873b244b9c3e55505434564,
-        type: 2}
+      objectReference: {fileID: 21300000, guid: a5af1c4f8cd70414ea759f626367901e,
+        type: 3}
     - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
         type: 2}
       propertyPath: robotDir.Array.data[1]
       value: 
-      objectReference: {fileID: 1205652597181426, guid: 6325210885d258649b74911e5f9dd09b,
-        type: 2}
+      objectReference: {fileID: 21300000, guid: 45cc1e30e7692c747991458a6832ec96,
+        type: 3}
     - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
         type: 2}
       propertyPath: robotDir.Array.data[2]
       value: 
-      objectReference: {fileID: 1740523018903644, guid: 707740899261abf479f0a5b2ceed339b,
-        type: 2}
+      objectReference: {fileID: 21300000, guid: 93a9aa447d0d46b4f9b836b6457722c4,
+        type: 3}
     - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
         type: 2}
       propertyPath: robotDir.Array.data[3]
       value: 
-      objectReference: {fileID: 1972851358837626, guid: 74de15ebb989fe745bd64b501f1f6a30,
-        type: 2}
+      objectReference: {fileID: 21300000, guid: e8b4e6343a77f664e941525b49136305,
+        type: 3}
     - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
         type: 2}
       propertyPath: robotDir.Array.data[4]
       value: 
-      objectReference: {fileID: 1082346195968820, guid: 50bb500b7324c4d4d96a6901d5c9a0ca,
-        type: 2}
+      objectReference: {fileID: 21300000, guid: c63fd3171eaeec94595e4ff5a841a7dd,
+        type: 3}
     - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
         type: 2}
       propertyPath: playtest
       value: 
-      objectReference: {fileID: 4900000, guid: 56e3325a1a85dcb40b8cb9f8d8febd5f, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
         type: 2}
       propertyPath: loadingText
@@ -719,6 +719,150 @@ Prefab:
       propertyPath: useServerToggle
       value: 
       objectReference: {fileID: 1772817137}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotBase
+      value: 
+      objectReference: {fileID: 114303540073418012, guid: 80728159308e23b4d9f9bfbb0e53167d,
+        type: 2}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[5]
+      value: 
+      objectReference: {fileID: 21300000, guid: 8a3ed6b4351a2b947b898a0a363f2447,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[6]
+      value: 
+      objectReference: {fileID: 21300000, guid: c800f8e2a8dc9524baf4704b1eed497e,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[7]
+      value: 
+      objectReference: {fileID: 21300000, guid: 327c73bf21610974986aa3f6c0aad578,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[8]
+      value: 
+      objectReference: {fileID: 21300000, guid: 6b693d9e231b6614cb7fdbb7d32b60d1,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[9]
+      value: 
+      objectReference: {fileID: 21300000, guid: eeae63a3844119c4883fec983b8406e3,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[10]
+      value: 
+      objectReference: {fileID: 21300000, guid: dd7dd494bc854d84c9fc8bf2c98b3f19,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[11]
+      value: 
+      objectReference: {fileID: 21300000, guid: ab07c085536060143af23d7304780a36,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[12]
+      value: 
+      objectReference: {fileID: 21300000, guid: e8b4e6343a77f664e941525b49136305,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[13]
+      value: 
+      objectReference: {fileID: 21300000, guid: 55b0a3d64c9300e40ae56af7535a239b,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[14]
+      value: 
+      objectReference: {fileID: 21300000, guid: c63fd3171eaeec94595e4ff5a841a7dd,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[15]
+      value: 
+      objectReference: {fileID: 21300000, guid: 1ef5cab50bfb1934cbb5cc13e71a114e,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[16]
+      value: 
+      objectReference: {fileID: 21300000, guid: ad6b11adec6fa83418296274e7c8427f,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[17]
+      value: 
+      objectReference: {fileID: 21300000, guid: 6a97d478681040148949a1598db20be3,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[18]
+      value: 
+      objectReference: {fileID: 21300000, guid: a5af1c4f8cd70414ea759f626367901e,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[19]
+      value: 
+      objectReference: {fileID: 21300000, guid: 758a10bea5536314babc354eb692ecbb,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[20]
+      value: 
+      objectReference: {fileID: 21300000, guid: 45cc1e30e7692c747991458a6832ec96,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[21]
+      value: 
+      objectReference: {fileID: 21300000, guid: ee4b0cdef2486ba4f8dc990875f806fe,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[22]
+      value: 
+      objectReference: {fileID: 21300000, guid: 8c8920f704ad35b4dbe1d925d0e28b67,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[23]
+      value: 
+      objectReference: {fileID: 21300000, guid: 7da240ceb85c0b84e92a61a3b4152bbe,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[24]
+      value: 
+      objectReference: {fileID: 21300000, guid: e2e8747e2503cc14d985ccb064756445,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[25]
+      value: 
+      objectReference: {fileID: 21300000, guid: 93a9aa447d0d46b4f9b836b6457722c4,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[26]
+      value: 
+      objectReference: {fileID: 21300000, guid: 8bea5a2a7be7ca54583a51a90139d9af,
+        type: 3}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: robotDir.Array.data[27]
+      value: 
+      objectReference: {fileID: 21300000, guid: b94fe34ae69691743a71249db6a4bfe9,
+        type: 3}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 6e3e0d7b4af03eb42aea7e8698edab55, type: 2}
   m_IsPrefabParent: 0

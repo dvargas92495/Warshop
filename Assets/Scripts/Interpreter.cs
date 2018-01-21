@@ -13,7 +13,8 @@ public class Interpreter : MonoBehaviour {
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static RobotController[] robotControllers;
-    internal static GameObject[] robotDir;
+    internal static RobotController robotBase;
+    internal static Sprite[] robotDir;
     public static int eventDelay = 1;
     public static string boardFile = "";
     public static string[] myRobotNames = new string[0];
@@ -68,7 +69,11 @@ public class Interpreter : MonoBehaviour {
         {
             foreach(Robot robot in player.team)
             {
-                RobotController r = Instantiate(Array.Find(robotDir, (GameObject g) => g.name.Equals(robot.name))).GetComponent<RobotController>();
+                RobotController r = Instantiate(robotBase);
+                SpriteRenderer sprite = r.GetComponent<SpriteRenderer>();
+                sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
+                sprite.drawMode = SpriteDrawMode.Sliced;
+                sprite.size = new Vector2Int(1, 1);
                 r.Load(robot);
                 r.isOpponent = playerCount == 1;
                 r.canCommand = !r.isOpponent;

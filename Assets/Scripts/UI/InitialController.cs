@@ -24,7 +24,8 @@ public class InitialController : MonoBehaviour {
     public Toggle useServerToggle;
     public TextAsset playtest;
     public TextAsset[] boardfiles;
-    public GameObject[] robotDir;
+    public RobotController robotBase;
+    public Sprite[] robotDir;
 
     public void Awake()
     {
@@ -44,6 +45,7 @@ public class InitialController : MonoBehaviour {
         if (playtest != null)
         {
             string[] lines = playtest.text.Split('\n');
+            Interpreter.robotBase = robotBase;
             Interpreter.robotDir = robotDir;
             Interpreter.boardFile = lines[0].Trim();
             Interpreter.myRobotNames = lines[1].Trim().Split(',');
@@ -79,6 +81,7 @@ public class InitialController : MonoBehaviour {
             }
             thisBoard.onClick.AddListener(() =>
             {
+                Interpreter.robotBase = robotBase;
                 Interpreter.robotDir = robotDir;
                 Interpreter.boardFile = t.name;
                 if (myRoster.text.Length > 0)
@@ -104,7 +107,7 @@ public class InitialController : MonoBehaviour {
             opponentRoster.text += robot + "\n";
         });
         List<Dropdown.OptionData> opts = new List<Dropdown.OptionData>();
-        foreach (GameObject r in robotDir)
+        foreach (Sprite r in robotDir)
         {
             Dropdown.OptionData opt = new Dropdown.OptionData();
             opt.text = r.name;
