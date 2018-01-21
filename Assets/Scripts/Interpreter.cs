@@ -135,7 +135,7 @@ public class Interpreter : MonoBehaviour {
             } else if (evt is GameEvent.Move)
             {
                 GameEvent.Move mov = (GameEvent.Move)evt;
-                primaryRobot.Place((int)mov.destinationPos.x, (int)mov.destinationPos.y);
+                primaryRobot.Place(mov.destinationPos.x, mov.destinationPos.y);
             }
             else if (evt is GameEvent.Attack)
             {
@@ -152,7 +152,9 @@ public class Interpreter : MonoBehaviour {
             }
             else if (evt is GameEvent.Push)
             {
-                //TODO: Push animation?
+                GameEvent.Push push = (GameEvent.Push)evt;
+                primaryRobot.Place(push.transferPos.x, push.transferPos.y);
+                Array.Find(robotControllers, (RobotController r) => r.id == push.victim).Place(push.destinationPos.x, push.destinationPos.y);
             }
             else
             {

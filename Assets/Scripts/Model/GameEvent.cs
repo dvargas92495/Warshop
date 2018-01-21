@@ -5,7 +5,16 @@ public abstract class GameEvent
 {
     internal short primaryRobotId;
     internal byte priority;
+    internal short primaryBattery;
+    internal short secondaryBattery;
     public GameEvent() { }
+    public void FinishMessage(NetworkWriter writer)
+    {
+        writer.Write(primaryRobotId);
+        writer.Write(priority);
+        writer.Write(primaryBattery);
+        writer.Write(secondaryBattery);
+    }
     public abstract void Serialize(NetworkWriter writer);
     public static GameEvent Deserialize(NetworkReader reader)
     {
@@ -34,6 +43,8 @@ public abstract class GameEvent
         }
         evt.primaryRobotId = reader.ReadInt16();
         evt.priority = reader.ReadByte();
+        evt.primaryBattery = reader.ReadInt16();
+        evt.secondaryBattery = reader.ReadInt16();
         return evt;
     }
     public override string ToString()
@@ -42,7 +53,7 @@ public abstract class GameEvent
     }
     public string ToString(string message)
     {
-        return "Robot " + primaryRobotId + " " + message + " on priority " + priority;
+        return "Robot " + primaryRobotId + " " + message + " on priority " + priority + ". Battery: " + primaryBattery + "|" + secondaryBattery;
     }
 
     public class Empty : GameEvent
@@ -51,55 +62,26 @@ public abstract class GameEvent
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(primaryRobotId);
-            writer.Write(priority);
         }
     }
 
     public class Rotate : GameEvent
     {
         internal const byte EVENT_ID = 1;
-        internal Robot.Orientation sourceDir { get; }
-        internal Robot.Orientation destinationDir { get; }
-        internal Rotate(Robot robot, Command.Direction dir)
-        {
-            sourceDir = robot.orientation;
-            switch (dir)
-            {
-                case Command.Direction.UP:
-                    robot.orientation = Robot.Orientation.NORTH;
-                    break;
-                case Command.Direction.DOWN:
-                    robot.orientation = Robot.Orientation.SOUTH;
-                    break;
-                case Command.Direction.LEFT:
-                    robot.orientation = Robot.Orientation.WEST;
-                    break;
-                case Command.Direction.RIGHT:
-                    robot.orientation = Robot.Orientation.EAST;
-                    break;
-            }
-            destinationDir = robot.orientation;
-            primaryRobotId = robot.id;
-        }
-        private Rotate(byte source, byte dest)
-        {
-            sourceDir = (Robot.Orientation)source;
-            destinationDir = (Robot.Orientation)dest;
-        }
+        internal Robot.Orientation sourceDir;
+        internal Robot.Orientation destinationDir;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
             writer.Write((byte)sourceDir);
             writer.Write((byte)destinationDir);
-            writer.Write(primaryRobotId);
-            writer.Write(priority);
         }
         public new static Rotate Deserialize(NetworkReader reader)
         {
-            byte source = reader.ReadByte();
-            byte dest = reader.ReadByte();
-            return new Rotate(source, dest);
+            Rotate rot = new Rotate();
+            rot.sourceDir = (Robot.Orientation)reader.ReadByte();
+            rot.destinationDir = (Robot.Orientation)reader.ReadByte();
+            return rot;
         }
         public override string ToString()
         {
@@ -110,33 +92,26 @@ public abstract class GameEvent
     public class Move : GameEvent
     {
         internal const byte EVENT_ID = 2;
-        internal Vector2 sourcePos { get; }
-        internal Vector2 destinationPos { get; }
-        internal Move(Robot robot, Vector2 diff)
-        {
-            sourcePos = robot.position;
-            robot.position += diff;
-            destinationPos = robot.position;
-            primaryRobotId = robot.id;
-        }
-        private Move(Vector2 source, Vector2 dest)
-        {
-            sourcePos = source;
-            destinationPos = dest;
-        }
+        internal Vector2Int sourcePos;
+        internal Vector2Int destinationPos;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(sourcePos);
-            writer.Write(destinationPos);
-            writer.Write(primaryRobotId);
-            writer.Write(priority);
+            writer.Write(sourcePos.x);
+            writer.Write(sourcePos.y);
+            writer.Write(destinationPos.x);
+            writer.Write(destinationPos.y);
         }
         public new static Move Deserialize(NetworkReader reader)
         {
-            Vector2 source = reader.ReadVector2();
-            Vector2 dest = reader.ReadVector2();
-            return new Move(source, dest);
+            Move evt = new Move();
+            evt.sourcePos = new Vector2Int();
+            evt.sourcePos.x = reader.ReadInt32();
+            evt.sourcePos.y = reader.ReadInt32();
+            evt.destinationPos = new Vector2Int();
+            evt.destinationPos.x = reader.ReadInt32();
+            evt.destinationPos.y = reader.ReadInt32();
+            return evt;
         }
         public override string ToString()
         {
@@ -149,24 +124,6 @@ public abstract class GameEvent
         internal const byte EVENT_ID = 3;
         internal short[] victimIds;
         internal short[] victimHealth;
-        internal Attack(Robot robot, Robot[] victims)
-        {
-            victimIds = new short[victims.Length];
-            victimHealth = new short[victims.Length];
-            for(int i = 0; i < victims.Length; i++)
-            {
-                Robot victim = victims[i];
-                victimIds[i] = victim.id;
-                victim.health -= robot.attack;
-                victimHealth[i] = victim.health;
-            }
-            primaryRobotId = robot.id;
-        }
-        private Attack(short[] vids, short[] vhealths)
-        {
-            victimIds = vids;
-            victimHealth = vhealths;
-        }
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
@@ -176,20 +133,19 @@ public abstract class GameEvent
                 writer.Write(victimIds[i]);
                 writer.Write(victimHealth[i]);
             }
-            writer.Write(primaryRobotId);
-            writer.Write(priority);
         }
         public new static Attack Deserialize(NetworkReader reader)
         {
+            Attack evt = new Attack();
             int length = reader.ReadInt32();
-            short[] vids = new short[length];
-            short[] vhealths = new short[length];
+            evt.victimIds = new short[length];
+            evt.victimHealth = new short[length];
             for (int i = 0;i < length; i++)
             {
-                vids[i] = reader.ReadInt16();
-                vhealths[i] = reader.ReadInt16();
+                evt.victimIds[i] = reader.ReadInt16();
+                evt.victimHealth[i] = reader.ReadInt16();
             }
-            return new Attack(vids, vhealths);
+            return evt;
         }
         public override string ToString()
         {
@@ -201,25 +157,16 @@ public abstract class GameEvent
     {
         internal const byte EVENT_ID = 4;
         internal string blockingObject;
-        internal Block(Robot robot, string blocker)
-        {
-            primaryRobotId = robot.id;
-            blockingObject = blocker;
-        }
-        private Block(string blocker)
-        {
-            blockingObject = blocker;
-        }
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
             writer.Write(blockingObject);
-            writer.Write(primaryRobotId);
-            writer.Write(priority);
         }
         public new static Block Deserialize(NetworkReader reader)
         {
-            return new Block(reader.ReadString());
+            Block evt = new Block();
+            evt.blockingObject = reader.ReadString();
+            return evt;
         }
         public override string ToString()
         {
@@ -230,30 +177,39 @@ public abstract class GameEvent
     public class Push : GameEvent
     {
         internal const byte EVENT_ID = 5;
-        internal short pushBy;
-        internal Push(Robot robot, short pusher)
-        {
-            primaryRobotId = robot.id;
-            pushBy = pusher;
-        }
-        private Push(short pusher)
-        {
-            pushBy = pusher;
-        }
+        internal Vector2Int sourcePos;
+        internal Vector2Int transferPos;
+        internal Vector2Int destinationPos;
+        internal short victim;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(pushBy);
-            writer.Write(primaryRobotId);
-            writer.Write(priority);
+            writer.Write(sourcePos.x);
+            writer.Write(sourcePos.y);
+            writer.Write(transferPos.x);
+            writer.Write(transferPos.y);
+            writer.Write(destinationPos.x);
+            writer.Write(destinationPos.y);
+            writer.Write(victim);
         }
         public new static Push Deserialize(NetworkReader reader)
         {
-            return new Push(reader.ReadInt16());
+            Push evt = new Push();
+            evt.sourcePos = new Vector2Int();
+            evt.sourcePos.x = reader.ReadInt32();
+            evt.sourcePos.y = reader.ReadInt32();
+            evt.transferPos = new Vector2Int();
+            evt.transferPos.x = reader.ReadInt32();
+            evt.transferPos.y = reader.ReadInt32();
+            evt.destinationPos = new Vector2Int();
+            evt.destinationPos.x = reader.ReadInt32();
+            evt.destinationPos.y = reader.ReadInt32();
+            evt.victim = reader.ReadInt16();
+            return evt;
         }
         public override string ToString()
         {
-            return ToString("pushed by " + pushBy);
+            return ToString("pushed " + victim + " from " + sourcePos + " through " + transferPos + " to " + destinationPos);
         }
     }
 

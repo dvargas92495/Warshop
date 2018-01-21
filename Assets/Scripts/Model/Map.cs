@@ -66,7 +66,7 @@ public class Map
         return map;
     }
 
-    public short getIdOnSpace(Space s)
+    public short GetIdOnSpace(Space s)
     {
         return objectLocations.Keys.ToList().Find((short k) => objectLocations[k].Equals(s));
     }
@@ -76,124 +76,13 @@ public class Map
         return spaces[y * Width + x].spaceType;
     }
 
-    internal void UpdateObjectLocation(int x, int y, short objectId) {
-        objectLocations[objectId] = spaces[y*Width + x];
+    public bool IsSpaceOccupied(Space s)
+    {
+        return objectLocations.ContainsValue(s);
     }
 
-    internal HashSet<GameEvent> processMoveCommands(HashSet<Command.Move> moves, Robot[] allRobots, string primaryOwner)
-    {
-        HashSet<GameEvent> events = new HashSet<GameEvent>();
-        Dictionary<short, Vector2> idsToDiffs = new Dictionary<short, Vector2>();
-        moves.ToList().ForEach((Command.Move c) =>
-        {
-            Vector2 diff = Vector2.zero;
-            switch (c.direction)
-            {
-                case Command.Direction.UP:
-                    diff = Vector2.down;
-                    break;
-                case Command.Direction.DOWN:
-                    diff = Vector2.up;
-                    break;
-                case Command.Direction.LEFT:
-                    diff = Vector2.left;
-                    break;
-                case Command.Direction.RIGHT:
-                    diff = Vector2.right;
-                    break;
-            }
-            if (c.owner.Equals(primaryOwner))
-            {
-                diff = -diff;
-            }
-            idsToDiffs[c.robotId] = diff;
-        });
-        Array.ForEach(spaces, (Space s) => {
-            List<short> idsWantSpace = idsToDiffs.Keys.ToList().FindAll((short key) => {
-                Robot primaryRobot = Robot.Get(allRobots, key);
-                Vector2 newspace = primaryRobot.position + idsToDiffs[key];
-                return newspace.x == s.x && newspace.y == s.y;
-            });
-            if (idsWantSpace.Count > 1)
-            {
-                List<short> facing = idsWantSpace.FindAll((short key) => {
-                    Robot primaryRobot = Robot.Get(allRobots, key);
-                    return idsToDiffs[key].Equals(Robot.OrientationToVector(primaryRobot.orientation));
-                });
-                string blocker = "";
-                if (facing.Count == 1)
-                {
-                    Robot winner = Robot.Get(allRobots, facing[0]);
-                    idsWantSpace.Remove(winner.id);
-                    blocker = winner.name;
-                } else
-                {
-                    blocker = "Each Other";
-                }
-                if (objectLocations.ContainsValue(s))
-                {
-                    blocker = Robot.Get(allRobots, getIdOnSpace(s)).name;
-                }
-                idsWantSpace.ForEach((short key) => events.Add(new GameEvent.Block(Robot.Get(allRobots, key), blocker)));
-                moves.RemoveWhere((Command.Move c) => idsWantSpace.Contains(c.robotId));
-            }
-        });
-        HashSet<Robot> robotLocationsToUpdate = new HashSet<Robot>();
-        moves.ToList().ForEach((Command.Move c) =>
-        {
-            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
-            Vector2 diff = idsToDiffs[c.robotId];
-            
-            Vector2 newspace = primaryRobot.position + diff;
-            if (newspace.x < 0 || newspace.x >= Width || newspace.y < 0 || newspace.y >= Height)
-            {
-                events.Add(new GameEvent.Block(primaryRobot, "Wall"));
-                moves.Remove(c);
-                return;
-            }
-            Space space = spaces[(int)newspace.y * Width + (int)newspace.x];
-            if (space.spaceType == Space.SpaceType.BASE)
-            {
-                events.Add(new GameEvent.Block(primaryRobot, "Base"));
-                moves.Remove(c);
-                return;
-            }
-            if (space.spaceType == Space.SpaceType.QUEUE)
-            {
-                events.Add(new GameEvent.Block(primaryRobot, "Queue"));
-                moves.Remove(c);
-                return;
-            }
-            if (objectLocations.ContainsValue(space))
-            {
-                Robot currentBot = Robot.Get(allRobots, getIdOnSpace(space));
-                if (!Robot.OrientationToVector(primaryRobot.orientation).Equals(diff) || // Not Facing Direction
-                Robot.OrientationToVector(currentBot.orientation).Equals(primaryRobot.position - newspace)) //Or currentBot facing it
-                {
-                    events.Add(new GameEvent.Block(primaryRobot, currentBot.name));
-                    moves.Remove(c);
-                }
-                else
-                {
-                    events.Add(new GameEvent.Push(currentBot, primaryRobot.id));
-                    events.Add(new GameEvent.Move(currentBot, diff));
-                    events.Add(new GameEvent.Move(primaryRobot, diff));
-                    robotLocationsToUpdate.Add(currentBot);
-                    robotLocationsToUpdate.Add(primaryRobot);
-                }
-            }
-            else
-            {
-                events.Add(new GameEvent.Move(primaryRobot, diff));
-                robotLocationsToUpdate.Add(primaryRobot);
-            }
-        });
-        
-        robotLocationsToUpdate.ToList().ForEach(((Robot r) => {
-            UpdateObjectLocation((int) r.position.x, (int) r.position.y, r.id);
-        }));
-
-        return events;
+    internal void UpdateObjectLocation(int x, int y, short objectId) {
+        objectLocations[objectId] = spaces[y*Width + x];
     }
 
     internal void RemoveObject(int objectID)

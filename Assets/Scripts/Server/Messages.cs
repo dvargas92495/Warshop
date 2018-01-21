@@ -81,7 +81,11 @@ public class Messages {
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(events.Length);
-            Array.ForEach(events, (GameEvent evt) => evt.Serialize(writer));
+            Array.ForEach(events, (GameEvent evt) =>
+            {
+                evt.Serialize(writer);
+                evt.FinishMessage(writer);
+            });
         }
         public override void Deserialize(NetworkReader reader)
         {

@@ -1,4 +1,18 @@
-﻿public class GameConstants {
+﻿public class GameConstants
+{
+    public const byte DEFAULT_ROTATE_POWER = 1;
+    public const byte DEFAULT_MOVE_POWER = 1;
+    public const byte DEFAULT_ATTACK_POWER = 2;
+    public const byte DEFAULT_SPECIAL_POWER = 2;
+
+    public const byte DEFAULT_ROTATE_LIMIT = 2;
+    public const byte DEFAULT_MOVE_LIMIT = 2;
+    public const byte DEFAULT_ATTACK_LIMIT = 1;
+    public const byte DEFAULT_SPECIAL_LIMIT = 1;
+
+    public const byte DEFAULT_BATTERY_MULTIPLIER = 8;
+    public const byte DEFAULT_DEATH_MULTIPLIER = 8;
+
     public const byte MAX_PRIORITY = 8;
     public const int POINTS_TO_WIN = 256;
     public const float ROBOTZ = 0.25f;

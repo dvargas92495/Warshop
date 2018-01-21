@@ -12,7 +12,7 @@ public class Robot
     internal short attack;
     internal Rating rating;
     internal short id;
-    internal Vector2 position;
+    internal Vector2Int position;
     internal Orientation orientation;
     internal bool inQueue;
     private Robot(string _name, string _description)
@@ -28,7 +28,7 @@ public class Robot
         health = _health;
         attack = _attack;
         rating = _rating;
-        position = new Vector2(0, 0);
+        position = Vector2Int.zero;
         orientation = Orientation.NORTH;
         inQueue = true;
     }
@@ -63,7 +63,8 @@ public class Robot
         writer.Write(attack);
         writer.Write((byte)rating);
         writer.Write(id);
-        writer.Write(position);
+        writer.Write(position.x);
+        writer.Write(position.y);
         writer.Write((byte)orientation);
         writer.Write(inQueue);
     }
@@ -77,25 +78,27 @@ public class Robot
         robot.attack = reader.ReadInt16();
         robot.rating = (Rating)reader.ReadByte();
         robot.id = reader.ReadInt16();
-        robot.position = reader.ReadVector2();
+        robot.position = new Vector2Int();
+        robot.position.x = reader.ReadInt32();
+        robot.position.y = reader.ReadInt32();
         robot.orientation = (Orientation)reader.ReadByte();
         robot.inQueue = reader.ReadBoolean();
         return robot;
     }
-    public static Vector2 OrientationToVector (Orientation orientation)
+    public static Vector2Int OrientationToVector (Orientation orientation)
     {
         switch (orientation)
         {
             case Orientation.NORTH:
-                return Vector2.down;
+                return Vector2Int.down;
             case Orientation.SOUTH:
-                return Vector2.up;
+                return Vector2Int.up;
             case Orientation.WEST:
-                return Vector2.left;
+                return Vector2Int.left;
             case Orientation.EAST:
-                return Vector2.right;
+                return Vector2Int.right;
             default:
-                return Vector2.zero;
+                return Vector2Int.zero;
         }
     }
     public enum Orientation
@@ -112,25 +115,76 @@ public class Robot
         SILVER = 2,
         BRONZE = 1
     }
-    internal List<Vector2> GetVictimLocations()
+    internal List<GameEvent> Rotate(Command.Direction dir, bool isPrimary)
     {
-        List<Vector2> locs = new List<Vector2>();
-        switch (orientation)
+        GameEvent.Rotate evt = new GameEvent.Rotate();
+        evt.sourceDir = orientation;
+        switch (dir)
         {
-            case Orientation.NORTH:
-                locs.Add(position + new Vector2(0, -1));
+            case Command.Direction.UP:
+                orientation = (isPrimary ? Orientation.SOUTH : Orientation.NORTH);
                 break;
-            case Orientation.SOUTH:
-                locs.Add(position + new Vector2(0, 1));
+            case Command.Direction.DOWN:
+                orientation = (isPrimary ? Orientation.NORTH : Orientation.SOUTH);
                 break;
-            case Orientation.WEST:
-                locs.Add(position + new Vector2(-1, 0));
+            case Command.Direction.LEFT:
+                orientation = (isPrimary ? Orientation.EAST : Orientation.WEST);
                 break;
-            case Orientation.EAST:
-                locs.Add(position + new Vector2(1, 0));
+            case Command.Direction.RIGHT:
+                orientation = (isPrimary ? Orientation.WEST : Orientation.EAST);
                 break;
         }
-        return locs;
+        evt.destinationDir = orientation;
+        evt.primaryRobotId = id;
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ROTATE_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ROTATE_POWER);
+        return new List<GameEvent>() { evt };
+    }
+    internal List<GameEvent> Move(Vector2Int diff, bool isPrimary)
+    {
+        GameEvent.Move evt = new GameEvent.Move();
+        evt.sourcePos = position;
+        position += diff;
+        evt.destinationPos = position;
+        evt.primaryRobotId = id;
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
+        return new List<GameEvent>() { evt };
+    }
+    internal List<GameEvent> Push(Vector2Int diff, Robot victim, bool isPrimary)
+    {
+        GameEvent.Push evt = new GameEvent.Push();
+        evt.sourcePos = position;
+        position += diff;
+        evt.transferPos = position;
+        victim.position += diff;
+        evt.destinationPos = victim.position;
+        evt.victim = victim.id;
+        evt.primaryRobotId = id;
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
+        return new List<GameEvent>() { evt };
+    }
+    internal List<Vector2Int> GetVictimLocations()
+    {
+        return new List<Vector2Int>() { position + OrientationToVector(orientation) };
+    }
+    internal List<GameEvent> Attack(Robot[] victims, bool isPrimary)
+    {
+        GameEvent.Attack evt = new GameEvent.Attack();
+        evt.victimIds = new short[victims.Length];
+        evt.victimHealth = new short[victims.Length];
+        for (int i = 0; i < victims.Length; i++)
+        {
+            Robot victim = victims[i];
+            evt.victimIds[i] = victim.id;
+            victim.health -= attack;
+            evt.victimHealth[i] = victim.health;
+        }
+        evt.primaryRobotId = id;
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
+        return new List<GameEvent>() { evt };
     }
     private class Slinkbot : Robot
     {
