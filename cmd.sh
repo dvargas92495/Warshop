@@ -4,8 +4,8 @@ helpCmd() {
     echo "You could use the following commands:";
     echo "    help: prints all available commands to console";
     echo "    clean: deletes all the unused builds on aws";
+	echo "    connect: connect to the current fleet instance";
 	echo "    deploy: deploys the app server to aws";
-	echo "    fleet: describes fleet ip address once it's ready. takes fleet id as first argument"
 	echo "    local: launch Amazon Gamelift Local to test deployment locally"
 	echo "    open: opens the unity project and vs";
 	echo "    server: builds the app server";
@@ -24,6 +24,17 @@ cleanCmd(){
     done
 }
 
+connectCmd(){
+    rm -f MyPrivateKey.pem;
+    FLEET_ID=$(aws gamelift list-fleets --query "FleetIds[0]" --output text);
+    INSTANCE_ID=$(aws gamelift describe-instances --fleet-id ${FLEET_ID%?} --query "Instances[0].InstanceId" --output text);
+    IP_ADDRESS=$(aws gamelift describe-instances --fleet-id ${FLEET_ID%?} --query "Instances[0].IpAddress" --output text);
+	aws gamelift get-instance-access --fleet-id ${FLEET_ID%?} --instance-id ${INSTANCE_ID%?} --query "InstanceAccess.Credentials.Secret" --output text > MyPrivateKey.pem;
+	USER=$(aws gamelift get-instance-access --fleet-id ${FLEET_ID%?} --instance-id ${INSTANCE_ID%?} --query "InstanceAccess.Credentials.UserName" --output text);
+	chmod 400 MyPrivateKey.pem;
+	ssh -i MyPrivateKey.pem ${USER%?}@${IP_ADDRESS%?};
+}
+
 deployCmd() {
 	BUILD_LINE=$(aws gamelift upload-build --name Z8 --build-version 1.0.0 --build-root $Z8_HOME/ServerBuild --operating-system AMAZON_LINUX | tail -1);
     BUILD_ID=$(echo ${BUILD_LINE:10:42});
@@ -35,8 +46,7 @@ deployCmd() {
 	    if [[ $RESULT = "NEW"* ]]; then
 		    echo "Fleet Created!";
 		    NEW_FLEET_ID=$(aws gamelift describe-fleet-attributes --query "FleetAttributes[?BuildId=='$BUILD_ID'].FleetId" --output text);
-			echo "New Fleet: ${NEW_FLEET_ID%?}";
-			fleetCmd ${NEW_FLEET_ID%?};
+			echo "New Fleet: $NEW_FLEET_ID";
 		else
 		    echo $RESULT;
 			echo "Fleet failed to be created";
@@ -44,23 +54,6 @@ deployCmd() {
     else
 		echo "Build $BUILD_ID Not Ready, STATUS=$STATUS";
 	fi 
-}
-
-FLEET_STATUS="";
-fleetCmd(){
-	NEW_FLEET_STATUS=$(aws gamelift describe-fleet-attributes --fleet-id $1 --query "FleetAttributes[0].Status" --output text);
-	if [[ $NEW_FLEET_STATUS = "ACTIVE"* ]]; then
-		echo "Fleet Active!"
-		FLEET_STATUS="";
-	    IP_ADRESS=$(aws gamelift describe-instances --fleet-id $1 --query "Instances[0].IpAddress" --output text);
-		echo "Fleet $1 running on ${IP_ADRESS%?}";
-	elif [[ $NEW_FLEET_STATUS = $FLEET_STATUS ]]; then
-		fleetCmd;
-	else
-		FLEET_STATUS=NEW_FLEET_STATUS;
-		echo "Status: $FLEET_STATUS";
-		fleetCmd;
-	fi
 }
 
 localCmd() {
@@ -91,10 +84,10 @@ if [[ $1 = "help" ]]; then
     helpCmd;
 elif [[ $1 = "clean" ]]; then
 	cleanCmd;
+elif [[ $1 = "connect" ]]; then
+    connectCmd;
 elif [[ $1 = "deploy" ]]; then
     deployCmd;
-elif [[ $1 = "fleet" ]]; then
-    fleetCmd;
 elif [[ $1 = "local" ]]; then
     localCmd;
 elif [[ $1 = "open" ]]; then

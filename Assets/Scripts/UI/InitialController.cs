@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 
 public class InitialController : MonoBehaviour {
 
@@ -44,7 +43,7 @@ public class InitialController : MonoBehaviour {
             App.StartServer();
             return;
         }
-        if (playtest != null)
+        if (Application.isEditor && playtest != null)
         {
             string[] lines = playtest.text.Split('\n');
             StartGame(
@@ -56,18 +55,29 @@ public class InitialController : MonoBehaviour {
             );
             return;
         }
-        localModeToggle.onValueChanged.AddListener((bool val) =>
+        UnityAction<bool> opponentToggle = (bool val) =>
         {
             GameConstants.LOCAL_MODE = val;
             opponentName.gameObject.SetActive(val);
             opponentAdd.gameObject.SetActive(val);
             opponentSelect.gameObject.SetActive(val);
             opponentRoster.gameObject.SetActive(val);
-        });
-        useServerToggle.onValueChanged.AddListener((bool val) =>
+        };
+        UnityAction<bool> awsToggle = (bool val) =>
         {
             GameConstants.USE_SERVER = val;
-        });
+        };
+        if (Application.isEditor)
+        {
+            localModeToggle.onValueChanged.AddListener(opponentToggle);
+            useServerToggle.onValueChanged.AddListener(awsToggle);
+        } else
+        {
+            opponentToggle(false);
+            awsToggle(true);
+            localModeToggle.gameObject.SetActive(false);
+            useServerToggle.gameObject.SetActive(false);
+        }
         int x = -1;
         int y = 2;
         foreach (TextAsset t in boardfiles)

@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using Amazon.Runtime;
 using Amazon.GameLift;
 using Amazon.GameLift.Model;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 public class GameClient : MonoBehaviour {
 
@@ -22,11 +25,8 @@ public class GameClient : MonoBehaviour {
     public static void Initialize(string playerId, string boardFile) {
         if (GameConstants.USE_SERVER)
         {
-            AWSCredentials credentials = new BasicAWSCredentials("AKIAJSB6QLGBGT43SF4Q", "/Ej3YprjYZzsJrqJSNtjKUWMbaU+8wTtbqbhtxA9");
-            AmazonGameLiftConfig config = new AmazonGameLiftConfig();
-            config.ServiceURL = "http://localhost:9090";
-            //config.RegionEndpoint = Amazon.RegionEndpoint.USWest2;
-            amazonClient = new AmazonGameLiftClient(credentials, config);
+            ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback; //DO NOT REMOVE THIS
+            amazonClient = new AmazonGameLiftClient("AKIAJSB6QLGBGT43SF4Q", "/Ej3YprjYZzsJrqJSNtjKUWMbaU+8wTtbqbhtxA9", Amazon.RegionEndpoint.USWest2);
             DescribeGameSessionsRequest describeReq = new DescribeGameSessionsRequest();
             describeReq.FleetId = GameConstants.FLEET_ID;
             describeReq.StatusFilter = GameSessionStatus.ACTIVE;
@@ -81,6 +81,11 @@ public class GameClient : MonoBehaviour {
             msg.boardFile = boardFile;
             App.Receive(MsgType.Connect, msg);
         }
+    }
+
+    private static bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+    {
+        return true; //DO NOT REMOVE THIS FUNCTION
     }
 
     private static void Send(short msgType, MessageBase message)

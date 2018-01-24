@@ -26,6 +26,6 @@
     public static bool LOCAL_MODE = true;
     public static bool USE_SERVER = false;
     public static string SERVER_IP = "127.0.0.1";
-    public static string FLEET_ID = "fleet-36c271c7-6f01-4525-bf61-b2ff37e8e7e6";
+    public static string FLEET_ID = "fleet-40d69432-dc29-4994-ac77-1288529d6efa";
     public static int PORT = 12345;
 }
