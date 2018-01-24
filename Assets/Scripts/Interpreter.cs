@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Linq;
 
 public class Interpreter : MonoBehaviour {
 
@@ -16,31 +15,36 @@ public class Interpreter : MonoBehaviour {
     internal static RobotController robotBase;
     internal static Sprite[] robotDir;
     public static int eventDelay = 1;
-    public static string boardFile = "";
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
     private static bool myturn;
 
-    public static void ConnectToServer()
+    public static void ConnectToServer(string playerId, string opponentId, string boardFile)
     {
-        GameClient.Initialize();
+        playerTurnObjectArray = new Game.Player[] {
+            new Game.Player(new Robot[0], playerId),
+            new Game.Player(new Robot[0], opponentId)
+        };
+        GameClient.Initialize(playerId, boardFile);
     }
 
     public static void SendPlayerInfo()
     {
         if (GameConstants.LOCAL_MODE)
         {
-            GameClient.SendLocalGameRequest(myRobotNames, opponentRobotNames, boardFile);
+            GameClient.SendLocalGameRequest(myRobotNames, opponentRobotNames, playerTurnObjectArray[0].name, playerTurnObjectArray[1].name);
         }
         else
         {
-            GameClient.SendGameRequest(myRobotNames, boardFile);
+            GameClient.SendGameRequest(myRobotNames, playerTurnObjectArray[0].name);
         }
     }
 
-    public static void LoadBoard(Game.Player[] ptos, Map b)
+    public static void LoadBoard(Robot[] myTeam, Robot[] opponentTeam, string opponentName, Map b)
     {
-        playerTurnObjectArray = ptos;
+        playerTurnObjectArray[0].team = myTeam;
+        playerTurnObjectArray[1].team = opponentTeam;
+        playerTurnObjectArray[1].name = opponentName;
         board = b;
         myturn = true;
         SceneManager.LoadScene("Prototype");
@@ -100,10 +104,10 @@ public class Interpreter : MonoBehaviour {
             Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
         }
         List<Command> commands = new List<Command>();
-        foreach(RobotController robot in robotControllers)
+        string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
+        foreach (RobotController robot in robotControllers)
         {
             List<Command> robotCommands = robot.GetCommands();
-            string username = (robot.isOpponent ? playerTurnObjectArray[1].name : playerTurnObjectArray[0].name);
             foreach (Command cmd in robotCommands)
             {
                 cmd.robotId = robot.id;
@@ -114,7 +118,7 @@ public class Interpreter : MonoBehaviour {
         }
         myturn = false;
         Logger.ClientLog("Sending Commands: " + commands.Count);
-        GameClient.SendSubmitCommands(commands);
+        GameClient.SendSubmitCommands(commands, username);
     }
 
     public static void PlayEvents(List<GameEvent> events)

@@ -19,9 +19,9 @@ public class Map
         spaces = new Space[width*height];
     }
 
-    internal Map(TextAsset content)
+    internal Map(string content)
     {
-        string[] lines = content.text.Split('\n');
+        string[] lines = content.Split('\n');
         int[] boardDimensions = lines[0].Trim().Split(null).Select(int.Parse).ToArray();
         Width = boardDimensions[0];
         Height = boardDimensions[1];

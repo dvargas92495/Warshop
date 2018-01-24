@@ -1,3 +1,5 @@
 Battery
 Flybot,Jaguar,Slinkbot
 Virusbot,Pithon
+Vargas
+Calvin

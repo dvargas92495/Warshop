@@ -51,7 +51,7 @@ public abstract class GameEvent
                 break;
             default:
                 evt = new Empty();
-                break;//TODO: Log an error
+                break;
         }
         evt.primaryRobotId = reader.ReadInt16();
         evt.priority = reader.ReadByte();

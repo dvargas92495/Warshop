@@ -10,27 +10,32 @@ public class Messages {
     public const short TURN_EVENTS = MsgType.Highest + 5;
     public class EmptyMessage : MessageBase { }
     public static EmptyMessage EMPTY = new EmptyMessage();
+    public class FakeConnectMessage : MessageBase
+    {
+        public string boardFile;
+    }
     public class StartLocalGameMessage : MessageBase
     {
+        public String playerSessionId;
+        public String myName;
+        public String opponentName;
         public String[] myRobots;
         public String[] opponentRobots;
-        public String boardFile;
     }
     public class StartGameMessage : MessageBase
     {
+        public String playerSessionId;
+        public String myName;
         public String[] myRobots;
-        public String boardFile;
     }
     public class GameReadyMessage : MessageBase
     {
-        public String myname;
         public String opponentname;
         public Robot[] myTeam;
         public Robot[] opponentTeam;
         public Map board;
         public override void Serialize(NetworkWriter writer)
         {
-            writer.Write(myname);
             writer.Write(opponentname);
             writer.Write(myTeam.Length);
             Array.ForEach(myTeam, (Robot robot) => robot.Serialize(writer));
@@ -40,7 +45,6 @@ public class Messages {
         }
         public override void Deserialize(NetworkReader reader)
         {
-            myname = reader.ReadString();
             opponentname = reader.ReadString();
             myTeam = new Robot[reader.ReadInt32()];
             for (int i = 0; i < myTeam.Length; i++)

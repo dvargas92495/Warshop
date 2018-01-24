@@ -5,6 +5,8 @@ helpCmd() {
     echo "    help: prints all available commands to console";
     echo "    clean: deletes all the unused builds on aws";
 	echo "    deploy: deploys the app server to aws";
+	echo "    fleet: describes fleet ip address once it's ready. takes fleet id as first argument"
+	echo "    local: launch Amazon Gamelift Local to test deployment locally"
 	echo "    open: opens the unity project and vs";
 	echo "    server: builds the app server";
 }
@@ -61,6 +63,12 @@ fleetCmd(){
 	fi
 }
 
+localCmd() {
+	unity -quit -batchmode -nographics -buildWindows64Player $Z8_HOME/ServerBuild/LocalApp.exe -projectPath $Z8_HOME;
+	ServerBuild/LocalApp.exe -batchmode -nographics;
+    java -jar GameLiftLocal.jar -p 12345;
+}
+
 openCmd() {
     unity -projectPath $Z8_HOME;
 }
@@ -87,6 +95,8 @@ elif [[ $1 = "deploy" ]]; then
     deployCmd;
 elif [[ $1 = "fleet" ]]; then
     fleetCmd;
+elif [[ $1 = "local" ]]; then
+    localCmd;
 elif [[ $1 = "open" ]]; then
     openCmd;
 elif [[ $1 = "server" ]]; then

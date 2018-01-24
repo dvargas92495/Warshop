@@ -13,6 +13,8 @@ public class InitialController : MonoBehaviour {
     private float dy = 50;
     private int width = 2;
     public Button loadBoardButton;
+    public InputField myName;
+    public InputField opponentName;
     public Button myAdd;
     public Button opponentAdd;
     public Dropdown mySelect;
@@ -45,18 +47,19 @@ public class InitialController : MonoBehaviour {
         if (playtest != null)
         {
             string[] lines = playtest.text.Split('\n');
-            Interpreter.robotBase = robotBase;
-            Interpreter.robotDir = robotDir;
-            Interpreter.boardFile = lines[0].Trim();
-            Interpreter.myRobotNames = lines[1].Trim().Split(',');
-            Interpreter.opponentRobotNames = lines[2].Trim().Split(',');
-            Interpreter.ConnectToServer();
-            loadingText.text = "Loading...";
+            StartGame(
+                lines[0].Trim(),
+                lines[1].Trim().Split(','),
+                lines[2].Trim().Split(','),
+                lines[3].Trim(),
+                lines[4].Trim()
+            );
             return;
         }
         localModeToggle.onValueChanged.AddListener((bool val) =>
         {
             GameConstants.LOCAL_MODE = val;
+            opponentName.gameObject.SetActive(val);
             opponentAdd.gameObject.SetActive(val);
             opponentSelect.gameObject.SetActive(val);
             opponentRoster.gameObject.SetActive(val);
@@ -81,19 +84,13 @@ public class InitialController : MonoBehaviour {
             }
             thisBoard.onClick.AddListener(() =>
             {
-                Interpreter.robotBase = robotBase;
-                Interpreter.robotDir = robotDir;
-                Interpreter.boardFile = t.name;
-                if (myRoster.text.Length > 0)
-                {
-                    Interpreter.myRobotNames = myRoster.text.Substring(0, myRoster.text.Length - 1).Split('\n');
-                }
-                if (opponentRoster.text.Length > 0 && GameConstants.LOCAL_MODE)
-                {
-                    Interpreter.opponentRobotNames = opponentRoster.text.Substring(0, opponentRoster.text.Length - 1).Split('\n');
-                }
-                Interpreter.ConnectToServer();
-                loadingText.text = "Loading...";
+                StartGame(
+                    t.name,
+                    (myRoster.text.Length > 0 ? myRoster.text.Substring(0, myRoster.text.Length - 1).Split('\n') : new string[0]),
+                    (opponentRoster.IsActive() && opponentRoster.text.Length > 0 ? opponentRoster.text.Substring(0, opponentRoster.text.Length - 1).Split('\n') : new string[0]),
+                    myName.text, 
+                    (opponentName.IsActive() ? opponentName.text : "")
+                );
             });
         }
         myAdd.onClick.AddListener(() =>
@@ -115,5 +112,15 @@ public class InitialController : MonoBehaviour {
         }
         mySelect.AddOptions(opts);
         opponentSelect.AddOptions(opts);
+    }
+
+    void StartGame(string b, string[] mybots, string[] opbots, string myname, string opponentname)
+    {
+        Interpreter.robotBase = robotBase;
+        Interpreter.robotDir = robotDir;
+        Interpreter.myRobotNames = mybots;
+        Interpreter.opponentRobotNames = opbots;
+        loadingText.text = "Loading...";
+        Interpreter.ConnectToServer(myname, opponentname, b);
     }
 }

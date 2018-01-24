@@ -5,73 +5,91 @@ using UnityEngine;
 
 public class Game
 {
-    internal Player primary;
-    internal Player secondary;
-    Robot[] allRobots;
+    internal Player primary = new Player();
+    internal Player secondary = new Player();
+    Robot[] allRobots = new Robot[0];
     internal Map board;
-    internal bool gotSomeCommands;
-    List<Command> commands;
+    internal short nextRobotId;
 
-    internal Game(Robot[] t, string n, Map b)
+    internal Game() { }
+
+    internal void Join(string[] t, string n, int cid)
     {
-        primary = new Player(t, n);
-        board = b;
-        foreach (Robot r in primary.team)
+        bool isPrimary = !primary.ready;
+        Robot[] robots = new Robot[t.Length];
+        for (byte i = 0; i < t.Length; i++)
         {
-            r.position = board.GetQueuePosition(r.queueSpot, true);
+            Robot r = Robot.create(t[i]);
+            r.id = nextRobotId;
+            nextRobotId++;
+            r.queueSpot = i;
+            r.position = board.GetQueuePosition(r.queueSpot, isPrimary);
             board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-            r.orientation = Robot.Orientation.SOUTH;
+            r.orientation = isPrimary ? Robot.Orientation.SOUTH : Robot.Orientation.NORTH;
+            robots[i] = r;
         }
-        commands = new List<Command>();
+        allRobots = new Robot[allRobots.Length + robots.Length];
+        robots.CopyTo(allRobots, 0);
+        if (!isPrimary)
+        {
+            primary.team.CopyTo(allRobots, robots.Length);
+            secondary = new Player(robots, n);
+            secondary.connectionId = cid;
+        } else
+        {
+            primary = new Player(robots, n);
+            primary.connectionId = cid;
+        }
     }
 
-    internal Game(Robot[] t1, Robot[] t2, string n1, string n2, Map b)
+    internal HashSet<int> connectionIds()
     {
-        primary = new Player(t1, n1);
-        secondary = new Player(t2, n2);
-        allRobots = new Robot[t1.Length + t2.Length];
-        t1.CopyTo(allRobots, 0);
-        t2.CopyTo(allRobots, t1.Length);
-        board = b;
-        foreach (Robot r in primary.team)
-        {
-            r.position = board.GetQueuePosition(r.queueSpot, true);
-            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-            r.orientation = Robot.Orientation.SOUTH;
-        }
-        foreach (Robot r in secondary.team)
-        {
-            r.position = board.GetQueuePosition(r.queueSpot, false);
-            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-            r.orientation = Robot.Orientation.NORTH;
-        }
-        commands = new List<Command>();
+        HashSet<int> ids = new HashSet<int>();
+        ids.Add(primary.connectionId);
+        ids.Add(secondary.connectionId);
+        return ids;
     }
 
-    internal void Join(Robot[] t, string n)
+    internal Messages.GameReadyMessage GetGameReadyMessage(bool forPrimary)
     {
-        secondary = new Player(t, n);
-        allRobots = new Robot[t.Length + primary.team.Length];
-        primary.team.CopyTo(allRobots, 0);
-        t.CopyTo(allRobots, primary.team.Length);
-        foreach (Robot r in secondary.team)
-        {
-            r.position = board.GetQueuePosition(r.queueSpot, false);
-            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-            r.orientation = Robot.Orientation.NORTH;
-        }
+        primary.ready = secondary.ready = false;
+        Messages.GameReadyMessage resp = new Messages.GameReadyMessage();
+        resp.board = board;
+        resp.myTeam = (forPrimary ? primary.team : secondary.team);
+        resp.opponentTeam = (forPrimary ? secondary.team : primary.team);
+        resp.opponentname = (forPrimary ? secondary.name : primary.name);
+        return resp;
     }
 
     public class Player
     {
         internal string name;
-        internal short battery;
+        internal short battery = GameConstants.POINTS_TO_WIN;
         internal Robot[] team;
+        internal bool ready;
+        internal List<Command> commands;
+        internal int connectionId;
+        internal Player()
+        {
+            ready = false;
+        }
         internal Player(Robot[] t, string n)
         {
             team = t;
             name = n;
-            battery = GameConstants.POINTS_TO_WIN;
+            ready = true;
+        }
+        internal void StoreCommands(List<Command> cmds)
+        {
+            commands = cmds;
+            ready = true;
+        }
+        internal List<Command> FetchCommands()
+        {
+            List<Command> cmds = new List<Command>(commands);
+            ready = false;
+            commands.Clear();
+            return cmds;
         }
     }
 
@@ -88,11 +106,11 @@ public class Game
         }
     }
 
-    public List<GameEvent> CommandsToEvents(List<Command> cmds)
+    public List<GameEvent> CommandsToEvents()
     {
-        commands.AddRange(cmds);
-        gotSomeCommands = !gotSomeCommands;
-        if (gotSomeCommands) return new List<GameEvent>();
+        List<Command> commands = new List<Command>();
+        commands.AddRange(primary.FetchCommands());
+        commands.AddRange(secondary.FetchCommands());
         Dictionary<byte, HashSet<Command>> priorityToCommands = new Dictionary<byte, HashSet<Command>>();
         Dictionary<short, RobotTurnObject> robotIdToTurnObject = new Dictionary<short, RobotTurnObject>();
         Array.ForEach(allRobots, (Robot r) => robotIdToTurnObject[r.id] = new RobotTurnObject(r.priority));

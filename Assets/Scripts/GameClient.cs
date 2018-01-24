@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using Amazon.Runtime;
 using Amazon.GameLift;
+using Amazon.GameLift.Model;
 
 public class GameClient : MonoBehaviour {
 
     private static NetworkClient client;
     private static AmazonGameLiftClient amazonClient;
+    private static string gameSessionId;
+    private static string playerSessionId;
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
         { MsgType.Connect, OnConnect },
@@ -15,9 +19,55 @@ public class GameClient : MonoBehaviour {
         { Messages.TURN_EVENTS, OnTurnEvents }
     };
 
-    public static void Initialize () {
+    public static void Initialize(string playerId, string boardFile) {
         if (GameConstants.USE_SERVER)
         {
+            AWSCredentials credentials = new BasicAWSCredentials("AKIAJSB6QLGBGT43SF4Q", "/Ej3YprjYZzsJrqJSNtjKUWMbaU+8wTtbqbhtxA9");
+            AmazonGameLiftConfig config = new AmazonGameLiftConfig();
+            config.ServiceURL = "http://localhost:9090";
+            //config.RegionEndpoint = Amazon.RegionEndpoint.USWest2;
+            amazonClient = new AmazonGameLiftClient(credentials, config);
+            DescribeGameSessionsRequest describeReq = new DescribeGameSessionsRequest();
+            describeReq.FleetId = GameConstants.FLEET_ID;
+            describeReq.StatusFilter = GameSessionStatus.ACTIVE;
+            DescribeGameSessionsResponse describeRes = amazonClient.DescribeGameSessions(describeReq);
+            Debug.Log("Game Sessions found: " + describeRes.GameSessions.Count);
+            GameSession gameSession = describeRes.GameSessions.Find((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount);
+            if (gameSession == null)
+            {
+                Logger.ClientLog("No Game Session Available, creating one...");
+                GameProperty gp = new GameProperty();
+                gp.Key = GameConstants.GAME_SESSION_PROPERTIES.BOARDFILE;
+                gp.Value = boardFile;
+                CreateGameSessionRequest req = new CreateGameSessionRequest();
+                req.MaximumPlayerSessionCount = (GameConstants.LOCAL_MODE ? 1 : 2);
+                req.FleetId = GameConstants.FLEET_ID;
+                req.GameProperties.Add(gp);
+                CreateGameSessionResponse res = amazonClient.CreateGameSession(req);
+                gameSession = res.GameSession;
+                int retries = 0;
+                while (gameSession.Status.Equals(GameSessionStatus.ACTIVATING) && retries < 100)
+                {
+                    describeReq = new DescribeGameSessionsRequest();
+                    describeReq.GameSessionId = res.GameSession.GameSessionId;
+                    gameSession = amazonClient.DescribeGameSessions(describeReq).GameSessions[0];
+                    retries++;
+                }
+                if (!gameSession.Status.Equals(GameSessionStatus.ACTIVE))
+                {
+                    Logger.ClientLog(gameSession.Status);
+                    return;
+                }
+            }
+            Logger.ClientLog("Game Session - " + gameSession.GameSessionId);
+            CreatePlayerSessionRequest playerSessionRequest = new CreatePlayerSessionRequest();
+            gameSessionId = playerSessionRequest.GameSessionId = gameSession.GameSessionId;
+            playerSessionRequest.PlayerId = playerId;
+            CreatePlayerSessionResponse playerSessionResponse = amazonClient.CreatePlayerSession(playerSessionRequest);
+            playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId;
+            Logger.ClientLog("Player Session - " + playerSessionResponse.PlayerSession.PlayerSessionId);
+            GameConstants.SERVER_IP = playerSessionResponse.PlayerSession.IpAddress;
+            GameConstants.PORT = playerSessionResponse.PlayerSession.Port;
             client = new NetworkClient();
             foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
             {
@@ -27,7 +77,9 @@ public class GameClient : MonoBehaviour {
             Logger.ClientLog("Attempting to connect to " + GameConstants.SERVER_IP + ":" + GameConstants.PORT);
         } else
         {
-            App.Receive(MsgType.Connect, Messages.EMPTY);
+            Messages.FakeConnectMessage msg = new Messages.FakeConnectMessage();
+            msg.boardFile = boardFile;
+            App.Receive(MsgType.Connect, msg);
         }
     }
 
@@ -66,11 +118,8 @@ public class GameClient : MonoBehaviour {
     private static void OnGameReady(NetworkMessage netMsg)
     {
         Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
-        Game.Player[] playerTurnObjects = new Game.Player[2];
-        playerTurnObjects[0] = new Game.Player(msg.myTeam, msg.myname);
-        playerTurnObjects[1] = new Game.Player(msg.opponentTeam, msg.opponentname);
         Logger.ClientLog("Received Game Information");
-        Interpreter.LoadBoard(playerTurnObjects, msg.board);
+        Interpreter.LoadBoard(msg.myTeam, msg.opponentTeam, msg.opponentname, msg.board);
     }
 
     private static void OnTurnEvents(NetworkMessage netMsg)
@@ -80,27 +129,30 @@ public class GameClient : MonoBehaviour {
         Interpreter.PlayEvents(events);
     }
 
-    public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String boardFile)
+    public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String myname, String opponentname)
     {
         Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
+        msg.playerSessionId = playerSessionId;
         msg.myRobots = myRobots;
         msg.opponentRobots = opponentRobots;
-        msg.boardFile = boardFile;
+        msg.myName = myname;
+        msg.opponentName = opponentname;
         Send(Messages.START_LOCAL_GAME, msg);
     }
 
-    public static void SendGameRequest(String[] myRobots, String boardFile)
-    {
+    public static void SendGameRequest(String[] myRobots, String myname)
+    {   
         Messages.StartGameMessage msg = new Messages.StartGameMessage();
+        msg.playerSessionId = playerSessionId;
+        msg.myName = myname;
         msg.myRobots = myRobots;
-        msg.boardFile = boardFile;
         Send(Messages.START_GAME, msg);
     }
     
-    public static void SendSubmitCommands (List<Command> commands) {
+    public static void SendSubmitCommands (List<Command> commands, string owner) {
         Messages.SubmitCommandsMessage msg = new Messages.SubmitCommandsMessage();
         msg.commands = commands.ToArray();
-        msg.owner = "ME";
+        msg.owner = owner;
         Send(Messages.SUBMIT_COMMANDS, msg);
     }
 }
