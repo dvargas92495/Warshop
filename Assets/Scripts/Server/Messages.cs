@@ -30,12 +30,14 @@ public class Messages {
     }
     public class GameReadyMessage : MessageBase
     {
+        public bool isPrimary;
         public String opponentname;
         public Robot[] myTeam;
         public Robot[] opponentTeam;
         public Map board;
         public override void Serialize(NetworkWriter writer)
         {
+            writer.Write(isPrimary);
             writer.Write(opponentname);
             writer.Write(myTeam.Length);
             Array.ForEach(myTeam, (Robot robot) => robot.Serialize(writer));
@@ -45,6 +47,7 @@ public class Messages {
         }
         public override void Deserialize(NetworkReader reader)
         {
+            isPrimary = reader.ReadBoolean();
             opponentname = reader.ReadString();
             myTeam = new Robot[reader.ReadInt32()];
             for (int i = 0; i < myTeam.Length; i++)

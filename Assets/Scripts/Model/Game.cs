@@ -54,6 +54,7 @@ public class Game
     {
         primary.ready = secondary.ready = false;
         Messages.GameReadyMessage resp = new Messages.GameReadyMessage();
+        resp.isPrimary = forPrimary;
         resp.board = board;
         resp.myTeam = (forPrimary ? primary.team : secondary.team);
         resp.opponentTeam = (forPrimary ? secondary.team : primary.team);

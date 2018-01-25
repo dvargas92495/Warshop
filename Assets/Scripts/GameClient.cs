@@ -124,7 +124,7 @@ public class GameClient : MonoBehaviour {
     {
         Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
         Logger.ClientLog("Received Game Information");
-        Interpreter.LoadBoard(msg.myTeam, msg.opponentTeam, msg.opponentname, msg.board);
+        Interpreter.LoadBoard(msg.myTeam, msg.opponentTeam, msg.opponentname, msg.board, msg.isPrimary);
     }
 
     private static void OnTurnEvents(NetworkMessage netMsg)

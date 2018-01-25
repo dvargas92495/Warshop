@@ -16,7 +16,7 @@ public class RobotController : MonoBehaviour
     protected Vector2 orientation;
     protected List<Command> commands = new List<Command>();
 
-    public GameObject menuItem;
+    public MenuItemController menuItem;
     protected bool inTurn;
     internal bool isMenuShown;
     protected string displayName;
@@ -139,12 +139,6 @@ public class RobotController : MonoBehaviour
         Interpreter.uiController.UpdateAttributes(this);
     }
 
-    public void RotateCounterclockwise()
-    {
-        orientation = new Vector2(-orientation.y, orientation.x);
-        displayRotate();
-    }
-
     /********************************
      * Robot UI Before Turn Methods *
      ********************************/
@@ -203,20 +197,37 @@ public class RobotController : MonoBehaviour
 
     private void AddOptions(List<Action> opts, List<string> vals, bool isSubmenu)
     {
-        int midx = Interpreter.boardController.boardCellsWide / 2;
-        int midy = Interpreter.boardController.boardCellsHeight / 2;
-        int x = (isSubmenu ? 4 : 1);
-        int xmult = (position.x < midx ? 1 : -1);
-        int xoffset = (position.x < midx ? 0 : -3);
-        int yoffset = (position.y < midy ? 0 : -opts.Count);
+        float menuW = transform.localScale.x;
+        float itemW = menuItem.transform.localScale.x;
+        float itemH = menuItem.transform.localScale.y;
+        Vector3 up = Interpreter.uiController.boardCamera.transform.up;
         for (int i = 0; i < opts.Count; i++)
         {
-            GameObject choice = Instantiate(menuItem, transform);
-            choice.transform.localPosition = new Vector3(x*xmult + xoffset, i + yoffset, 0);
-            choice.transform.RotateAround(transform.position, new Vector3(0, 0, 1), -getAngle());
-            MenuItemController script = choice.GetComponent<MenuItemController>();
-            script.SetCallback(opts[i]);
-            choice.GetComponent<TextMesh>().text = vals[i];
+            MenuItemController choice = Instantiate(menuItem, transform);
+            choice.transform.position = transform.position;
+            choice.transform.rotation = Interpreter.uiController.boardCamera.transform.rotation;
+            choice.SetCallback(opts[i]);
+            choice.GetComponentInChildren<TextMesh>().text = vals[i];
+            choice.transform.position += up*(itemH*(-i - 0.5f + (opts.Count/2.0f)));
+            if (transform.position.x > Interpreter.uiController.boardCamera.transform.position.x)
+            {
+                choice.transform.position -= new Vector3(itemW / 2 + menuW / 2, 0);
+                if (isSubmenu) choice.transform.position -= new Vector3(itemW,0);
+            }
+            else
+            {
+                choice.transform.position += new Vector3(itemW / 2 + menuW / 2, 0);
+                if (isSubmenu) choice.transform.position += new Vector3(itemW, 0);
+            }
+            float dify = transform.position.y - Interpreter.uiController.boardCamera.transform.position.y;
+            if (transform.position.y < Interpreter.uiController.boardCamera.transform.position.y)
+            {
+                choice.transform.position += Vector3.up*(((opts.Count/2.0f) - 0.5f) * itemH);
+            }
+            else
+            {
+                choice.transform.position -= Vector3.up*(((opts.Count/2.0f) - 0.5f) * itemH);
+            }
         }
 
     }
@@ -242,7 +253,7 @@ public class RobotController : MonoBehaviour
 
     private void displayRotate()
     {
-        gameObject.transform.rotation = Quaternion.Euler(0, 0, getAngle());
+        transform.rotation = Quaternion.LookRotation(Vector3.back, orientation);
     }
 
     private float getAngle()

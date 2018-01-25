@@ -18,6 +18,7 @@ public class Interpreter : MonoBehaviour {
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
     private static bool myturn;
+    private static bool isPrimary;
 
     public static void ConnectToServer(string playerId, string opponentId, string boardFile)
     {
@@ -40,13 +41,14 @@ public class Interpreter : MonoBehaviour {
         }
     }
 
-    public static void LoadBoard(Robot[] myTeam, Robot[] opponentTeam, string opponentName, Map b)
+    public static void LoadBoard(Robot[] myTeam, Robot[] opponentTeam, string opponentName, Map b, bool isP)
     {
         playerTurnObjectArray[0].team = myTeam;
         playerTurnObjectArray[1].team = opponentTeam;
         playerTurnObjectArray[1].name = opponentName;
         board = b;
         myturn = true;
+        isPrimary = isP;
         SceneManager.LoadScene("Prototype");
     }
 
@@ -54,7 +56,7 @@ public class Interpreter : MonoBehaviour {
     {
         uiController = ui;
         uiController.InitializeUICanvas(playerTurnObjectArray);
-        uiController.Flip();
+        if (isPrimary) uiController.Flip();
     }
 
     public static void InitializeBoard(BoardController bc)
@@ -62,7 +64,7 @@ public class Interpreter : MonoBehaviour {
         boardController = bc;
         boardController.InitializeBoard(board);
         InitializeRobots(playerTurnObjectArray);
-        boardController.Flip();
+        if (isPrimary) boardController.Flip();
     }
 
     private static void InitializeRobots(Game.Player[] playerTurns)
