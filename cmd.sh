@@ -1,5 +1,7 @@
 #!/bin/sh
 
+PRODUCTION_ALIAS="Z8_App";
+
 helpCmd() {
     echo "You could use the following commands:";
     echo "    help: prints all available commands to console";
@@ -26,13 +28,22 @@ cleanCmd(){
 
 connectCmd(){
     rm -f MyPrivateKey.pem;
-    FLEET_ID=$(aws gamelift list-fleets --query "FleetIds[0]" --output text);
-    INSTANCE_ID=$(aws gamelift describe-instances --fleet-id ${FLEET_ID%?} --query "Instances[0].InstanceId" --output text);
-    IP_ADDRESS=$(aws gamelift describe-instances --fleet-id ${FLEET_ID%?} --query "Instances[0].IpAddress" --output text);
-	aws gamelift get-instance-access --fleet-id ${FLEET_ID%?} --instance-id ${INSTANCE_ID%?} --query "InstanceAccess.Credentials.Secret" --output text > MyPrivateKey.pem;
-	USER=$(aws gamelift get-instance-access --fleet-id ${FLEET_ID%?} --instance-id ${INSTANCE_ID%?} --query "InstanceAccess.Credentials.UserName" --output text);
+	ALIAS_ID=$(aws gamelift list-aliases --query "Aliases[?Name==$PRODUCTION_ALIAS].AliasId" --output text | head --bytes -2);
+	FLEET_ID=$(aws gamelift describe-alias --alias-id $ALIAS_ID --query "Alias.RoutingStrategy.FleetId" --output text | head --bytes -2);
+    INSTANCE_ID=$(aws gamelift describe-instances --fleet-id $FLEET_ID --query "Instances[0].InstanceId" --output text | head --bytes -2);
+    IP_ADDRESS=$(aws gamelift describe-instances --fleet-id $FLEET_ID --query "Instances[0].IpAddress" --output text | head --bytes -2);
+	aws gamelift get-instance-access --fleet-id $FLEET_ID --instance-id $INSTANCE_ID --query "InstanceAccess.Credentials.Secret" --output text | head --bytes -2 > MyPrivateKey.pem;
+	USER=$(aws gamelift get-instance-access --fleet-id $FLEET_ID --instance-id $INSTANCE_ID --query "InstanceAccess.Credentials.UserName" --output text | head --bytes -2);
 	chmod 400 MyPrivateKey.pem;
-	ssh -i MyPrivateKey.pem ${USER%?}@${IP_ADDRESS%?};
+	ssh -i MyPrivateKey.pem $USER@$IP_ADDRESS;
+}
+
+FLEET_STATUS="";
+fleetStatus(){
+    TIME=$(date);
+    FLEET_STATUS=$(aws gamelift describe-fleet-attributes --fleet-id $1 --query "FleetAttributes[0].Status" --output text | head --bytes -2)
+	echo "$TIME: New Fleet Status For $1 - $FLEET_STATUS";
+	sleep 60;
 }
 
 deployCmd() {
@@ -45,8 +56,13 @@ deployCmd() {
 	    RESULT=$(aws gamelift create-fleet --name "Z8_App" --description "Z8 App Server" --build-id $BUILD_ID --ec2-instance-type "c4.large" --runtime-configuration "GameSessionActivationTimeoutSeconds=300, MaxConcurrentGameSessionActivations=2, ServerProcesses=[{LaunchPath=/local/game/App.x86_64, ConcurrentExecutions=1}]" --new-game-session-protection-policy "FullProtection" --resource-creation-limit-policy "NewGameSessionsPerCreator=3,PolicyPeriodInMinutes=15" --ec2-inbound-permissions "FromPort=12345,ToPort=12345,IpRange=0.0.0.0/0,Protocol=UDP" --query "FleetAttributes.Status" --output text);
 	    if [[ $RESULT = "NEW"* ]]; then
 		    echo "Fleet Created!";
-		    NEW_FLEET_ID=$(aws gamelift describe-fleet-attributes --query "FleetAttributes[?BuildId=='$BUILD_ID'].FleetId" --output text);
-			echo "New Fleet: $NEW_FLEET_ID";
+		    NEW_FLEET_ID=$(aws gamelift describe-fleet-attributes --query "FleetAttributes[?BuildId=='$BUILD_ID'].FleetId" --output text | head --bytes -2);
+			ALIAS_ID=$(aws gamelift list-aliases --query "Aliases[?Name=='$PRODUCTION_ALIAS'].AliasId" --output text | head --bytes -2);
+			until echo $FLEET_STATUS | grep -m 1 "ACTIVE"; do fleetStatus $NEW_FLEET_ID; done
+			OLD_FLEET_ID=$(aws gamelift describe-alias --alias-id $ALIAS_ID --query "Alias.RoutingStrategy.FleetId" --output text | head --bytes -2);
+			aws gamelift update-alias --alias-id $ALIAS_ID --RoutingStrategy "FleetId=$NEW_FLEET_ID";
+			aws gamelift delete-fleet --fleet-id $OLD_FLEET_ID;
+			echo "Alias $ALIAS_ID updated FleetId from: $OLD_FLEET_ID to: $NEW_FLEET_ID";
 		else
 		    echo $RESULT;
 			echo "Fleet failed to be created";

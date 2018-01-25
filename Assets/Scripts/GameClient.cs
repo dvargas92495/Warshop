@@ -26,9 +26,15 @@ public class GameClient : MonoBehaviour {
         if (GameConstants.USE_SERVER)
         {
             ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback; //DO NOT REMOVE THIS
-            amazonClient = new AmazonGameLiftClient("AKIAJSB6QLGBGT43SF4Q", "/Ej3YprjYZzsJrqJSNtjKUWMbaU+8wTtbqbhtxA9", Amazon.RegionEndpoint.USWest2);
+            amazonClient = new AmazonGameLiftClient(GameConstants.AWS_PUBLIC_KEY, GameConstants.AWS_SECRET_KEY, Amazon.RegionEndpoint.USWest2);
+            ListAliasesRequest aliasReq = new ListAliasesRequest();
+            aliasReq.Name = GameConstants.PRODUCTION_ALIAS;
+            Alias aliasRes = amazonClient.ListAliases(aliasReq).Aliases[0];
+            DescribeAliasRequest describeAliasReq = new DescribeAliasRequest();
+            describeAliasReq.AliasId = aliasRes.AliasId;
+            string fleetId = amazonClient.DescribeAlias(describeAliasReq.AliasId).Alias.RoutingStrategy.FleetId;
             DescribeGameSessionsRequest describeReq = new DescribeGameSessionsRequest();
-            describeReq.FleetId = GameConstants.FLEET_ID;
+            describeReq.FleetId = fleetId;
             describeReq.StatusFilter = GameSessionStatus.ACTIVE;
             DescribeGameSessionsResponse describeRes = amazonClient.DescribeGameSessions(describeReq);
             Debug.Log("Game Sessions found: " + describeRes.GameSessions.Count);
@@ -41,7 +47,7 @@ public class GameClient : MonoBehaviour {
                 gp.Value = boardFile;
                 CreateGameSessionRequest req = new CreateGameSessionRequest();
                 req.MaximumPlayerSessionCount = (GameConstants.LOCAL_MODE ? 1 : 2);
-                req.FleetId = GameConstants.FLEET_ID;
+                req.FleetId = fleetId;
                 req.GameProperties.Add(gp);
                 CreateGameSessionResponse res = amazonClient.CreateGameSession(req);
                 gameSession = res.GameSession;
@@ -66,15 +72,15 @@ public class GameClient : MonoBehaviour {
             CreatePlayerSessionResponse playerSessionResponse = amazonClient.CreatePlayerSession(playerSessionRequest);
             playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId;
             Logger.ClientLog("Player Session - " + playerSessionResponse.PlayerSession.PlayerSessionId);
-            GameConstants.SERVER_IP = playerSessionResponse.PlayerSession.IpAddress;
-            GameConstants.PORT = playerSessionResponse.PlayerSession.Port;
+            string ip = playerSessionResponse.PlayerSession.IpAddress;
+            int port = playerSessionResponse.PlayerSession.Port;
             client = new NetworkClient();
             foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
             {
                 client.RegisterHandler(pair.Key, pair.Value);
             }
-            client.Connect(GameConstants.SERVER_IP, GameConstants.PORT);
-            Logger.ClientLog("Attempting to connect to " + GameConstants.SERVER_IP + ":" + GameConstants.PORT);
+            client.Connect(ip, port);
+            Logger.ClientLog("Attempting to connect to " + ip + ":" + port);
         } else
         {
             Messages.FakeConnectMessage msg = new Messages.FakeConnectMessage();

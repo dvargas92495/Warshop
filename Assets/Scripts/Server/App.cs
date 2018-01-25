@@ -8,6 +8,7 @@ using Aws.GameLift.Server.Model;
 
 public class App {
 
+    private static int PORT = 12345; //TODO make this vary
     private static Game appgame;
     private static Dictionary<string,string> boardFiles;
 
@@ -38,7 +39,7 @@ public class App {
                 OnGameSession,
                 OnProcessTerminate,
                 OnHealthCheck,
-                GameConstants.PORT,
+                PORT,
                 new LogParameters(new List<string>()
                 {
                     GameConstants.APP_LOG_DIR,
@@ -49,7 +50,7 @@ public class App {
             {
                 NetworkServer.RegisterHandler(pair.Key, pair.Value);
             }
-            NetworkServer.Listen(GameConstants.PORT);
+            NetworkServer.Listen(PORT);
             Logger.ServerLog("Listening");
         } else
         {
