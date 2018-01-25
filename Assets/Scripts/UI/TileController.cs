@@ -7,6 +7,10 @@ public class TileController : MonoBehaviour {
 
     public Material[] tileMaterials;
 
+    public void OnMouseUp()
+    {
+        Interpreter.DestroyCommandMenu();
+    }
 
     public void LoadTile(Map.Space.SpaceType spaceType)
     {

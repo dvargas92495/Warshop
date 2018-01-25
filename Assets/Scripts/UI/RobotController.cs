@@ -197,6 +197,13 @@ public class RobotController : MonoBehaviour
 
     private void AddOptions(List<Action> opts, List<string> vals, bool isSubmenu)
     {
+        if (isSubmenu)
+        {
+            Array.ForEach(GetComponentsInChildren<MenuItemController>(), (MenuItemController mi) =>
+            {
+                if (mi.isSubMenu) Destroy(mi.gameObject);
+            });
+        }
         float menuW = transform.localScale.x;
         float itemW = menuItem.transform.localScale.x;
         float itemH = menuItem.transform.localScale.y;
@@ -228,6 +235,7 @@ public class RobotController : MonoBehaviour
             {
                 choice.transform.position -= Vector3.up*(((opts.Count/2.0f) - 0.5f) * itemH);
             }
+            choice.isSubMenu = isSubmenu;
         }
 
     }
@@ -254,17 +262,6 @@ public class RobotController : MonoBehaviour
     private void displayRotate()
     {
         transform.rotation = Quaternion.LookRotation(Vector3.back, orientation);
-    }
-
-    private float getAngle()
-    {
-        //I can't do math
-        float angle = 0;
-        if (orientation.x == 1) { angle = 270; }
-        else if (orientation.x == -1) { angle = 90; }
-        else if (orientation.y == 1) { angle = 0; }
-        else if (orientation.y == -1) { angle = 180; }
-        return angle;
     }
     
 
