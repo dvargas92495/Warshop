@@ -5,9 +5,9 @@ using UnityEngine;
 public class RobotController : MonoBehaviour
 {
     //model
-    protected int attack;
-    protected int health;
-    protected int priority;
+    internal int attack;
+    internal int health;
+    internal int priority;
     public short id { get; protected set; }
     internal bool isOpponent;
     internal bool canCommand;
@@ -54,21 +54,6 @@ public class RobotController : MonoBehaviour
     /***********************************
      * Robot Model Before Turn Methods *
      ***********************************/
-
-    public int GetAttack()
-    {
-        return attack;
-    }
-
-    public int GetHealth()
-    {
-        return health;
-    }
-
-    public int GetPriority()
-    {
-        return priority;
-    }
 
     public string GetDisplyName()
     {
@@ -151,7 +136,7 @@ public class RobotController : MonoBehaviour
     public void SetHealth(int h)
     {
         health = h;
-        Logger.ClientLog("TODO: Update " + name + "'s health to " + h + " on UI");
+        Interpreter.uiController.UpdateAttributes(this);
     }
 
     public void RotateCounterclockwise()
@@ -233,6 +218,7 @@ public class RobotController : MonoBehaviour
             script.SetCallback(opts[i]);
             choice.GetComponent<TextMesh>().text = vals[i];
         }
+
     }
 
     private void DebugCommands()

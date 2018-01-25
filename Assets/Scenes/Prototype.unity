@@ -905,6 +905,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 93a9aa447d0d46b4f9b836b6457722c4, type: 3}
   - {fileID: 21300000, guid: 8bea5a2a7be7ca54583a51a90139d9af, type: 3}
   - {fileID: 21300000, guid: b94fe34ae69691743a71249db6a4bfe9, type: 3}
+  boardCamera: {fileID: 689802910}
 --- !u!1001 &2051030687
 Prefab:
   m_ObjectHideFlags: 0

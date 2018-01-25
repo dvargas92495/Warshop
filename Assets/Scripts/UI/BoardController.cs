@@ -40,10 +40,6 @@ public class BoardController : MonoBehaviour {
                 cell.transform.localScale = new Vector3(tileWidth, tileHeight, 0.1f);
                 TileController currentCell = cell.GetComponent<TileController>();
                 currentCell.LoadTile(board.getSpaceType(x,y));
-                currentCell.BoardX = tileXPos + lastTileXPos;
-                currentCell.BoardY = tileYPos + lastTileYPos;
-                currentCell.RobotX = x;
-                currentCell.RobotY = y;
                 row.Add(currentCell);
                 lastTileXPos += tileWidth;
             }
@@ -59,7 +55,13 @@ public class BoardController : MonoBehaviour {
             return;
         }
         TileController loc = allLocations[y][x];
-        robot.position = new Vector3(loc.BoardX, loc.BoardY, GameConstants.ROBOTZ);
+        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, GameConstants.ROBOTZ);
+    }
+    
+    public void Flip()
+    {
+        float oldx = transform.position.x;
+        transform.position = new Vector3(-oldx - 5.5f, 0);
     }
 
 }

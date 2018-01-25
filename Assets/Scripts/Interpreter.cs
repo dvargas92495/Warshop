@@ -54,6 +54,7 @@ public class Interpreter : MonoBehaviour {
     {
         uiController = ui;
         uiController.InitializeUICanvas(playerTurnObjectArray);
+        uiController.Flip();
     }
 
     public static void InitializeBoard(BoardController bc)
@@ -61,6 +62,7 @@ public class Interpreter : MonoBehaviour {
         boardController = bc;
         boardController.InitializeBoard(board);
         InitializeRobots(playerTurnObjectArray);
+        boardController.Flip();
     }
 
     private static void InitializeRobots(Game.Player[] playerTurns)
@@ -73,7 +75,7 @@ public class Interpreter : MonoBehaviour {
         {
             foreach(Robot robot in player.team)
             {
-                RobotController r = Instantiate(robotBase);
+                RobotController r = Instantiate(robotBase,boardController.transform);
                 SpriteRenderer sprite = r.GetComponent<SpriteRenderer>();
                 sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
                 sprite.drawMode = SpriteDrawMode.Sliced;
@@ -93,6 +95,11 @@ public class Interpreter : MonoBehaviour {
     public static void SubmitActions()
     {
         DestroyCommandMenu();
+        if (GameConstants.LOCAL_MODE)
+        {
+            uiController.Flip();
+            boardController.Flip();
+        }
         if (!GameConstants.LOCAL_MODE && !myturn)
         {
             return;
@@ -182,6 +189,7 @@ public class Interpreter : MonoBehaviour {
                 Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());
             }
             Logger.ClientLog("Output to history what happened: " + evt.ToString());
+            uiController.SetBattery(evt.primaryBattery, evt.secondaryBattery);
             yield return new WaitForSeconds(eventDelay);
         }
         Logger.ClientLog("Finished Events");

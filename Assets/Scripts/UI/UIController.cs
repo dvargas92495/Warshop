@@ -26,6 +26,7 @@ public class UIController : MonoBehaviour {
     public GameObject modalPanelObject;
     public Button cancelButton;
     public Sprite[] sprites;
+    public Camera boardCamera;
 
 	private GameObject robotImagePanel;
 
@@ -67,12 +68,12 @@ public class UIController : MonoBehaviour {
 	// Sets each players panels on the UICanvas (Contains robot info)
 	void SetPlayerPanels (GameObject[] PlayerPanels, Game.Player[] PlayerTurnObjects)
 	{
-		// for each playerPanel
-			// Set headertext
-			// for each robot
-				// get correct panel
-				//attach info
-
+        // for each playerPanel
+        // Set headertext
+        // for each robot
+        // get correct panel
+        //attach info
+        SetBattery(PlayerTurnObjects[0].battery, PlayerTurnObjects[1].battery);
 		for (int i = 0; i < PlayerPanels.Length; i++) {
 
 			TMP_Text playerPanelHeader = getChildTMP_Text(PlayerPanels [i], "Player Robots Summary");
@@ -210,4 +211,23 @@ public class UIController : MonoBehaviour {
         resetModal();
     }
 
+    public void Flip()
+    {
+        boardCamera.transform.Rotate(new Vector3(0, 0, 180));
+        BackgroundPanel.transform.Rotate(new Vector3(0, 0, 180));
+    }
+
+    public void UpdateAttributes(RobotController currentRobot)
+    {
+        TMP_Text robotInfoPanelRobotAttributes = getChildTMP_Text(robotInfoPanel, "Attributes");
+        robotInfoPanelRobotAttributes.SetText("A: " + currentRobot.attack.ToString() + " P: " + currentRobot.priority.ToString() + " H: " + currentRobot.health.ToString());
+    }
+
+    public void SetBattery(int a, int b)
+    {
+        TMP_Text aHeader = getChildTMP_Text(PlayerAPanel, "Score");
+        TMP_Text bHeader = getChildTMP_Text(PlayerBPanel, "Score");
+        aHeader.text = a.ToString();
+        bHeader.text = b.ToString();
+    }
 }

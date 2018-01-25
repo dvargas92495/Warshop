@@ -5,13 +5,6 @@ using UnityEngine;
 
 public class TileController : MonoBehaviour {
 
-    //Model
-    public int RobotX { get; set; }
-    public int RobotY { get; set; }
-
-    //View
-    public float BoardX { get; set; }
-    public float BoardY { get; set; }
     public Material[] tileMaterials;
 
 
