@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class Interpreter : MonoBehaviour {
@@ -78,13 +79,12 @@ public class Interpreter : MonoBehaviour {
             foreach(Robot robot in player.team)
             {
                 RobotController r = Instantiate(robotBase,boardController.transform);
-                SpriteRenderer sprite = r.GetComponent<SpriteRenderer>();
+                Image sprite = r.GetComponent<Image>();
                 sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
-                sprite.drawMode = SpriteDrawMode.Sliced;
-                sprite.size = new Vector2Int(1, 1);
                 r.Load(robot);
                 r.isOpponent = playerCount == 1;
                 r.canCommand = !r.isOpponent;
+                r.transform.GetChild(0).GetComponent<Image>().color = (r.isOpponent ? Color.red : Color.blue);
                 robotControllers[p1count + robotCount] = r;
                 robotCount++;
             }
