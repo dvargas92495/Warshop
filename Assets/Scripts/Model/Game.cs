@@ -120,9 +120,11 @@ public class Game
         }
         commands.ForEach((Command c) =>
         {
-            short robotId = c.robotId;
-            priorityToCommands[robotIdToTurnObject[robotId].priority].Add(c);
-            robotIdToTurnObject[robotId].priority--;
+            if (robotIdToTurnObject[c.robotId].priority > 0)
+            {
+                priorityToCommands[robotIdToTurnObject[c.robotId].priority].Add(c);
+                robotIdToTurnObject[c.robotId].priority--;
+            }
         });
         List<GameEvent> events = new List<GameEvent>();
         for (byte p = GameConstants.MAX_PRIORITY; p > 0; p--)
@@ -217,7 +219,6 @@ public class Game
             processBatteryLoss(priorityEvents, p);
             events.AddRange(priorityEvents);
         }
-        commands.Clear();
         return events;
     }
 
