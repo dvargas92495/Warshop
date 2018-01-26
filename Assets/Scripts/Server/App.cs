@@ -6,11 +6,14 @@ using Aws.GameLift;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
 
+[assembly: log4net.Config.XmlConfigurator(Watch=true)]
+
 public class App {
 
     private static int PORT = 12345; //TODO make this vary
     private static Game appgame;
     private static Dictionary<string,string> boardFiles;
+    private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(App));
 
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {

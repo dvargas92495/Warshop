@@ -19,8 +19,6 @@
     internal const string APP_LOG_DIR = "/local/game/logs";
     internal const string APP_ERROR_DIR = "/local/game/error";
     internal static string PRODUCTION_ALIAS = "Z8_App";
-    internal static string AWS_PUBLIC_KEY = "AKIAJSB6QLGBGT43SF4Q";
-    internal static string AWS_SECRET_KEY = "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";
     internal class GAME_SESSION_PROPERTIES {
         internal const string BOARDFILE = "boardFile";
     }
@@ -28,4 +26,6 @@
     //TODO: Bring these out to a config file
     internal static bool LOCAL_MODE = true;
     internal static bool USE_SERVER = false;
+    internal static string AWS_PUBLIC_KEY = "public key";
+    internal static string AWS_SECRET_KEY = "secret key";
 }

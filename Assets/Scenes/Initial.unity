@@ -1155,6 +1155,11 @@ Prefab:
       propertyPath: opponentName
       value: 
       objectReference: {fileID: 2053936568}
+    - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
+        type: 2}
+      propertyPath: keys
+      value: 
+      objectReference: {fileID: 4900000, guid: b406813ac0bf4d9439b4e20d6e4c9bac, type: 3}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 6e3e0d7b4af03eb42aea7e8698edab55, type: 2}
   m_IsPrefabParent: 0

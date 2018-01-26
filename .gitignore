@@ -4,6 +4,7 @@ Temp/*
 obj/*
 *.sln
 *.csproj
+Assets/Confidential/*
 ClientBuild/*
 ServerBuild/*
 UnityPackageManager/*

@@ -21,6 +21,7 @@ public class InitialController : MonoBehaviour {
     public Text myRoster;
     public Text opponentRoster;
     public Text loadingText;
+    public TextAsset keys;
     public Toggle localModeToggle;
     public Toggle useServerToggle;
     public TextAsset playtest;
@@ -42,6 +43,18 @@ public class InitialController : MonoBehaviour {
             GameConstants.USE_SERVER = true;
             App.StartServer();
             return;
+        }
+        if (keys != null)
+        {
+            string[] lines = keys.text.Split('\n');
+            GameConstants.AWS_PUBLIC_KEY = lines[0].Trim();
+            GameConstants.AWS_SECRET_KEY = lines[1].Trim();
+        } else
+        {
+            GameConstants.LOCAL_MODE = true;
+            GameConstants.USE_SERVER = false;
+            localModeToggle.gameObject.SetActive(false);
+            useServerToggle.gameObject.SetActive(false);
         }
         if (Application.isEditor && playtest != null)
         {
