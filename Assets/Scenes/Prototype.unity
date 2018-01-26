@@ -877,10 +877,10 @@ MonoBehaviour:
   modalPanelObject: {fileID: 1040746444}
   cancelButton: {fileID: 1847891392}
   sprites:
-  - {fileID: 21300000, guid: 0e74c20416eb7044ba4221c2d4a7bfb4, type: 3}
-  - {fileID: 21300000, guid: a1803e4a06a2ae144928bacf3a372e8e, type: 3}
-  - {fileID: 21300000, guid: ba6ae02f1dc12a0409cdb645f439b7b3, type: 3}
-  - {fileID: 21300000, guid: f878f7b5aae771b4b9963193ed03e468, type: 3}
+  - {fileID: 21300000, guid: 008c5c4cad38043428b07d6f301a928d, type: 3}
+  - {fileID: 21300000, guid: fe3bc24ae2ef48b4caab1a3569d7b5e7, type: 3}
+  - {fileID: 21300000, guid: cda49f25bdef0f9488b04316673693f1, type: 3}
+  - {fileID: 21300000, guid: 7d511e6011696eb44acecdcdffcd5643, type: 3}
   - {fileID: 21300000, guid: 2259fee91ef576c46ac1ee0316f82a5a, type: 3}
   - {fileID: 21300000, guid: 8a3ed6b4351a2b947b898a0a363f2447, type: 3}
   - {fileID: 21300000, guid: c800f8e2a8dc9524baf4704b1eed497e, type: 3}

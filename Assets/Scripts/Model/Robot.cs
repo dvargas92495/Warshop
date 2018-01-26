@@ -50,6 +50,14 @@ public class Robot
                 return new Jaguar();
             case Flybot._name:
                 return new Flybot();
+            case BronzeGrunt._name:
+                return new BronzeGrunt();
+            case SilverGrunt._name:
+                return new SilverGrunt();
+            case GoldenGrunt._name:
+                return new GoldenGrunt();
+            case PlatinumGrunt._name:
+                return new PlatinumGrunt();
             default:
                 throw new Exception("Invalid Robot Name: " + robotName);
         }
@@ -289,4 +297,58 @@ public class Robot
         )
         { }
     }
+
+    private class BronzeGrunt : Robot
+    {
+        internal const string _name = "Bronze Grunt";
+        internal const string _description = "No Ability";
+        internal BronzeGrunt() : base(
+            _name,
+            _description,
+            5, 3, 2,
+            Rating.BRONZE
+        )
+        { }
+    }
+
+    private class SilverGrunt : Robot
+    {
+        internal const string _name = "Silver Grunt";
+        internal const string _description = "No Ability";
+        internal SilverGrunt() : base(
+            _name,
+            _description,
+            6, 8, 3,
+            Rating.SILVER
+        )
+        { }
+    }
+
+    private class GoldenGrunt : Robot
+    {
+        internal const string _name = "Golden Grunt";
+        internal const string _description = "No Ability";
+        internal GoldenGrunt(): base(
+            _name,
+            _description,
+            7, 10, 5,
+            Rating.GOLD
+        )
+        { }
+    }
+
+    private class PlatinumGrunt : Robot
+    {
+        internal const string _name = "Platinum Grunt";
+        internal const string _description = "No Ability";
+        internal PlatinumGrunt() : base(
+            _name,
+            _description,
+            8, 15, 6,
+            Rating.PLATINUM
+        )
+        { }
+    }
+
+
 }
