@@ -233,6 +233,28 @@ public class Robot
         }
         return new List<GameEvent>() { evt };
     }
+    internal virtual List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto)
+    {
+        List<GameEvent> evts = new List<GameEvent>();
+        byte limit = Game.RobotTurnObject.limit[c.GetType()];
+        byte num = rto.num[c.GetType()];
+        if (num < limit)
+        {
+            rto.num[c.GetType()]++;
+        }
+        else
+        {
+            evts.Add(Fail(c));
+        }
+        return evts;
+    }
+    internal GameEvent Fail(Command c)
+    {
+        GameEvent.Fail fail = new GameEvent.Fail();
+        fail.failedCmd = c.GetType().ToString().Substring("Command.".Length);
+        fail.primaryRobotId = c.robotId;
+        return fail;
+    }
     private class Slinkbot : Robot
     {
         internal const string _name = "Slinkbot";
@@ -279,10 +301,44 @@ public class Robot
         internal Jaguar() : base(
             _name,
             _description,
-            8, 4, 1,
+            6, 4, 4,
             Rating.SILVER
         )
         { }
+
+        internal override List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto)
+        {
+            if (c is Command.Rotate || c is Command.Special)
+            {
+                return base.CheckFail(c, rto);
+            }
+            else if (c is Command.Move)
+            {
+                if (rto.num[typeof(Command.Attack)] == Game.RobotTurnObject.limit[typeof(Command.Attack)])
+                {
+                    return base.CheckFail(c, rto);
+                }
+                else if (rto.num[c.GetType()] < Game.RobotTurnObject.limit[c.GetType()] + 1)
+                {
+                    rto.num[c.GetType()]++;
+                    return new List<GameEvent>();
+                }
+                else
+                {
+                    return new List<GameEvent>() { Fail(c) };
+                }
+            } else
+            {
+                if (rto.num[typeof(Command.Move)] <= Game.RobotTurnObject.limit[typeof(Command.Move)])
+                {
+                    return base.CheckFail(c, rto);
+                }
+                else
+                {
+                    return new List<GameEvent>() { Fail(c) };
+                }
+            }
+        }
     }
 
     private class Flybot : Robot

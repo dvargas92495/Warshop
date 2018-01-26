@@ -94,12 +94,29 @@ public class Game
         }
     }
 
-    private class RobotTurnObject
+    internal class RobotTurnObject
     {
-        internal byte numRotates = 0;
-        internal byte numMoves = 0;
-        internal byte numAttacks;
-        internal byte numSpecials;
+        internal Dictionary<Type, byte> num = new Dictionary<Type, byte>()
+        {
+            { typeof(Command.Rotate), 0 },
+            { typeof(Command.Move), 0 },
+            { typeof(Command.Attack), 0 },
+            { typeof(Command.Special), 0 }
+        };
+        static internal Dictionary<Type, byte> limit = new Dictionary<Type, byte>()
+        {
+            { typeof(Command.Rotate), GameConstants.DEFAULT_ROTATE_LIMIT },
+            { typeof(Command.Move), GameConstants.DEFAULT_MOVE_LIMIT },
+            { typeof(Command.Attack), GameConstants.DEFAULT_ATTACK_LIMIT },
+            { typeof(Command.Special), GameConstants.DEFAULT_SPECIAL_LIMIT }
+        };
+        /*static internal Dictionary<string, byte> power = new Dictionary<string, byte>()
+        {
+            { typeof(Command.Rotate).ToString(), GameConstants.DEFAULT_ROTATE_POWER },
+            { typeof(Command.Move).ToString(), GameConstants.DEFAULT_MOVE_POWER },
+            { typeof(Command.Attack).ToString(), GameConstants.DEFAULT_ATTACK_POWER },
+            { typeof(Command.Special).ToString(), GameConstants.DEFAULT_SPECIAL_POWER }
+        };*/ // Uncomment if we want fails to cost power.
         internal byte priority;
         internal RobotTurnObject(byte p)
         {
@@ -134,84 +151,19 @@ public class Game
             List<GameEvent> priorityEvents = new List<GameEvent>();
 
             HashSet<Command.Rotate> rotateCmds = new HashSet<Command.Rotate>(currentCmds.Where((Command c) => c is Command.Rotate).Select((Command c) => (Command.Rotate)c));
-            rotateCmds.ToList().ForEach((Command.Rotate c) =>
-            {
-                RobotTurnObject rto = robotIdToTurnObject[c.robotId];
-                if (rto.numRotates < GameConstants.DEFAULT_ROTATE_LIMIT)
-                {
-                    rto.numRotates++;
-                } else
-                {
-                    GameEvent.Fail fail = new GameEvent.Fail();
-                    fail.failedCmd = "Rotate";
-                    fail.primaryRobotId = c.robotId;
-                    priorityEvents.Add(fail);
-                    rotateCmds.Remove(c);
-                }
-            });
-            IEnumerable<GameEvent> rotateEvents = processRotateCommands(rotateCmds);
+            IEnumerable<GameEvent> rotateEvents = processRotateCommands(rotateCmds, robotIdToTurnObject);
             priorityEvents.AddRange(rotateEvents);
 
             HashSet<Command.Move> movCmds = new HashSet<Command.Move>(currentCmds.Where((Command c) => c is Command.Move).Select((Command c) => (Command.Move)c));
-            movCmds.ToList().ForEach((Command.Move c) =>
-            {
-                RobotTurnObject rto = robotIdToTurnObject[c.robotId];
-                if (rto.numMoves < GameConstants.DEFAULT_MOVE_LIMIT)
-                {
-                    rto.numMoves++;
-                }
-                else
-                {
-                    GameEvent.Fail fail = new GameEvent.Fail();
-                    fail.failedCmd = "Move";
-                    fail.primaryRobotId = c.robotId;
-                    priorityEvents.Add(fail);
-                    movCmds.Remove(c);
-                }
-            });
-            IEnumerable<GameEvent> movEvents = processMoveCommands(movCmds);
+            IEnumerable<GameEvent> movEvents = processMoveCommands(movCmds, robotIdToTurnObject);
             priorityEvents.AddRange(movEvents);
 
             HashSet<Command.Attack> attackCmds = new HashSet<Command.Attack>(currentCmds.Where((Command c) => c is Command.Attack).Select((Command c) => (Command.Attack)c));
-            attackCmds.ToList().ForEach((Command.Attack c) =>
-            {
-                RobotTurnObject rto = robotIdToTurnObject[c.robotId];
-                if (rto.numAttacks < GameConstants.DEFAULT_ATTACK_LIMIT)
-                {
-                    rto.numAttacks++;
-                }
-                else
-                {
-                    GameEvent.Fail fail = new GameEvent.Fail();
-                    fail.failedCmd = "Attack";
-                    fail.primaryRobotId = c.robotId;
-                    priorityEvents.Add(fail);
-                    attackCmds.Remove(c);
-                }
-            });
-            IEnumerable<GameEvent> attackEvents = processAttackCommands(attackCmds);
+            IEnumerable<GameEvent> attackEvents = processAttackCommands(attackCmds, robotIdToTurnObject);
             priorityEvents.AddRange(attackEvents);
 
             HashSet<Command.Special> specialCmds = new HashSet<Command.Special>(currentCmds.Where((Command c) => c is Command.Special).Select((Command c) => (Command.Special)c));
-            specialCmds.ToList().ForEach((Command.Special c) =>
-            {
-                RobotTurnObject rto = robotIdToTurnObject[c.robotId];
-                if (rto.numSpecials < GameConstants.DEFAULT_SPECIAL_LIMIT)
-                {
-                    rto.numSpecials++;
-                }
-                else
-                {
-                    GameEvent.Fail fail = new GameEvent.Fail();
-                    fail.failedCmd = "Special";
-                    fail.primaryRobotId = c.robotId;
-                    priorityEvents.Add(fail);
-                    specialCmds.Remove(c);
-                }
-            });
-            IEnumerable<GameEvent> specialEvents = specialCmds.ToList().ConvertAll(((Command.Special c) => {
-                return new GameEvent.Empty();
-            }));
+            IEnumerable<GameEvent> specialEvents = processSpecialCommands(specialCmds, robotIdToTurnObject);
             priorityEvents.AddRange(specialEvents);
 
             priorityEvents.AddRange(processFinish(primary.team, true));
@@ -223,19 +175,36 @@ public class Game
         return events;
     }
 
-    private List<GameEvent> processRotateCommands(HashSet<Command.Rotate> rotateCmds)
+    private List<GameEvent> processRotateCommands(HashSet<Command.Rotate> rotateCmds, Dictionary<short, RobotTurnObject> robotIdToTurnObject)
     {
         List<GameEvent> events = new List<GameEvent>();
         rotateCmds.ToList().ForEach((Command.Rotate c) => {
-            List<GameEvent> evts = Robot.Get(allRobots, c.robotId).Rotate(c.direction, c.owner.Equals(primary.name));
-            events.AddRange(evts); 
+            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
+            List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]);
+            if (evts.Count == 0)
+            {
+                events.AddRange(primaryRobot.Rotate(c.direction, c.owner.Equals(primary.name)));
+            } else
+            {
+                events.AddRange(evts);
+            }
         });
         return events;
     }
 
-    private List<GameEvent> processMoveCommands(HashSet<Command.Move> moves)
+    private List<GameEvent> processMoveCommands(HashSet<Command.Move> moves, Dictionary<short, RobotTurnObject> robotIdToTurnObject)
     {
         List<GameEvent> events = new List<GameEvent>();
+        moves.ToList().ForEach((Command.Move c) =>
+        {
+            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
+            List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]);
+            if (evts.Count > 0)
+            {
+                events.AddRange(evts);
+                moves.Remove(c);
+            }
+        });
         Dictionary<short, Vector2Int> idsToDiffs = new Dictionary<short, Vector2Int>();
         moves.ToList().ForEach((Command.Move c) =>
         {
@@ -370,42 +339,51 @@ public class Game
         return events;
     }
 
-    private List<GameEvent> processAttackCommands(HashSet<Command.Attack> attackCmds)
+    private List<GameEvent> processAttackCommands(HashSet<Command.Attack> attackCmds, Dictionary<short, RobotTurnObject> robotIdToTurnObject)
     {
         List<GameEvent> events = new List<GameEvent>();
         attackCmds.ToList().ForEach(((Command.Attack c) => {
             Robot primaryRobot = Robot.Get(allRobots, c.robotId);
-            List<Vector2Int> locs = primaryRobot.GetVictimLocations();
-            List<GameEvent> evts = new List<GameEvent>();
-            locs.ForEach((Vector2Int v) =>
+            List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]);
+            if (evts.Count == 0)
             {
-                bool isPrimary = c.owner.Equals(primary.name);
-                if (board.getSpaceType(v.x,v.y) == Map.Space.SpaceType.PRIMARY_BASE)
+                List<Vector2Int> locs = primaryRobot.GetVictimLocations();
+                locs.ForEach((Vector2Int v) =>
                 {
-                    evts.AddRange(primaryRobot.Battery(!isPrimary, isPrimary));
-                }
-                else if(board.getSpaceType(v.x, v.y) == Map.Space.SpaceType.SECONDARY_BASE)
+                    bool isPrimary = c.owner.Equals(primary.name);
+                    if (board.getSpaceType(v.x, v.y) == Map.Space.SpaceType.PRIMARY_BASE)
+                    {
+                        evts.AddRange(primaryRobot.Battery(!isPrimary, isPrimary));
+                    }
+                    else if (board.getSpaceType(v.x, v.y) == Map.Space.SpaceType.SECONDARY_BASE)
+                    {
+                        evts.AddRange(primaryRobot.Battery(isPrimary, isPrimary));
+                    }
+                });
+                Robot[] victims = Array.FindAll(allRobots, (robot) => locs.Contains(robot.position));
+                if (victims.Length == 0 && evts.Count == 0)
                 {
-                    evts.AddRange(primaryRobot.Battery(isPrimary, isPrimary));
+                    evts.AddRange(primaryRobot.Miss(c.owner.Equals(primary.name)));
                 }
-            });
-            Robot[] victims = Array.FindAll(allRobots, (robot) => locs.Contains(robot.position));
-            if (victims.Length == 0 && evts.Count == 0)
-            {
-                evts.AddRange(primaryRobot.Miss(c.owner.Equals(primary.name)));
-            }
-            else if (victims.Length > 0)
-            {
-                evts.AddRange(primaryRobot.Attack(victims, c.owner.Equals(primary.name)));
+                else if (victims.Length > 0)
+                {
+                    evts.AddRange(primaryRobot.Attack(victims, c.owner.Equals(primary.name)));
+                }
             }
             events.AddRange(evts);
         }));
         return events;
     }
 
-    private List<GameEvent> processSpecialCommands(HashSet<Command.Special> rotateCmds)
+    private List<GameEvent> processSpecialCommands(HashSet<Command.Special> specials, Dictionary<short, RobotTurnObject> robotIdToTurnObject)
     {
-        return new List<GameEvent>();
+        List<GameEvent> events = new List<GameEvent>();
+        specials.ToList().ForEach((Command.Special c) =>
+        {
+            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
+            events.AddRange(primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]));
+        });
+        return events;
     }
 
     private List<GameEvent> processFinish(Robot[] team, bool isPrimary)
