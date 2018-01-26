@@ -23,6 +23,8 @@ public class Interpreter : MonoBehaviour {
 
     public static void ConnectToServer(string playerId, string opponentId, string boardFile)
     {
+        if (playerId == "") playerId = "player";
+        if (opponentId == "") opponentId = "opponent";
         playerTurnObjectArray = new Game.Player[] {
             new Game.Player(new Robot[0], playerId),
             new Game.Player(new Robot[0], opponentId)

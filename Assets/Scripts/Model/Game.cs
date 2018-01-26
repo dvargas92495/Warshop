@@ -325,7 +325,12 @@ public class Game
                 generateBlockEvent("Wall");
                 return;
             }
-            Map.Space space = board.spaces[(int)newspace.y * board.Width + (int)newspace.x];
+            Map.Space space = board.spaces[newspace.y * board.Width + newspace.x];
+            if (space.spaceType == Map.Space.SpaceType.VOID)
+            {
+                generateBlockEvent("Wall");
+                return;
+            }
             if (space.spaceType == Map.Space.SpaceType.PRIMARY_BASE || space.spaceType == Map.Space.SpaceType.SECONDARY_BASE)
             {
                 generateBlockEvent("Base");
