@@ -139,8 +139,8 @@ public class InitialController : MonoBehaviour {
 
     void StartGame(string b, string[] mybots, string[] opbots, string myname, string opponentname)
     {
-        Interpreter.robotBase = robotBase;
-        Interpreter.robotDir = robotDir;
+        RobotController.robotBase = robotBase;
+        RobotController.robotDir = robotDir;
         Interpreter.myRobotNames = mybots;
         Interpreter.opponentRobotNames = opbots;
         loadingText.text = "Loading...";

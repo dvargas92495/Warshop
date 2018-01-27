@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class RobotController : MonoBehaviour
 {
@@ -17,6 +18,8 @@ public class RobotController : MonoBehaviour
     protected List<Command> commands = new List<Command>();
 
     public MenuItemController menuItem;
+    internal static RobotController robotBase;
+    internal static Sprite[] robotDir;
     protected bool inTurn;
     internal bool isMenuShown;
     protected string displayName;
@@ -24,17 +27,21 @@ public class RobotController : MonoBehaviour
     protected string description;
 
 
-    public void Load(Robot robot)
+    public static RobotController Load(Robot robot)
     {
-        name = robot.name;
-        id = robot.id;
-        health = robot.health;
-        attack = robot.attack;
-        priority = robot.priority;
-        position = robot.position;
-        orientation = Robot.OrientationToVector(robot.orientation);
-        displayMove();
-        displayRotate();
+        RobotController r = Instantiate(robotBase, Interpreter.boardController.transform);
+        Image sprite = r.GetComponent<Image>();
+        sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
+        r.name = robot.name;
+        r.id = robot.id;
+        r.health = robot.health;
+        r.attack = robot.attack;
+        r.priority = robot.priority;
+        r.position = robot.position;
+        r.orientation = Robot.OrientationToVector(robot.orientation);
+        r.displayMove();
+        r.displayRotate();
+        return r;
     }
     
     /************************

@@ -177,7 +177,7 @@ public class Robot
     {
         return new List<Vector2Int>() { position + OrientationToVector(orientation) };
     }
-    internal List<GameEvent> Attack(Robot[] victims, bool isPrimary)
+    internal virtual List<GameEvent> Attack(Robot[] victims, bool isPrimary)
     {
         GameEvent.Attack evt = new GameEvent.Attack();
         evt.victimIds = new short[victims.Length];
@@ -275,10 +275,22 @@ public class Robot
         internal Pithon() : base(
             _name,
             _description,
-            6, 5, 2,
+            6, 6, 2,
             Rating.SILVER
         )
         { }
+
+        internal override List<GameEvent> Attack(Robot[] victims, bool isPrimary)
+        {
+            List<GameEvent> events = base.Attack(victims, isPrimary);
+            Array.ForEach(victims, (Robot r) =>
+            {
+                GameEvent.Poison evt = new GameEvent.Poison();
+                evt.primaryRobotId = r.id;
+                events.Add(evt);
+            });
+            return events;
+        }
     }
 
     private class Virusbot : Robot

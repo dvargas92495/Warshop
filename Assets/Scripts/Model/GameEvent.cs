@@ -49,6 +49,12 @@ public abstract class GameEvent
             case Death.EVENT_ID:
                 evt = Death.Deserialize(reader);
                 break;
+            case Poison.EVENT_ID:
+                evt = Poison.Deserialize(reader);
+                break;
+            case Damage.EVENT_ID:
+                evt = Damage.Deserialize(reader);
+                break;
             default:
                 evt = new Empty();
                 break;
@@ -315,4 +321,44 @@ public abstract class GameEvent
         }
     }
 
+    public class Poison: GameEvent
+    {
+        internal const byte EVENT_ID = 10;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+        }
+        public new static Poison Deserialize(NetworkReader reader)
+        {
+            return new Poison();
+        }
+        public override string ToString()
+        {
+            return ToString("was poisoned");
+        }
+    }
+
+    public class Damage : GameEvent
+    {
+        internal const byte EVENT_ID = 11;
+        internal short damage;
+        internal short remainingHealth;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(damage);
+            writer.Write(remainingHealth);
+        }
+        public new static Damage Deserialize(NetworkReader reader)
+        {
+            Damage evt = new Damage();
+            evt.damage = reader.ReadInt16();
+            evt.remainingHealth = reader.ReadInt16();
+            return evt;
+        }
+        public override string ToString()
+        {
+            return ToString("was damaged " + damage + " health down to " + remainingHealth);
+        }
+    }
 }

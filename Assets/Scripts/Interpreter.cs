@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class Interpreter : MonoBehaviour {
+public class Interpreter {
 
     private static Game.Player[] playerTurnObjectArray;
     private static Map board;
@@ -13,8 +13,6 @@ public class Interpreter : MonoBehaviour {
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static RobotController[] robotControllers;
-    internal static RobotController robotBase;
-    internal static Sprite[] robotDir;
     public static int eventDelay = 1;
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
@@ -80,10 +78,7 @@ public class Interpreter : MonoBehaviour {
         {
             foreach(Robot robot in player.team)
             {
-                RobotController r = Instantiate(robotBase,boardController.transform);
-                Image sprite = r.GetComponent<Image>();
-                sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
-                r.Load(robot);
+                RobotController r = RobotController.Load(robot);
                 r.isOpponent = playerCount == 1;
                 r.canCommand = !r.isOpponent;
                 r.transform.GetChild(0).GetComponent<Image>().color = (r.isOpponent ? Color.red : Color.blue);
@@ -187,6 +182,16 @@ public class Interpreter : MonoBehaviour {
             {
                 GameEvent.Death death = (GameEvent.Death)evt;
                 primaryRobot.Place(death.returnLocation.x, death.returnLocation.y);
+            }
+            else if (evt is GameEvent.Poison)
+            {
+                //TODO: Poison animation?
+            }
+            else if (evt is GameEvent.Damage)
+            {
+                GameEvent.Damage dmg = (GameEvent.Damage)evt;
+                RobotController victim = Array.Find(robotControllers, (RobotController r) => r.id == dmg.primaryRobotId);
+                victim.SetHealth(dmg.remainingHealth);
             }
             else
             {

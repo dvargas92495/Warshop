@@ -8,6 +8,7 @@ public class Game
     internal Player primary = new Player();
     internal Player secondary = new Player();
     Robot[] allRobots = new Robot[0];
+    internal List<GameEvent> endOfTurnEvents = new List<GameEvent>();
     internal Map board;
     internal short nextRobotId;
 
@@ -166,12 +167,17 @@ public class Game
             IEnumerable<GameEvent> specialEvents = processSpecialCommands(specialCmds, robotIdToTurnObject);
             priorityEvents.AddRange(specialEvents);
 
-            priorityEvents.AddRange(processFinish(primary.team, true));
-            priorityEvents.AddRange(processFinish(secondary.team, false));
+            priorityEvents.AddRange(processPriorityFinish(primary.team, true));
+            priorityEvents.AddRange(processPriorityFinish(secondary.team, false));
 
             processBatteryLoss(priorityEvents, p);
             events.AddRange(priorityEvents);
         }
+        List<GameEvent> priorityZeroEvents = processEndOfTurn();
+        priorityZeroEvents.AddRange(processPriorityFinish(primary.team, true));
+        priorityZeroEvents.AddRange(processPriorityFinish(secondary.team, false));
+        processBatteryLoss(priorityZeroEvents, 0);
+        events.AddRange(priorityZeroEvents);
         return events;
     }
 
@@ -372,6 +378,16 @@ public class Game
             }
             events.AddRange(evts);
         }));
+        events.ForEach((GameEvent e) =>
+        {
+            if (e is GameEvent.Poison)
+            {
+                GameEvent.Damage evt = new GameEvent.Damage();
+                evt.primaryRobotId = e.primaryRobotId;
+                evt.damage = 1;
+                endOfTurnEvents.Add(evt);
+            }
+        });
         return events;
     }
 
@@ -386,7 +402,7 @@ public class Game
         return events;
     }
 
-    private List<GameEvent> processFinish(Robot[] team, bool isPrimary)
+    private List<GameEvent> processPriorityFinish(Robot[] team, bool isPrimary)
     {
         List<GameEvent> evts = new List<GameEvent>();
         Array.ForEach(team, (Robot r) =>
@@ -396,9 +412,28 @@ public class Game
                 Vector2Int v = board.GetQueuePosition(r.queueSpot, isPrimary);
                 evts.AddRange(r.Death(v, isPrimary));
                 board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
+                endOfTurnEvents.RemoveAll((GameEvent e) => e.primaryRobotId == r.id);
             }
         });
         return evts;
+    }
+
+    private List<GameEvent> processEndOfTurn()
+    {
+        List<GameEvent> events = new List<GameEvent>();
+        endOfTurnEvents.ToList().ForEach((GameEvent e) =>
+        {
+            if (e is GameEvent.Damage)
+            {
+                GameEvent.Damage damageEvent = (GameEvent.Damage)e;
+                Robot victim = Robot.Get(allRobots, e.primaryRobotId);
+                victim.health -= damageEvent.damage;
+                damageEvent.remainingHealth = victim.health;
+                damageEvent.primaryBattery = damageEvent.secondaryBattery = 0;
+                events.Add(damageEvent);
+            }
+        });
+        return events;
     }
 
     private void processBatteryLoss(List<GameEvent> evts, byte p)
