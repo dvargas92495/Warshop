@@ -66,9 +66,21 @@ public class Map
         return map;
     }
 
+    public short GetIdOnSpace(Vector2Int v)
+    {
+        return GetIdOnSpace(spaces[v.y * Width + v.x]);
+    }
+
     public short GetIdOnSpace(Space s)
     {
-        return objectLocations.Keys.ToList().Find((short k) => objectLocations[k].Equals(s));
+        Func<short, bool> eq = (short k) => objectLocations[k].Equals(s);
+        if (objectLocations.Keys.Any(eq))
+        {
+            return objectLocations.Keys.ToList().Find((short k) => objectLocations[k].Equals(s));
+        } else
+        {
+            return -1;
+        }
     }
 
     public Space.SpaceType getSpaceType(int x, int y)
@@ -81,6 +93,11 @@ public class Map
         Space[] queueSpaces = Array.FindAll(spaces, (Space s) => s.spaceType == (isPrimary ? Space.SpaceType.PRIMARY_QUEUE : Space.SpaceType.SECONDARY_QUEUE));
         Space queueSpace = queueSpaces[i % queueSpaces.Length];
         return new Vector2Int(queueSpace.x, queueSpace.y);
+    }
+
+    public bool IsSpaceOccupied(Vector2Int v)
+    {
+        return IsSpaceOccupied(spaces[v.y * Width + v.x]);
     }
 
     public bool IsSpaceOccupied(Space s)
