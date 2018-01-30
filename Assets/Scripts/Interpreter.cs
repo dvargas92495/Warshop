@@ -117,7 +117,6 @@ public class Interpreter {
             foreach (Command cmd in robotCommands)
             {
                 cmd.robotId = robot.id;
-                cmd.owner = username;
                 commands.Add(cmd);
             }
             robot.ClearRobotCommands();

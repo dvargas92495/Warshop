@@ -148,7 +148,11 @@ public class Robot
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ROTATE_POWER);
         return new List<GameEvent>() { evt };
     }
-    internal List<GameEvent> Move(Vector2Int diff, bool isPrimary)
+    internal bool IsFacing(Vector2Int diff)
+    {
+        return diff.Equals(OrientationToVector(orientation));
+    }
+    internal virtual List<GameEvent> Move(Vector2Int diff, bool isPrimary)
     {
         GameEvent.Move evt = new GameEvent.Move();
         evt.sourcePos = position;
@@ -266,6 +270,17 @@ public class Robot
             Rating.BRONZE
         )
         {}
+
+        internal override List<GameEvent> Move(Vector2Int diff, bool isPrimary)
+        {
+            List<GameEvent> events = base.Move(diff, isPrimary);
+            if (IsFacing(diff))
+            {
+                position += diff;
+                ((GameEvent.Move)events[0]).destinationPos = position;
+            }
+            return events;
+        }
     }
 
     private class Pithon : Robot

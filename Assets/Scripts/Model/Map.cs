@@ -6,7 +6,6 @@ using UnityEngine.Networking;
 
 public class Map
 {
-    public TextAsset[] boardfiles;
     internal int Width { get; set; }
     internal int Height { get; set; }
     internal Space[] spaces;
@@ -26,11 +25,10 @@ public class Map
         Width = boardDimensions[0];
         Height = boardDimensions[1];
         spaces = new Space[Width*Height];
-        for (int i = 1; i < lines.Length; i++)
+        for (int y = 0; y < Height; y++)
         {
-            string[] cells = lines[i].Trim().Split(' ');
-            int y = i - 1;
-            for (int x = 0; x < cells.Length; x++)
+            string[] cells = lines[y+1].Trim().Split(' ');
+            for (int x = 0; x < Width; x++)
             {
                 spaces[y * Width + x] = new Space(cells[x]);
                 spaces[y * Width + x].x = x;
@@ -68,6 +66,7 @@ public class Map
 
     public short GetIdOnSpace(Vector2Int v)
     {
+        if (v.y < 0 || v.y >= Height || v.x < 0 || v.x >= Width) return -1;
         return GetIdOnSpace(spaces[v.y * Width + v.x]);
     }
 
@@ -107,11 +106,6 @@ public class Map
 
     internal void UpdateObjectLocation(int x, int y, short objectId) {
         objectLocations[objectId] = spaces[y*Width + x];
-    }
-
-    internal void RemoveObject(int objectID)
-    {
-        //objectToSpace.Remove(objectID);
     }
 
     public class Space

@@ -84,6 +84,7 @@ public class Game
         internal void StoreCommands(List<Command> cmds)
         {
             commands = cmds;
+            commands.ForEach((Command c) => c.owner = name);
             ready = true;
         }
         internal List<Command> FetchCommands()
@@ -243,12 +244,12 @@ public class Game
         {
             Robot primaryRobot = Robot.Get(allRobots, key);
             Vector2Int newspace = primaryRobot.position + idsToDiffs[key];
-            short pushId = board.GetIdOnSpace(board.spaces[newspace.y * board.Width + newspace.x]);
+            short pushId = board.GetIdOnSpace(newspace);
             if (
             pushId >= 0 &&
             !idsToDiffs.ContainsKey(pushId) &&
-            idsToDiffs[key].Equals(Robot.OrientationToVector(primaryRobot.orientation)) &&
-            !Robot.OrientationToVector(Robot.Get(allRobots, key).orientation).Equals(new Vector2Int(-idsToDiffs[key].x, -idsToDiffs[key].y))
+            primaryRobot.IsFacing(idsToDiffs[key]) &&
+            !Robot.Get(allRobots, pushId).IsFacing(Util.Flip(idsToDiffs[key]))
             ) // A pushed robot
             {
                 pusherIdsToPushee[key] = pushId;
@@ -334,18 +335,23 @@ public class Game
                      generateBlockEvent("Base");
                      return true;
                  }
-                if (space.spaceType == Map.Space.SpaceType.PRIMARY_QUEUE && space.spaceType == Map.Space.SpaceType.SECONDARY_QUEUE)
+                if (space.spaceType == Map.Space.SpaceType.PRIMARY_QUEUE || space.spaceType == Map.Space.SpaceType.SECONDARY_QUEUE)
                  {
                      generateBlockEvent("Queue");
                      return true;
                  }
-                if (board.IsSpaceOccupied(space) && softMove && !idsToDiffs.ContainsKey(board.GetIdOnSpace(space)))
+                if (
+                board.IsSpaceOccupied(space) && 
+                (softMove || Robot.Get(allRobots, board.GetIdOnSpace(space)).IsFacing(Util.Flip(idsToDiffs[rid]))) && //TODO: This is ugly. Should be able to do blocks above
+                !idsToDiffs.ContainsKey(board.GetIdOnSpace(space))
+                )
                 {
                     generateBlockEvent(Robot.Get(allRobots, board.GetIdOnSpace(space)).name);
+                    return true;
                 }
                 return false;
             };
-            if (itIsBlocked(newspace, primaryRobot.id, !idsToDiffs[primaryRobot.id].Equals(Robot.OrientationToVector(primaryRobot.orientation)))){
+            if (itIsBlocked(newspace, primaryRobot.id, !primaryRobot.IsFacing(idsToDiffs[primaryRobot.id]))){
                 return;
             }
             if (
