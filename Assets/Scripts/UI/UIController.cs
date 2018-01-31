@@ -8,7 +8,9 @@ using TMPro;
 public class UIController : MonoBehaviour {
 
 	private GameObject BackgroundPanel;
-	private GameObject PlayerTurnTextObject;
+    private GameObject OpponentsRobots;
+    private GameObject UsersRobots;
+    private GameObject PlayerTurnTextObject;
 	private GameObject PlayerAPanel;
 	private GameObject PlayerBPanel;
 	private GameObject robotInfoPanel;
@@ -25,6 +27,8 @@ public class UIController : MonoBehaviour {
     public Text placeholder;
     public GameObject modalPanelObject;
     public Button cancelButton;
+    public GameObject opponentRobotPanel;
+    public GameObject userRobotPanel;
     public Sprite[] sprites;
     public Camera boardCamera;
 
@@ -39,28 +43,78 @@ public class UIController : MonoBehaviour {
         Interpreter.InitializeUI(this);
     }
 
+
+
     //Loads the UICanvas and it's child components
-    public void InitializeUICanvas(Game.Player[] playerTurnObjects) 
-	{
+    public void InitializeUICanvas(Game.Player[] playerObjects)
+    {
+        //Dummy opponent: abstract out 
+       // Game.Player opponentPlayer = new Game.Player(new Robot[]<Virusbot(), "2");
+
+
         // get child components  
         BackgroundPanel = GameObject.Find("UICanvas");
 
-        TMP_Text  playerTurnText = getChildTMP_Text(BackgroundPanel, "PlayerTurnText");
 
-        // playerturntextobject = getchildgameobject (backgroundpanel, "playerturntext");
 
-        PlayerAPanel = getChildGameObject(BackgroundPanel, "PlayerAPanel");
-        PlayerBPanel = getChildGameObject(BackgroundPanel, "PlayerBPanel");
-        GameObject[] playerPanels = { PlayerAPanel, PlayerBPanel };
+        // Set Opponent Player Panel & Robots
+        OpponentsRobots = GameObject.Find("OpponentRobots");
+        SetOpponentPlayerPanel(playerObjects[1], OpponentsRobots.transform);
 
-        // set the components of the uicanvas
-        SetPlayerTurnText(playerTurnText, playerTurnObjects[0]);
-        SetPlayerPanels(playerPanels, playerTurnObjects);
+        // Set User Player Panel & Robots
+        UsersRobots = GameObject.Find("UserRobots");
+        SetUsersPlayerPanel(playerObjects[0], UsersRobots.transform);
 
-	}
 
-	// Set's header text of UICanvas
-	void SetPlayerTurnText(TMP_Text playerTurnText, Game.Player currentPlayer)
+
+
+
+        //TMP_Text  playerTurnText = getChildTMP_Text(BackgroundPanel, "PlayerTurnText");
+
+        //// playerturntextobject = getchildgameobject (backgroundpanel, "playerturntext");
+
+        //PlayerAPanel = getChildGameObject(BackgroundPanel, "PlayerAPanel");
+        //PlayerBPanel = getChildGameObject(BackgroundPanel, "PlayerBPanel");
+        //GameObject[] playerPanels = { PlayerAPanel, PlayerBPanel };
+
+        //// set the components of the uicanvas
+        //SetPlayerTurnText(playerTurnText, playerTurnObjects[0]);
+        //SetPlayerPanels(playerPanels, playerTurnObjects);
+
+    }
+
+    void SetOpponentPlayerPanel(Game.Player opponentPlayer, Transform parentObject)
+    {
+        TMP_Text opponentNameText = getChildTMP_Text(BackgroundPanel, "OpponentNameText");
+        opponentNameText.SetText(opponentPlayer.name + "'s Robots:");
+
+        for (int i = 0; i < opponentPlayer.team.Length; i++)
+        {
+           GameObject opponentRobot = Instantiate(opponentRobotPanel, parentObject);
+           opponentRobot.name = "Opponent" + opponentPlayer.team[i].name;
+
+        }
+
+        
+    }
+
+    void SetUsersPlayerPanel(Game.Player userPlayer, Transform parentObject)
+    {
+        TMP_Text userNameText = getChildTMP_Text(BackgroundPanel, "UserNameText");
+        userNameText.SetText(userPlayer.name + "'s Robots:");
+
+        for (int i = 0; i < userPlayer.team.Length; i++)
+        {
+            GameObject userRobot = Instantiate(userRobotPanel, parentObject);
+            userRobot.name = "User" + userPlayer.team[i].name;
+
+        }
+
+
+    }
+
+    // Set's header text of UICanvas
+    void SetPlayerTurnText(TMP_Text playerTurnText, Game.Player currentPlayer)
 	{
 		playerTurnText.SetText(currentPlayer.name + "'s Turn");
 	}

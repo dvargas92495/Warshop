@@ -985,7 +985,7 @@ Prefab:
         type: 2}
       propertyPath: playtest
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 4900000, guid: 56e3325a1a85dcb40b8cb9f8d8febd5f, type: 3}
     - target: {fileID: 114859138368046422, guid: 6e3e0d7b4af03eb42aea7e8698edab55,
         type: 2}
       propertyPath: loadingText
