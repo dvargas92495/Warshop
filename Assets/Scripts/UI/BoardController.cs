@@ -25,8 +25,10 @@ public class BoardController : MonoBehaviour {
     {
         boardCellsWide = board.Width;
         boardCellsHeight = board.Height;
-        tileWidth = boardSpaceX / boardCellsWide;
-        tileHeight = boardSpaceY / boardCellsHeight;
+       // tileWidth = boardSpaceX / boardCellsWide;
+        tileWidth = 1.75f;
+        //tileHeight = boardSpaceY / boardCellsHeight;
+        tileHeight = 1.75f;
         float lastTileYPos = 0;
         for (int y = 0; y<boardCellsHeight; y++)
         {

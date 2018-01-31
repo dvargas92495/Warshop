@@ -300,7 +300,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 4.51
+  orthographic size: 6.95
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -323,7 +323,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 689802906}
   m_LocalRotation: {x: 1, y: 0, z: 0, w: 0}
-  m_LocalPosition: {x: 2.12, y: 4, z: 6.1}
+  m_LocalPosition: {x: -9.59, y: 6.43, z: 6.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 245176730}
@@ -595,7 +595,7 @@ Prefab:
     - target: {fileID: 224932332202467676, guid: d66a8339f1e915f41b85bcd5a85f4d1f,
         type: 2}
       propertyPath: m_AnchorMax.x
-      value: 0.6
+      value: 0.645
       objectReference: {fileID: 0}
     - target: {fileID: 224932332202467676, guid: d66a8339f1e915f41b85bcd5a85f4d1f,
         type: 2}
@@ -619,6 +619,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1906626247}
   - component: {fileID: 1906626246}
+  - component: {fileID: 1906626248}
   m_Layer: 0
   m_Name: Controllers
   m_TagString: Untagged
@@ -648,7 +649,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1906626248
 MonoBehaviour:
@@ -663,8 +664,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   submittedActions: []
   placeholder: {fileID: 0}
-  modalPanelObject: {fileID: 1040746444}
-  cancelButton: {fileID: 1847891392}
+  modalPanelObject: {fileID: 0}
+  cancelButton: {fileID: 0}
+  opponentRobotPanel: {fileID: 0}
+  userRobotPanel: {fileID: 0}
   sprites:
   - {fileID: 21300000, guid: 008c5c4cad38043428b07d6f301a928d, type: 3}
   - {fileID: 21300000, guid: fe3bc24ae2ef48b4caab1a3569d7b5e7, type: 3}
