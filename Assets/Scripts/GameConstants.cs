@@ -15,7 +15,7 @@
 
     internal const byte MAX_PRIORITY = 8;
     internal const int POINTS_TO_WIN = 256;
-    internal const float ROBOTZ = 0.25f;
+    internal const float ROBOTZ = -0.25f;
     internal const string APP_LOG_DIR = "/local/game/logs";
     internal const string APP_ERROR_DIR = "/local/game/error";
     internal static string PRODUCTION_ALIAS = "Z8_App";

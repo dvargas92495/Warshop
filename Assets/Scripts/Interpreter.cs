@@ -57,7 +57,7 @@ public class Interpreter {
     {
         uiController = ui;
         uiController.InitializeUICanvas(playerTurnObjectArray);
-        if (isPrimary) uiController.Flip();
+        if (boardController) uiController.PositionCamera(isPrimary);
     }
 
     public static void InitializeBoard(BoardController bc)
@@ -65,7 +65,7 @@ public class Interpreter {
         boardController = bc;
         boardController.InitializeBoard(board);
         InitializeRobots(playerTurnObjectArray);
-        if (isPrimary) boardController.Flip();
+        if (uiController) uiController.PositionCamera(isPrimary);
     }
 
     private static void InitializeRobots(Game.Player[] playerTurns)

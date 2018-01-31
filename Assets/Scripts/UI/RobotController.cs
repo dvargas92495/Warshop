@@ -223,7 +223,7 @@ public class RobotController : MonoBehaviour
             choice.SetCallback(opts[i]);
             choice.GetComponentInChildren<TextMesh>().text = vals[i];
             choice.transform.position += up*(itemH*(-i - 0.5f + (opts.Count/2.0f)));
-            if (transform.position.x > (Interpreter.boardController.boardSpaceX/2) + Interpreter.boardController.transform.position.x)
+            if (transform.position.x > (Interpreter.boardController.boardCellsWide/2) + Interpreter.boardController.transform.position.x)
             {
                 choice.transform.position -= new Vector3(itemW / 2 + menuW / 2, 0);
                 if (isSubmenu) choice.transform.position -= new Vector3(itemW,0);
@@ -233,7 +233,7 @@ public class RobotController : MonoBehaviour
                 choice.transform.position += new Vector3(itemW / 2 + menuW / 2, 0);
                 if (isSubmenu) choice.transform.position += new Vector3(itemW, 0);
             }
-            if (transform.position.y < Interpreter.boardController.boardSpaceY/2)
+            if (transform.position.y < Interpreter.boardController.boardCellsHeight/2)
             {
                 choice.transform.position += Vector3.up*(((opts.Count/2.0f) - 0.5f) * itemH);
             }
@@ -267,7 +267,7 @@ public class RobotController : MonoBehaviour
 
     private void displayRotate()
     {
-        transform.rotation = Quaternion.LookRotation(Vector3.back, orientation);
+        transform.rotation = Quaternion.LookRotation(Vector3.forward, orientation);
     }
     
 

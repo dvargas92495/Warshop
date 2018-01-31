@@ -3,11 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class UIController : MonoBehaviour {
 
-	private GameObject BackgroundPanel;
+	public Image BackgroundPanel;
     private GameObject OpponentsRobots;
     private GameObject UsersRobots;
     private GameObject PlayerTurnTextObject;
@@ -43,20 +44,22 @@ public class UIController : MonoBehaviour {
         Interpreter.InitializeUI(this);
     }
 
+    void Update()
+    {
+        if (Application.isEditor)
+        {
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                SceneManager.LoadScene("Initial");
+            }
+        }
+    }
+
 
 
     //Loads the UICanvas and it's child components
     public void InitializeUICanvas(Game.Player[] playerObjects)
     {
-        //Dummy opponent: abstract out 
-       // Game.Player opponentPlayer = new Game.Player(new Robot[]<Virusbot(), "2");
-
-
-        // get child components  
-        BackgroundPanel = GameObject.Find("UICanvas");
-
-
-
         // Set Opponent Player Panel & Robots
         OpponentsRobots = GameObject.Find("OpponentRobots");
         SetOpponentPlayerPanel(playerObjects[1], OpponentsRobots.transform);
@@ -85,7 +88,7 @@ public class UIController : MonoBehaviour {
 
     void SetOpponentPlayerPanel(Game.Player opponentPlayer, Transform parentObject)
     {
-        TMP_Text opponentNameText = getChildTMP_Text(BackgroundPanel, "OpponentNameText");
+        TMP_Text opponentNameText = getChildTMP_Text(BackgroundPanel.gameObject, "OpponentNameText");
         opponentNameText.SetText(opponentPlayer.name + "'s Robots:");
 
         for (int i = 0; i < opponentPlayer.team.Length; i++)
@@ -100,7 +103,7 @@ public class UIController : MonoBehaviour {
 
     void SetUsersPlayerPanel(Game.Player userPlayer, Transform parentObject)
     {
-        TMP_Text userNameText = getChildTMP_Text(BackgroundPanel, "UserNameText");
+        TMP_Text userNameText = getChildTMP_Text(BackgroundPanel.gameObject, "UserNameText");
         userNameText.SetText(userPlayer.name + "'s Robots:");
 
         for (int i = 0; i < userPlayer.team.Length; i++)
@@ -283,5 +286,15 @@ public class UIController : MonoBehaviour {
         TMP_Text bHeader = getChildTMP_Text(PlayerBPanel, "Score");
         aHeader.text = a.ToString();
         bHeader.text = b.ToString();
+    }
+
+    public void PositionCamera(bool isPrimary)
+    {
+        boardCamera.transform.position = new Vector3(Interpreter.boardController.boardCellsWide, Interpreter.boardController.boardCellsHeight);
+        //float z = -boardCamera.transform.position.z;
+        //RectTransform rect = BackgroundPanel.GetComponent<RectTransform>();
+        //boardCamera.fieldOfView = Mathf.Atan2(Interpreter.boardController.boardCellsHeight * 0.5f, z) * Mathf.Rad2Deg * 2;
+        //Vector3 bottomLeftPoint = boardCamera.ViewportToWorldPoint(new Vector3(rect.anchorMax.x, 0, z));
+        //Interpreter.boardController.transform.position = bottomLeftPoint + new Vector3(0.5f, 0.5f);
     }
 }

@@ -6,12 +6,8 @@ using System.Linq;
 public class BoardController : MonoBehaviour {
 
     //Area board is allowed to be in
-    public float boardSpaceX;
-    public float boardSpaceY;
     public int boardCellsWide;
     public int boardCellsHeight;
-    private float tileWidth;
-    private float tileHeight;
     public GameObject tile;
     public List< List<TileController>> allLocations = new List<List<TileController>>();
 
@@ -25,28 +21,17 @@ public class BoardController : MonoBehaviour {
     {
         boardCellsWide = board.Width;
         boardCellsHeight = board.Height;
-       // tileWidth = boardSpaceX / boardCellsWide;
-        tileWidth = 1.75f;
-        //tileHeight = boardSpaceY / boardCellsHeight;
-        tileHeight = 1.75f;
-        float lastTileYPos = 0;
         for (int y = 0; y<boardCellsHeight; y++)
         {
-            float tileXPos = (tileWidth - 1) / 2;
-            float tileYPos = (tileHeight - 1) / 2;
-            float lastTileXPos = 0;
             List<TileController> row = new List<TileController>();
             for (int x = 0; x < boardCellsWide; x++)
             {
-                GameObject cell = Instantiate(tile, new Vector2(tileXPos + lastTileXPos, tileYPos + lastTileYPos), Quaternion.identity, transform);
-                cell.transform.localScale = new Vector3(tileWidth, tileHeight, 0.1f);
+                GameObject cell = Instantiate(tile, new Vector2(x, y), Quaternion.identity, transform);
                 TileController currentCell = cell.GetComponent<TileController>();
                 currentCell.LoadTile(board.getSpaceType(x,y));
                 row.Add(currentCell);
-                lastTileXPos += tileWidth;
             }
             allLocations.Add(row);
-            lastTileYPos += tileHeight;
         }
     }
 		
