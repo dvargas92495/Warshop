@@ -60,7 +60,7 @@ deployCmd() {
 			ALIAS_ID=$(aws gamelift list-aliases --query "Aliases[?Name=='$PRODUCTION_ALIAS'].AliasId" --output text | head --bytes -2);
 			until echo $FLEET_STATUS | grep -m 1 "ACTIVE"; do fleetStatus $NEW_FLEET_ID; done
 			OLD_FLEET_ID=$(aws gamelift describe-alias --alias-id $ALIAS_ID --query "Alias.RoutingStrategy.FleetId" --output text | head --bytes -2);
-			aws gamelift update-alias --alias-id $ALIAS_ID --RoutingStrategy "FleetId=$NEW_FLEET_ID";
+			aws gamelift update-alias --alias-id $ALIAS_ID --routing-strategy "Type=SIMPLE,FleetId=$NEW_FLEET_ID";
 			aws gamelift delete-fleet --fleet-id $OLD_FLEET_ID;
 			echo "Alias $ALIAS_ID updated FleetId from: $OLD_FLEET_ID to: $NEW_FLEET_ID";
 		else
