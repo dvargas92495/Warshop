@@ -104,7 +104,7 @@ public class UIController : MonoBehaviour {
         icon.GetChild(0).GetComponentInChildren<Text>().text = r.health.ToString();
         icon.GetChild(1).GetComponentInChildren<Text>().text = r.attack.ToString();
         TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
-        fields[0].SetText(name);
+        fields[0].SetText(r.name);
         fields[1].SetText(r.description);
         for (int i = 3; i < panel.transform.childCount; i++)
         {
