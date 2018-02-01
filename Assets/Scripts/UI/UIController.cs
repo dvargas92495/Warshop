@@ -66,11 +66,7 @@ public class UIController : MonoBehaviour {
             Interpreter.SubmitActions();
             foreach(short id in robotIdToPanel.Keys)
             {
-                Transform panel = robotIdToPanel[id].transform;
-                for (int i = 3; i < panel.childCount; i++)
-                {
-                    panel.GetChild(i).GetComponentInChildren<Text>().text = "";
-                }
+                ClearCommands(robotIdToPanel[id].transform);
             }
         });
 
@@ -106,14 +102,38 @@ public class UIController : MonoBehaviour {
         TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
         fields[0].SetText(r.name);
         fields[1].SetText(r.description);
+        int minI = 0;
         for (int i = 3; i < panel.transform.childCount; i++)
         {
+            Transform cmd = panel.transform.GetChild(i);
             if (panel.transform.childCount - i > r.priority)
             {
-                panel.transform.GetChild(i).GetComponent<Image>().color = Color.gray;
-            }
+                cmd.GetComponent<Image>().color = Color.gray;
+            } else if (minI == 0) minI = i;
+            Button cmdDelete = cmd.GetComponentInChildren<Button>(true);
+            cmdDelete.gameObject.SetActive(false);
+            SetOnClickClear(cmdDelete, r.id, i, minI);
         }
         robotIdToPanel[r.id] = panel;
+    }
+
+    private void SetOnClickClear(Button b, short id, int i, int mI)
+    {
+        b.onClick.AddListener(() =>
+        {
+            ClearCommands(b.transform.parent.parent);
+            Interpreter.DeleteCommand(id, i - mI);
+        });
+    }
+
+    public void ClearCommands(Transform panel)
+    {
+        for (int i = 3; i < panel.childCount; i++)
+        {
+            Transform child = panel.GetChild(i);
+            child.GetComponentInChildren<Text>().text = "";
+            child.GetComponentInChildren<Button>(true).gameObject.SetActive(false);
+        }
     }
 
     public void addSubmittedCommand(Command cmd, short id)
@@ -125,6 +145,7 @@ public class UIController : MonoBehaviour {
             if (!child.GetComponent<Image>().color.Equals(Color.gray) && child.GetComponentInChildren<Text>().text.Equals(""))
             {
                 child.GetComponentInChildren<Text>().text = cmd.ToString();
+                child.GetComponentInChildren<Button>(true).gameObject.SetActive(true);
                 break;
             }
         }

@@ -8,16 +8,13 @@ public class RobotController : MonoBehaviour
     public short id { get; protected set; }
     internal bool isOpponent;
     internal bool canCommand;
-    protected List<Command> commands = new List<Command>();
+    internal List<Command> commands = new List<Command>();
 
     public MenuItemController menuItem;
     internal static RobotController robotBase;
     internal static Sprite[] robotDir;
     protected bool inTurn;
     internal bool isMenuShown;
-    protected string displayName;
-    protected string displayAbbreviation;
-    protected string description;
 
 
     public static RobotController Load(Robot robot)
@@ -49,31 +46,6 @@ public class RobotController : MonoBehaviour
     /***********************************
      * Robot Model Before Turn Methods *
      ***********************************/
-
-    public string GetDisplyName()
-    {
-        return displayName;
-    }
-
-    public string GetDescription()
-    {
-        return description;
-    }
-
-    public string GetAbbreviation()
-    {
-        return displayAbbreviation;
-    }
-
-    public List<Command> GetCommands()
-    {
-        return commands;
-    }
-
-    public void ClearRobotCommands()
-    {
-        commands.Clear();
-    }
 
     public void AddMoveCommand(Command.Direction dir)
     {
@@ -205,16 +177,6 @@ public class RobotController : MonoBehaviour
             choice.isSubMenu = isSubmenu;
         }
 
-    }
-
-    private void DebugCommands()
-    {
-        string owner = (isOpponent ? "Opponent's " : "My ");
-        Debug.Log(owner + displayName + " Commands:");
-        foreach (Command cmd in commands)
-        {
-            Debug.Log(cmd.ToString());
-        }
     }
 
     /********************************

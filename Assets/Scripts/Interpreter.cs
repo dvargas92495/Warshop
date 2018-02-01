@@ -112,7 +112,7 @@ public class Interpreter {
         string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
         foreach (RobotController robot in robotControllers)
         {
-            List<Command> robotCommands = robot.GetCommands();
+            List<Command> robotCommands = robot.commands;
             foreach (Command cmd in robotCommands)
             {
                 Command c = cmd;
@@ -120,11 +120,18 @@ public class Interpreter {
                 c.robotId = robot.id;
                 commands.Add(c);
             }
-            robot.ClearRobotCommands();
+            robot.commands.Clear();
         }
         myturn = false;
         Logger.ClientLog("Sending Commands: " + commands.Count);
         GameClient.SendSubmitCommands(commands, username);
+    }
+
+    public static void DeleteCommand(short rid, int index)
+    {
+        RobotController r = GetRobot(rid);
+        r.commands.RemoveAt(index);
+        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, rid));
     }
 
     public static void PlayEvents(List<GameEvent> events)
@@ -137,7 +144,7 @@ public class Interpreter {
         Logger.ClientLog("Received Events: " + events.Count);
         foreach(GameEvent evt in events)
         {
-            RobotController primaryRobot = Array.Find(robotControllers, (RobotController r) => r.id == evt.primaryRobotId);
+            RobotController primaryRobot = GetRobot(evt.primaryRobotId);
             if (evt is GameEvent.Rotate)
             {
                 GameEvent.Rotate rot = (GameEvent.Rotate)evt;
@@ -163,7 +170,7 @@ public class Interpreter {
             {
                 GameEvent.Push push = (GameEvent.Push)evt;
                 primaryRobot.displayMove(push.transferPos);
-                Array.Find(robotControllers, (RobotController r) => r.id == push.victim).displayMove(push.destinationPos);
+                GetRobot(push.victim).displayMove(push.destinationPos);
             }
             else if (evt is GameEvent.Miss)
             {
@@ -216,6 +223,11 @@ public class Interpreter {
                 break;
             }
         }
+    }
+
+    private static RobotController GetRobot(short id)
+    {
+        return Array.Find(robotControllers, (RobotController r) => r.id == id);
     }
 }
 
