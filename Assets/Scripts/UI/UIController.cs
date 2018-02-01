@@ -22,18 +22,8 @@ public class UIController : MonoBehaviour {
 
     public Button SubmitCommands;
 
-
-
-    private GameObject robotInfoPanel;
-	private GameObject robotInfoPanelRobotName;
-	private GameObject robotInfoPanelRobotSprite;
-	private GameObject robotInfoPanelRobotAttributes;
-	private GameObject robotInfoPanelRobotStatus;
-	private GameObject robotInfoPanelRobotEquipment;
     private GameObject modalTextBackdrop;
     private GameObject modalDisplayPanel;
-
-    public List<string> submittedActions = new List<string>();
 
     public Text placeholder;
     public GameObject modalPanelObject;
@@ -44,6 +34,7 @@ public class UIController : MonoBehaviour {
 	private GameObject robotImagePanel;
 
 	private Sprite robotSprite;
+    private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
 
     void Start()
     {
@@ -73,7 +64,14 @@ public class UIController : MonoBehaviour {
         SubmitCommands.onClick.AddListener(() =>
         {
             Interpreter.SubmitActions();
-            submittedActions.Clear();
+            foreach(short id in robotIdToPanel.Keys)
+            {
+                Transform panel = robotIdToPanel[id].transform;
+                for (int i = 3; i < panel.childCount; i++)
+                {
+                    panel.GetChild(i).GetComponentInChildren<Text>().text = "";
+                }
+            }
         });
 
         SetBattery(playerObjects[0].battery, playerObjects[1].battery);
@@ -108,40 +106,35 @@ public class UIController : MonoBehaviour {
         TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
         fields[0].SetText(name);
         fields[1].SetText(r.description);
+        for (int i = 3; i < panel.transform.childCount; i++)
+        {
+            if (panel.transform.childCount - i > r.priority)
+            {
+                panel.transform.GetChild(i).GetComponent<Image>().color = Color.gray;
+            }
+        }
+        robotIdToPanel[r.id] = panel;
     }
 
-    public void addSubmittedCommand(Command cmd, string robotIdentifier)
+    public void addSubmittedCommand(Command cmd, short id)
     {
-        string CommandText = robotIdentifier + " " + cmd.ToString();
-        submittedActions.Add(CommandText);
-        //Dropdown ActionsDropdown = GameObject.Find("Submitted Actions Dropdown").GetComponent<Dropdown>();
-        //ActionsDropdown.AddOptions(submittedActions);
+        Transform panel = robotIdToPanel[id].transform;
+        for (int i = 3; i < panel.childCount; i++)
+        {
+            Transform child = panel.GetChild(i);
+            if (!child.GetComponent<Image>().color.Equals(Color.gray) && child.GetComponentInChildren<Text>().text.Equals(""))
+            {
+                child.GetComponentInChildren<Text>().text = cmd.ToString();
+                break;
+            }
+        }
     }
 
     public void UpdateAttributes(short id, short health, short attack)
     {
-        for (int i = 0; i < UsersRobots.transform.childCount; i++)
-        {
-            if (UsersRobots.transform.GetChild(i).name.Equals("Robot" + id))
-            {
-                UpdateAttributes(UsersRobots.transform.GetChild(i), health, attack);
-                return;
-            }
-        }
-        for (int i = 0; i < OpponentsRobots.transform.childCount; i++)
-        {
-            if (OpponentsRobots.transform.GetChild(i).name.Equals("Robot" + id))
-            {
-                UpdateAttributes(OpponentsRobots.transform.GetChild(i), health, attack);
-                return;
-            }
-        }
-    }
-
-    private void UpdateAttributes(Transform panel, short health, short attack)
-    {
-        panel.transform.GetChild(1).GetChild(0).GetComponentInChildren<Text>().text = health.ToString();
-        if (attack >= 0) panel.transform.GetChild(1).GetChild(1).GetComponentInChildren<Text>().text = attack.ToString();
+        Transform panel = robotIdToPanel[id].transform.GetChild(1);
+        panel.GetChild(0).GetComponentInChildren<Text>().text = health.ToString();
+        if (attack >= 0) panel.GetChild(1).GetComponentInChildren<Text>().text = attack.ToString();
     }
 
     public void SetBattery(int a, int b)

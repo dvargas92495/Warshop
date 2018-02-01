@@ -93,7 +93,7 @@ public class RobotController : MonoBehaviour
     private void addRobotCommand(Command cmd)
     {
         commands.Add(cmd);
-        displayAddingRobotCommand(cmd, gameObject.name);
+        Interpreter.uiController.addSubmittedCommand(cmd, id);
         toggleMenu();
     }
 
@@ -115,11 +115,6 @@ public class RobotController : MonoBehaviour
     /********************************
      * Robot UI Before Turn Methods *
      ********************************/
-
-    private void displayAddingRobotCommand(Command cmd, string robotIdentifer)
-    {
-        Interpreter.uiController.addSubmittedCommand(cmd, robotIdentifer); 
-    }
 
     private void displayShowMenu()
     {
