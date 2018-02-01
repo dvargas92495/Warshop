@@ -84,13 +84,7 @@ public class UIController : MonoBehaviour {
         opponentNameText.SetText(opponentPlayer.name + "'s Robots:");
         for (int i = 0; i < opponentPlayer.team.Length; i++)
         {
-            string name = opponentPlayer.team[i].name;
-            GameObject opponentRobot = Instantiate(opponentRobotPanel, OpponentsRobots.transform);
-            opponentRobot.name = "Opponent" + name;
-            opponentRobot.transform.GetChild(1).GetComponent<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(name));
-            TMP_Text[] fields = opponentRobot.GetComponentsInChildren<TMP_Text>();
-            fields[0].SetText(name);
-            fields[1].SetText(opponentPlayer.team[i].description);
+            SetRobotPanel(opponentPlayer.team[i], opponentRobotPanel, OpponentsRobots.transform);
         }
     }
 
@@ -99,15 +93,21 @@ public class UIController : MonoBehaviour {
         userNameText.SetText(userPlayer.name + "'s Robots:");
         for (int i = 0; i < userPlayer.team.Length; i++)
         {
-            string name = userPlayer.team[i].name;
-            GameObject userRobot = Instantiate(userRobotPanel.gameObject, UsersRobots.transform);
-            userRobot.name = "User" + userPlayer.team[i].name;
-            userRobot.name = "Opponent" + name;
-            userRobot.transform.GetChild(1).GetComponent<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(name));
-            TMP_Text[] fields = userRobot.GetComponentsInChildren<TMP_Text>();
-            fields[0].SetText(name);
-            fields[1].SetText(userPlayer.team[i].description);
+            SetRobotPanel(userPlayer.team[i], userRobotPanel, UsersRobots.transform);
         }
+    }
+
+    public void SetRobotPanel(Robot r, GameObject reference, Transform parent)
+    {
+        GameObject panel = Instantiate(reference, parent);
+        panel.name = "Robot" + r.id;
+        Transform icon = panel.transform.GetChild(1);
+        icon.GetComponent<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
+        icon.GetChild(0).GetComponentInChildren<Text>().text = r.health.ToString();
+        icon.GetChild(1).GetComponentInChildren<Text>().text = r.attack.ToString();
+        TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
+        fields[0].SetText(name);
+        fields[1].SetText(r.description);
     }
 
     public void addSubmittedCommand(Command cmd, string robotIdentifier)
@@ -116,6 +116,52 @@ public class UIController : MonoBehaviour {
         submittedActions.Add(CommandText);
         //Dropdown ActionsDropdown = GameObject.Find("Submitted Actions Dropdown").GetComponent<Dropdown>();
         //ActionsDropdown.AddOptions(submittedActions);
+    }
+
+    public void UpdateAttributes(short id, short health, short attack)
+    {
+        for (int i = 0; i < UsersRobots.transform.childCount; i++)
+        {
+            if (UsersRobots.transform.GetChild(i).name.Equals("Robot" + id))
+            {
+                UpdateAttributes(UsersRobots.transform.GetChild(i), health, attack);
+                return;
+            }
+        }
+        for (int i = 0; i < OpponentsRobots.transform.childCount; i++)
+        {
+            if (OpponentsRobots.transform.GetChild(i).name.Equals("Robot" + id))
+            {
+                UpdateAttributes(OpponentsRobots.transform.GetChild(i), health, attack);
+                return;
+            }
+        }
+    }
+
+    private void UpdateAttributes(Transform panel, short health, short attack)
+    {
+        panel.transform.GetChild(1).GetChild(0).GetComponentInChildren<Text>().text = health.ToString();
+        if (attack >= 0) panel.transform.GetChild(1).GetChild(1).GetComponentInChildren<Text>().text = attack.ToString();
+    }
+
+    public void SetBattery(int a, int b)
+    {
+        userScore.SetText(a.ToString());
+        opponentScore.SetText(b.ToString());
+    }
+
+    public void PositionCamera(bool isPrimary)
+    {
+        float x = BackgroundPanel.GetComponent<RectTransform>().anchorMax.x;
+        boardCamera.rect = new Rect(x, 0, 1 - x, 1);
+        boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-2)/2;
+        boardCamera.orthographicSize = Interpreter.boardController.boardCellsHeight / 2;
+        if (!isPrimary) Flip();
+    }
+
+    public void Flip()
+    {
+        boardCamera.transform.Rotate(new Vector3(0, 0, 180));
     }
 
     /*
@@ -159,30 +205,4 @@ public class UIController : MonoBehaviour {
         modalPanelObject.SetActive(false);
         resetModal();
     }*/
-
-    public void Flip()
-    {
-        boardCamera.transform.Rotate(new Vector3(0, 0, 180));
-    }
-
-    public void UpdateAttributes(RobotController currentRobot)
-    {
-        //TMP_Text robotInfoPanelRobotAttributes = getChildTMP_Text(robotInfoPanel, "Attributes");
-        //robotInfoPanelRobotAttributes.SetText("A: " + currentRobot.attack.ToString() + " P: " + currentRobot.priority.ToString() + " H: " + currentRobot.health.ToString());
-    }
-
-    public void SetBattery(int a, int b)
-    {
-        userScore.SetText(a.ToString());
-        opponentScore.SetText(b.ToString());
-    }
-
-    public void PositionCamera(bool isPrimary)
-    {
-        float x = BackgroundPanel.GetComponent<RectTransform>().anchorMax.x;
-        boardCamera.rect = new Rect(x, 0, 1 - x, 1);
-        boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-2)/2;
-        boardCamera.orthographicSize = Interpreter.boardController.boardCellsHeight / 2;
-        if (!isPrimary) Flip();
-    }
 }

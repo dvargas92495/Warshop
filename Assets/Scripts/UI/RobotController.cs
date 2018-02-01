@@ -5,16 +5,9 @@ using UnityEngine.UI;
 
 public class RobotController : MonoBehaviour
 {
-    //model
-    internal int attack;
-    internal int health;
-    internal int priority;
     public short id { get; protected set; }
     internal bool isOpponent;
     internal bool canCommand;
-    protected bool equipped;
-    protected Vector2 position;
-    protected Vector2 orientation;
     protected List<Command> commands = new List<Command>();
 
     public MenuItemController menuItem;
@@ -34,13 +27,8 @@ public class RobotController : MonoBehaviour
         sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
         r.name = robot.name;
         r.id = robot.id;
-        r.health = robot.health;
-        r.attack = robot.attack;
-        r.priority = robot.priority;
-        r.position = robot.position;
-        r.orientation = Robot.OrientationToVector(robot.orientation);
-        r.displayMove();
-        r.displayRotate();
+        r.displayMove(robot.position);
+        r.displayRotate(Robot.OrientationToVector(robot.orientation));
         return r;
     }
     
@@ -122,28 +110,6 @@ public class RobotController : MonoBehaviour
             isMenuShown = true;
             displayShowMenu();
         }
-    }
-
-    /***********************************
-     * Robot Model During Turn Methods *
-     ***********************************/
-
-    public void Place(int x, int y)
-    {
-        position = new Vector2(x, y);
-        displayMove();
-    }
-
-    public void Rotate(Vector2 orient)
-    {
-        orientation = orient;
-        displayRotate();
-    }
-    
-    public void SetHealth(int h)
-    {
-        health = h;
-        Interpreter.uiController.UpdateAttributes(this);
     }
 
     /********************************
@@ -260,14 +226,14 @@ public class RobotController : MonoBehaviour
      * Robot UI During Turn Methods *
      ********************************/
 
-    private void displayMove()
+    public void displayMove(Vector2Int v)
     {
-        Interpreter.boardController.PlaceRobot(transform, (int) position.x, (int) position.y);
+        Interpreter.boardController.PlaceRobot(transform, v.x, v.y);
     }
 
-    private void displayRotate()
+    public void displayRotate(Vector2Int v)
     {
-        transform.rotation = Quaternion.LookRotation(Vector3.forward, orientation);
+        transform.rotation = Quaternion.LookRotation(Vector3.forward, new Vector3(v.x, v.y));
     }
     
 

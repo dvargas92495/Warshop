@@ -141,19 +141,18 @@ public class Interpreter {
             if (evt is GameEvent.Rotate)
             {
                 GameEvent.Rotate rot = (GameEvent.Rotate)evt;
-                primaryRobot.Rotate(Robot.OrientationToVector(rot.destinationDir));
+                primaryRobot.displayRotate(Robot.OrientationToVector(rot.destinationDir));
             } else if (evt is GameEvent.Move)
             {
                 GameEvent.Move mov = (GameEvent.Move)evt;
-                primaryRobot.Place(mov.destinationPos.x, mov.destinationPos.y);
+                primaryRobot.displayMove(mov.destinationPos);
             }
             else if (evt is GameEvent.Attack)
             {
                 GameEvent.Attack atk = (GameEvent.Attack)evt;
-                RobotController[] victims = Array.FindAll(robotControllers, (RobotController r) => Array.Exists(atk.victimIds, (short vid) => r.id == vid));
-                for (int i = 0; i < victims.Length; i++)
+                for (int i = 0; i < atk.victimIds.Length; i++)
                 {
-                    victims[i].SetHealth(atk.victimHealth[i]);
+                    uiController.UpdateAttributes(atk.victimIds[i],atk.victimHealth[i], -1);
                 }
             }
             else if (evt is GameEvent.Block)
@@ -163,8 +162,8 @@ public class Interpreter {
             else if (evt is GameEvent.Push)
             {
                 GameEvent.Push push = (GameEvent.Push)evt;
-                primaryRobot.Place(push.transferPos.x, push.transferPos.y);
-                Array.Find(robotControllers, (RobotController r) => r.id == push.victim).Place(push.destinationPos.x, push.destinationPos.y);
+                primaryRobot.displayMove(push.transferPos);
+                Array.Find(robotControllers, (RobotController r) => r.id == push.victim).displayMove(push.destinationPos);
             }
             else if (evt is GameEvent.Miss)
             {
@@ -181,7 +180,8 @@ public class Interpreter {
             else if (evt is GameEvent.Death)
             {
                 GameEvent.Death death = (GameEvent.Death)evt;
-                primaryRobot.Place(death.returnLocation.x, death.returnLocation.y);
+                primaryRobot.displayMove(death.returnLocation);
+                uiController.UpdateAttributes(death.primaryRobotId, death.returnHealth, -1);
             }
             else if (evt is GameEvent.Poison)
             {
@@ -190,8 +190,7 @@ public class Interpreter {
             else if (evt is GameEvent.Damage)
             {
                 GameEvent.Damage dmg = (GameEvent.Damage)evt;
-                RobotController victim = Array.Find(robotControllers, (RobotController r) => r.id == dmg.primaryRobotId);
-                victim.SetHealth(dmg.remainingHealth);
+                uiController.UpdateAttributes(dmg.primaryRobotId, dmg.remainingHealth, -1);
             }
             else
             {
