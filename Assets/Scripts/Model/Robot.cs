@@ -98,9 +98,9 @@ public class Robot
         switch (orientation)
         {
             case Orientation.NORTH:
-                return Vector2Int.down;
-            case Orientation.SOUTH:
                 return Vector2Int.up;
+            case Orientation.SOUTH:
+                return Vector2Int.down;
             case Orientation.WEST:
                 return Vector2Int.left;
             case Orientation.EAST:
@@ -130,16 +130,16 @@ public class Robot
         switch (dir)
         {
             case Command.Direction.UP:
-                orientation = (isPrimary ? Orientation.SOUTH : Orientation.NORTH);
+                orientation = Orientation.NORTH;
                 break;
             case Command.Direction.DOWN:
-                orientation = (isPrimary ? Orientation.NORTH : Orientation.SOUTH);
+                orientation = Orientation.SOUTH;
                 break;
             case Command.Direction.LEFT:
-                orientation = (isPrimary ? Orientation.EAST : Orientation.WEST);
+                orientation = Orientation.WEST;
                 break;
             case Command.Direction.RIGHT:
-                orientation = (isPrimary ? Orientation.WEST : Orientation.EAST);
+                orientation = Orientation.EAST;
                 break;
         }
         evt.destinationDir = orientation;

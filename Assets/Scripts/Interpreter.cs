@@ -97,7 +97,6 @@ public class Interpreter {
         if (GameConstants.LOCAL_MODE)
         {
             uiController.Flip();
-            boardController.Flip();
         }
         if (!GameConstants.LOCAL_MODE && !myturn)
         {
@@ -116,8 +115,10 @@ public class Interpreter {
             List<Command> robotCommands = robot.GetCommands();
             foreach (Command cmd in robotCommands)
             {
-                cmd.robotId = robot.id;
-                commands.Add(cmd);
+                Command c = cmd;
+                if (!isPrimary || !myturn) c = Util.Flip(c);
+                c.robotId = robot.id;
+                commands.Add(c);
             }
             robot.ClearRobotCommands();
         }

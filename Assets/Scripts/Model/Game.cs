@@ -26,7 +26,7 @@ public class Game
             r.queueSpot = i;
             r.position = board.GetQueuePosition(r.queueSpot, isPrimary);
             board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-            r.orientation = isPrimary ? Robot.Orientation.SOUTH : Robot.Orientation.NORTH;
+            r.orientation = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;
             robots[i] = r;
         }
         allRobots = new Robot[allRobots.Length + robots.Length];
@@ -221,10 +221,10 @@ public class Game
             switch (c.direction)
             {
                 case Command.Direction.UP:
-                    diff = Vector2Int.down;
+                    diff = Vector2Int.up;
                     break;
                 case Command.Direction.DOWN:
-                    diff = Vector2Int.up;
+                    diff = Vector2Int.down;
                     break;
                 case Command.Direction.LEFT:
                     diff = Vector2Int.left;
@@ -232,10 +232,6 @@ public class Game
                 case Command.Direction.RIGHT:
                     diff = Vector2Int.right;
                     break;
-            }
-            if (c.owner.Equals(primary.name))
-            {
-                diff = new Vector2Int(-diff.x, -diff.y);
             }
             idsToDiffs[c.robotId] = diff;
         });

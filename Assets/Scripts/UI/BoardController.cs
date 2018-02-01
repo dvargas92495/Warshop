@@ -44,11 +44,5 @@ public class BoardController : MonoBehaviour {
         TileController loc = allLocations[y][x];
         robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, GameConstants.ROBOTZ);
     }
-    
-    public void Flip()
-    {
-        float oldx = transform.position.x;
-        transform.position = new Vector3(-oldx - 5.5f, 0);
-    }
 
 }

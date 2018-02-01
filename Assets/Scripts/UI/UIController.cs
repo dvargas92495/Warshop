@@ -9,12 +9,22 @@ using TMPro;
 public class UIController : MonoBehaviour {
 
 	public Image BackgroundPanel;
-    private GameObject OpponentsRobots;
-    private GameObject UsersRobots;
-    private GameObject PlayerTurnTextObject;
-	private GameObject PlayerAPanel;
-	private GameObject PlayerBPanel;
-	private GameObject robotInfoPanel;
+
+    public TMP_Text opponentNameText;
+    public TMP_Text opponentScore;
+    public GameObject OpponentsRobots;
+    public GameObject opponentRobotPanel;
+
+    public TMP_Text userNameText;
+    public TMP_Text userScore;
+    public GameObject UsersRobots;
+    public GameObject userRobotPanel;
+
+    public Button SubmitCommands;
+
+
+
+    private GameObject robotInfoPanel;
 	private GameObject robotInfoPanelRobotName;
 	private GameObject robotInfoPanelRobotSprite;
 	private GameObject robotInfoPanelRobotAttributes;
@@ -28,16 +38,12 @@ public class UIController : MonoBehaviour {
     public Text placeholder;
     public GameObject modalPanelObject;
     public Button cancelButton;
-    public GameObject opponentRobotPanel;
-    public GameObject userRobotPanel;
     public Sprite[] sprites;
     public Camera boardCamera;
 
 	private GameObject robotImagePanel;
 
-	private string[] playerNames;
 	private Sprite robotSprite;
-    private bool myTurn;
 
     void Start()
     {
@@ -55,168 +61,53 @@ public class UIController : MonoBehaviour {
         }
     }
 
-
-
     //Loads the UICanvas and it's child components
     public void InitializeUICanvas(Game.Player[] playerObjects)
     {
         // Set Opponent Player Panel & Robots
-        OpponentsRobots = GameObject.Find("OpponentRobots");
-        SetOpponentPlayerPanel(playerObjects[1], OpponentsRobots.transform);
+        SetOpponentPlayerPanel(playerObjects[1]);
 
         // Set User Player Panel & Robots
-        UsersRobots = GameObject.Find("UserRobots");
-        SetUsersPlayerPanel(playerObjects[0], UsersRobots.transform);
+        SetUsersPlayerPanel(playerObjects[0]);
 
+        SubmitCommands.onClick.AddListener(() =>
+        {
+            Interpreter.SubmitActions();
+            submittedActions.Clear();
+        });
 
-
-
-
-        //TMP_Text  playerTurnText = getChildTMP_Text(BackgroundPanel, "PlayerTurnText");
-
-        //// playerturntextobject = getchildgameobject (backgroundpanel, "playerturntext");
-
-        //PlayerAPanel = getChildGameObject(BackgroundPanel, "PlayerAPanel");
-        //PlayerBPanel = getChildGameObject(BackgroundPanel, "PlayerBPanel");
-        //GameObject[] playerPanels = { PlayerAPanel, PlayerBPanel };
-
-        //// set the components of the uicanvas
-        //SetPlayerTurnText(playerTurnText, playerTurnObjects[0]);
-        //SetPlayerPanels(playerPanels, playerTurnObjects);
-
+        SetBattery(playerObjects[0].battery, playerObjects[1].battery);
     }
 
-    void SetOpponentPlayerPanel(Game.Player opponentPlayer, Transform parentObject)
+    void SetOpponentPlayerPanel(Game.Player opponentPlayer)
     {
-        TMP_Text opponentNameText = getChildTMP_Text(BackgroundPanel.gameObject, "OpponentNameText");
         opponentNameText.SetText(opponentPlayer.name + "'s Robots:");
-
         for (int i = 0; i < opponentPlayer.team.Length; i++)
         {
-           GameObject opponentRobot = Instantiate(opponentRobotPanel, parentObject);
-           opponentRobot.name = "Opponent" + opponentPlayer.team[i].name;
-
+            string name = opponentPlayer.team[i].name;
+            GameObject opponentRobot = Instantiate(opponentRobotPanel, OpponentsRobots.transform);
+            opponentRobot.name = "Opponent" + name;
+            opponentRobot.transform.GetChild(1).GetComponent<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(name));
+            TMP_Text[] fields = opponentRobot.GetComponentsInChildren<TMP_Text>();
+            fields[0].SetText(name);
+            fields[1].SetText(opponentPlayer.team[i].description);
         }
-
-        
     }
 
-    void SetUsersPlayerPanel(Game.Player userPlayer, Transform parentObject)
+    void SetUsersPlayerPanel(Game.Player userPlayer)
     {
-        TMP_Text userNameText = getChildTMP_Text(BackgroundPanel.gameObject, "UserNameText");
         userNameText.SetText(userPlayer.name + "'s Robots:");
-
         for (int i = 0; i < userPlayer.team.Length; i++)
         {
-            GameObject userRobot = Instantiate(userRobotPanel, parentObject);
+            string name = userPlayer.team[i].name;
+            GameObject userRobot = Instantiate(userRobotPanel.gameObject, UsersRobots.transform);
             userRobot.name = "User" + userPlayer.team[i].name;
-
+            userRobot.name = "Opponent" + name;
+            userRobot.transform.GetChild(1).GetComponent<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(name));
+            TMP_Text[] fields = userRobot.GetComponentsInChildren<TMP_Text>();
+            fields[0].SetText(name);
+            fields[1].SetText(userPlayer.team[i].description);
         }
-
-
-    }
-
-    // Set's header text of UICanvas
-    void SetPlayerTurnText(TMP_Text playerTurnText, Game.Player currentPlayer)
-	{
-		playerTurnText.SetText(currentPlayer.name + "'s Turn");
-	}
-
-	// Sets each players panels on the UICanvas (Contains robot info)
-	void SetPlayerPanels (GameObject[] PlayerPanels, Game.Player[] PlayerTurnObjects)
-	{
-        // for each playerPanel
-        // Set headertext
-        // for each robot
-        // get correct panel
-        //attach info
-        SetBattery(PlayerTurnObjects[0].battery, PlayerTurnObjects[1].battery);
-		for (int i = 0; i < PlayerPanels.Length; i++) {
-
-			TMP_Text playerPanelHeader = getChildTMP_Text(PlayerPanels [i], "Player Robots Summary");
-
-			playerPanelHeader.SetText(PlayerTurnObjects[i].name);
-
-			for (int j = 1; j < 1 + PlayerTurnObjects[i].team.Length; j++){
-				string currentRobotInfoPanel = "RobotInfoPanel (" + (j) + ")";
-				Robot currentRobot = PlayerTurnObjects[i].team[j-1];
-				robotInfoPanel = getChildGameObject(PlayerPanels[i], currentRobotInfoPanel);
-//			
-//
-//				//Robot name 
-				TMP_Text robotInfoPanelRobotText = getChildTMP_Text(robotInfoPanel, "RobotName");
-				robotInfoPanelRobotText.SetText(currentRobot.name);
-//
-				//Robot sprite
-				robotInfoPanelRobotSprite = getChildGameObject(robotInfoPanel, "RobotSprite");
-				attachRobotSprite(robotInfoPanelRobotSprite, currentRobot.name);
-//
-//				//Robot attributes
-
-				TMP_Text robotInfoPanelRobotAttributes = getChildTMP_Text (robotInfoPanel, "Attributes");
-				robotInfoPanelRobotAttributes.SetText("A: " + currentRobot.attack.ToString() + " P: " + currentRobot.priority.ToString() + " H: " + currentRobot.health.ToString());
-
-			}
-		}
-
-	}
-
-	void attachRobotSprite(GameObject robotImagePanel, string robotName){
-        robotSprite = Array.Find(sprites, (Sprite s) => s.name.StartsWith(robotName));
-		robotImagePanel.GetComponent<Image>().sprite = robotSprite;
-	}
-
-	GameObject getChildGameObject(GameObject parentGameObject, string searchName) {
-		Transform[] childGameObjects = parentGameObject.transform.GetComponentsInChildren<Transform>(true);
-		foreach (Transform transform in childGameObjects) {
-			if (transform.gameObject.name == searchName) {
-				return transform.gameObject;
-			} 
-		}
-		return null;
-	}
-
-	TMP_Text getChildTMP_Text(GameObject parentGameObject, string searchName) {
-		TMP_Text[] childGameObjects = parentGameObject.GetComponentsInChildren<TMP_Text>();
-		foreach (TMP_Text TMPtext in childGameObjects) {
-			if (TMPtext.name == searchName) {
-				return TMPtext;
-			} 
-		}
-		return null;
-	}
-
-    // Modal functions
-    public void ShowHandButtonPress()
-    {
-        
-       modalPanelObject.SetActive(true);
-       cancelButton.onClick.RemoveAllListeners();
-       cancelButton.onClick.AddListener(ClosePanel);
-
-       cancelButton.gameObject.SetActive(true);
-    }
-
-    public void SubmitActionsButtonPress()
-    {
-        Interpreter.SubmitActions();
-        submittedActions.Clear();
-    }
-
-    public void ClearActionsButtonPress()
-    {
-        submittedActions.Clear();
-    }
-
-
-
-    public void ShowQueuedActionsButtonPress()
-    {
-        formatActionsModalTextLines(submittedActions);
-        modalPanelObject.SetActive(true);
-        cancelButton.onClick.RemoveAllListeners();
-        cancelButton.onClick.AddListener(ClosePanel);
-        cancelButton.gameObject.SetActive(true);
     }
 
     public void addSubmittedCommand(Command cmd, string robotIdentifier)
@@ -227,6 +118,7 @@ public class UIController : MonoBehaviour {
         //ActionsDropdown.AddOptions(submittedActions);
     }
 
+    /*
     public void resetModal()
     {
         modalDisplayPanel = getChildGameObject(modalPanelObject, "ModalDisplay");
@@ -266,35 +158,31 @@ public class UIController : MonoBehaviour {
     {
         modalPanelObject.SetActive(false);
         resetModal();
-    }
+    }*/
 
     public void Flip()
     {
         boardCamera.transform.Rotate(new Vector3(0, 0, 180));
-        BackgroundPanel.transform.Rotate(new Vector3(0, 0, 180));
     }
 
     public void UpdateAttributes(RobotController currentRobot)
     {
-        TMP_Text robotInfoPanelRobotAttributes = getChildTMP_Text(robotInfoPanel, "Attributes");
-        robotInfoPanelRobotAttributes.SetText("A: " + currentRobot.attack.ToString() + " P: " + currentRobot.priority.ToString() + " H: " + currentRobot.health.ToString());
+        //TMP_Text robotInfoPanelRobotAttributes = getChildTMP_Text(robotInfoPanel, "Attributes");
+        //robotInfoPanelRobotAttributes.SetText("A: " + currentRobot.attack.ToString() + " P: " + currentRobot.priority.ToString() + " H: " + currentRobot.health.ToString());
     }
 
     public void SetBattery(int a, int b)
     {
-        TMP_Text aHeader = getChildTMP_Text(PlayerAPanel, "Score");
-        TMP_Text bHeader = getChildTMP_Text(PlayerBPanel, "Score");
-        aHeader.text = a.ToString();
-        bHeader.text = b.ToString();
+        userScore.SetText(a.ToString());
+        opponentScore.SetText(b.ToString());
     }
 
     public void PositionCamera(bool isPrimary)
     {
-        boardCamera.transform.position = new Vector3(Interpreter.boardController.boardCellsWide, Interpreter.boardController.boardCellsHeight);
-        //float z = -boardCamera.transform.position.z;
-        //RectTransform rect = BackgroundPanel.GetComponent<RectTransform>();
-        //boardCamera.fieldOfView = Mathf.Atan2(Interpreter.boardController.boardCellsHeight * 0.5f, z) * Mathf.Rad2Deg * 2;
-        //Vector3 bottomLeftPoint = boardCamera.ViewportToWorldPoint(new Vector3(rect.anchorMax.x, 0, z));
-        //Interpreter.boardController.transform.position = bottomLeftPoint + new Vector3(0.5f, 0.5f);
+        float x = BackgroundPanel.GetComponent<RectTransform>().anchorMax.x;
+        boardCamera.rect = new Rect(x, 0, 1 - x, 1);
+        boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-2)/2;
+        boardCamera.orthographicSize = Interpreter.boardController.boardCellsHeight / 2;
+        if (!isPrimary) Flip();
     }
 }
