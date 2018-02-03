@@ -1,4 +1,5 @@
-﻿using UnityEngine.Networking;
+﻿using UnityEngine;
+using UnityEngine.Networking;
 
 public abstract class Command
 {
@@ -30,6 +31,40 @@ public abstract class Command
         cmd.robotId = reader.ReadInt16();
         cmd.owner = reader.ReadString();
         return cmd;
+    }
+
+    internal static Vector2Int DirectionToVector(Direction d)
+    {
+        switch (d)
+        {
+            case Direction.UP:
+                return Vector2Int.up;
+            case Direction.DOWN:
+                return Vector2Int.down;
+            case Direction.LEFT:
+                return Vector2Int.left;
+            case Direction.RIGHT:
+                return Vector2Int.right;
+            default:
+                return Vector2Int.zero;
+        }
+    }
+
+    internal static Robot.Orientation DirectionToOrientation(Direction d)
+    {
+        switch (d)
+        {
+            case Direction.UP:
+                return Robot.Orientation.NORTH;
+            case Direction.DOWN:
+                return Robot.Orientation.SOUTH;
+            case Direction.LEFT:
+                return Robot.Orientation.WEST;
+            case Direction.RIGHT:
+                return Robot.Orientation.EAST;
+            default:
+                return 0;
+        }
     }
 
     public override string ToString()

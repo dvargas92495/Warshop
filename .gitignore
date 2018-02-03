@@ -5,6 +5,7 @@ obj/*
 *.sln
 *.csproj
 Assets/Confidential/*
+Assets/InitTestScene*
 ClientBuild/*
 ServerBuild/*
 UnityPackageManager/*

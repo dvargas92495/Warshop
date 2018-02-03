@@ -32,10 +32,6 @@ public class Robot
         position = Vector2Int.zero;
         orientation = Orientation.NORTH;
     }
-    public static Robot Get(Robot[] allRobots, short id)
-    {
-        return Array.Find(allRobots, (Robot r) => r.id == id);
-    }
     internal static Robot create(string robotName)
     {
         switch(robotName)
@@ -123,118 +119,50 @@ public class Robot
         SILVER = 2,
         BRONZE = 1
     }
-    internal List<GameEvent> Rotate(Command.Direction dir, bool isPrimary)
-    {
-        GameEvent.Rotate evt = new GameEvent.Rotate();
-        evt.sourceDir = orientation;
-        switch (dir)
-        {
-            case Command.Direction.UP:
-                orientation = Orientation.NORTH;
-                break;
-            case Command.Direction.DOWN:
-                orientation = Orientation.SOUTH;
-                break;
-            case Command.Direction.LEFT:
-                orientation = Orientation.WEST;
-                break;
-            case Command.Direction.RIGHT:
-                orientation = Orientation.EAST;
-                break;
-        }
-        evt.destinationDir = orientation;
-        evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ROTATE_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ROTATE_POWER);
-        return new List<GameEvent>() { evt };
-    }
     internal bool IsFacing(Vector2Int diff)
     {
         return diff.Equals(OrientationToVector(orientation));
-    }
-    internal virtual List<GameEvent> Move(Vector2Int diff, bool isPrimary)
-    {
-        GameEvent.Move evt = new GameEvent.Move();
-        evt.sourcePos = position;
-        position += diff;
-        evt.destinationPos = position;
-        evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
-        return new List<GameEvent>() { evt };
-    }
-    internal List<GameEvent> Push(Vector2Int diff, Robot victim, bool isPrimary)
-    {
-        GameEvent.Push evt = new GameEvent.Push();
-        evt.sourcePos = position;
-        position += diff;
-        evt.transferPos = position;
-        victim.position += diff;
-        evt.destinationPos = victim.position;
-        evt.victim = victim.id;
-        evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
-        return new List<GameEvent>() { evt };
     }
     internal List<Vector2Int> GetVictimLocations()
     {
         return new List<Vector2Int>() { position + OrientationToVector(orientation) };
     }
-    internal virtual List<GameEvent> Attack(Robot[] victims, bool isPrimary)
+
+    internal List<GameEvent> Rotate(Command.Direction dir, bool isPrimary)
+    {
+        GameEvent.Rotate evt = new GameEvent.Rotate();
+        evt.sourceDir = orientation;
+        evt.destinationDir = Command.DirectionToOrientation(dir);
+        evt.primaryRobotId = id;
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ROTATE_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ROTATE_POWER);
+        return new List<GameEvent>() { evt };
+    }
+    internal virtual List<GameEvent> Move(Command.Direction dir, bool isPrimary)
+    {
+        GameEvent.Move evt = new GameEvent.Move();
+        evt.sourcePos = position;
+        evt.destinationPos = position + Command.DirectionToVector(dir);
+        evt.primaryRobotId = id;
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
+        return new List<GameEvent>() { evt };
+    }
+    internal virtual List<GameEvent> Attack(bool isPrimary)
     {
         GameEvent.Attack evt = new GameEvent.Attack();
-        evt.victimIds = new short[victims.Length];
-        evt.victimHealth = new short[victims.Length];
-        for (int i = 0; i < victims.Length; i++)
-        {
-            Robot victim = victims[i];
-            evt.victimIds[i] = victim.id;
-            victim.health -= attack;
-            evt.victimHealth[i] = victim.health;
-        }
+        evt.locs = GetVictimLocations().ToArray();
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
         return new List<GameEvent>() { evt };
     }
-    internal List<GameEvent> Death(Vector2Int loc, bool isPrimary)
+    internal virtual List<GameEvent> Damage(Robot victim)
     {
-        GameEvent.Death death = new GameEvent.Death();
-        health = startingHealth;
-        position = loc;
-        death.returnLocation = loc;
-        death.returnHealth = startingHealth;
-        death.primaryRobotId = id;
-        death.primaryBattery = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)rating : 0);
-        death.secondaryBattery = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)rating);
-        return new List<GameEvent>() { death };
-    }
-
-    internal List<GameEvent> Miss(bool isPrimary)
-    {
-        GameEvent.Miss evt = new GameEvent.Miss();
-        evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
-        return new List<GameEvent>() { evt };
-    }
-    internal List<GameEvent> Battery(bool opponentsBase, bool isPrimary)
-    {
-        GameEvent.Battery evt = new GameEvent.Battery();
-        evt.opponentsBase = opponentsBase;
+        GameEvent.Damage evt = new GameEvent.Damage();
+        evt.primaryRobotId = victim.id;
         evt.damage = attack;
-        evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
-        short drain = (short)(GameConstants.DEFAULT_BATTERY_MULTIPLIER * attack);
-        if ((opponentsBase && !isPrimary) || (!opponentsBase && isPrimary))
-        {
-            evt.primaryBattery += drain;
-        } else
-        {
-            evt.secondaryBattery += drain;
-        }
+        evt.remainingHealth = (short)(victim.health - attack);
         return new List<GameEvent>() { evt };
     }
     internal virtual List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto)
@@ -259,6 +187,7 @@ public class Robot
         fail.primaryRobotId = c.robotId;
         return fail;
     }
+
     private class Slinkbot : Robot
     {
         internal const string _name = "Slinkbot";
@@ -266,18 +195,23 @@ public class Robot
         internal Slinkbot() : base(
             _name,
             _description,
-            5, 6, 1,
-            Rating.BRONZE
+            6, 4, 3,
+            Rating.SILVER
         )
         {}
 
-        internal override List<GameEvent> Move(Vector2Int diff, bool isPrimary)
+        internal override List<GameEvent> Move(Command.Direction dir, bool isPrimary)
         {
-            List<GameEvent> events = base.Move(diff, isPrimary);
+            List<GameEvent> events = base.Move(dir, isPrimary);
+            GameEvent.Move first = events[0] as GameEvent.Move;
+            Vector2Int diff = first.destinationPos - first.sourcePos;
             if (IsFacing(diff))
             {
-                position += diff;
-                ((GameEvent.Move)events[0]).destinationPos = position;
+                GameEvent.Move second = new GameEvent.Move();
+                second.primaryRobotId = first.primaryRobotId;
+                second.sourcePos = first.destinationPos;
+                second.destinationPos = first.destinationPos + diff;
+                events.Add(second);
             }
             return events;
         }
@@ -295,15 +229,12 @@ public class Robot
         )
         { }
 
-        internal override List<GameEvent> Attack(Robot[] victims, bool isPrimary)
+        internal override List<GameEvent> Damage(Robot victim)
         {
-            List<GameEvent> events = base.Attack(victims, isPrimary);
-            Array.ForEach(victims, (Robot r) =>
-            {
-                GameEvent.Poison evt = new GameEvent.Poison();
-                evt.primaryRobotId = r.id;
-                events.Add(evt);
-            });
+            List<GameEvent> events = base.Damage(victim);
+            GameEvent.Poison evt = new GameEvent.Poison();
+            evt.primaryRobotId = victim.id;
+            events.Add(evt);
             return events;
         }
     }

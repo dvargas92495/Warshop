@@ -156,11 +156,7 @@ public class Interpreter {
             }
             else if (evt is GameEvent.Attack)
             {
-                GameEvent.Attack atk = (GameEvent.Attack)evt;
-                for (int i = 0; i < atk.victimIds.Length; i++)
-                {
-                    uiController.UpdateAttributes(atk.victimIds[i],atk.victimHealth[i], -1);
-                }
+                //TODO: Attack animation?
             }
             else if (evt is GameEvent.Block)
             {
@@ -168,9 +164,7 @@ public class Interpreter {
             }
             else if (evt is GameEvent.Push)
             {
-                GameEvent.Push push = (GameEvent.Push)evt;
-                primaryRobot.displayMove(push.transferPos);
-                GetRobot(push.victim).displayMove(push.destinationPos);
+                //TODO: Push animation?
             }
             else if (evt is GameEvent.Miss)
             {
@@ -188,6 +182,7 @@ public class Interpreter {
             {
                 GameEvent.Death death = (GameEvent.Death)evt;
                 primaryRobot.displayMove(death.returnLocation);
+                primaryRobot.displayRotate(Robot.OrientationToVector(death.returnDir));
                 uiController.UpdateAttributes(death.primaryRobotId, death.returnHealth, -1);
             }
             else if (evt is GameEvent.Poison)

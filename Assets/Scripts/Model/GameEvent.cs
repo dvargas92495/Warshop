@@ -73,7 +73,12 @@ public abstract class GameEvent
     {
         return "Robot " + primaryRobotId + " " + message + " on priority " + priority + ". Battery: " + primaryBattery + "|" + secondaryBattery;
     }
-
+    public void Transfer(GameEvent g)
+    {
+        primaryRobotId = g.primaryRobotId;
+        primaryBattery = g.primaryBattery;
+        secondaryBattery = g.secondaryBattery;
+    }
     public class Empty : GameEvent
     {
         internal const byte EVENT_ID = 0;
@@ -140,34 +145,32 @@ public abstract class GameEvent
     public class Attack : GameEvent
     {
         internal const byte EVENT_ID = 3;
-        internal short[] victimIds;
-        internal short[] victimHealth;
+        internal Vector2Int[] locs; 
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(victimIds.Length);
-            for (int i = 0; i < victimIds.Length; i++)
+            writer.Write(locs.Length);
+            for (int i = 0; i < locs.Length; i++)
             {
-                writer.Write(victimIds[i]);
-                writer.Write(victimHealth[i]);
+                writer.Write(locs[i].x);
+                writer.Write(locs[i].y);
             }
         }
         public new static Attack Deserialize(NetworkReader reader)
         {
             Attack evt = new Attack();
             int length = reader.ReadInt32();
-            evt.victimIds = new short[length];
-            evt.victimHealth = new short[length];
+            evt.locs = new Vector2Int[length];
             for (int i = 0;i < length; i++)
             {
-                evt.victimIds[i] = reader.ReadInt16();
-                evt.victimHealth[i] = reader.ReadInt16();
+                evt.locs[i].x = reader.ReadInt32();
+                evt.locs[i].y = reader.ReadInt32();
             }
             return evt;
         }
         public override string ToString()
         {
-            return ToString("attacked " + string.Join(",", victimIds) + " down to " + string.Join(",", victimHealth));
+            return ToString("attacked " + string.Join(",", locs));
         }
     }
 
@@ -195,39 +198,21 @@ public abstract class GameEvent
     public class Push : GameEvent
     {
         internal const byte EVENT_ID = 5;
-        internal Vector2Int sourcePos;
-        internal Vector2Int transferPos;
-        internal Vector2Int destinationPos;
         internal short victim;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(sourcePos.x);
-            writer.Write(sourcePos.y);
-            writer.Write(transferPos.x);
-            writer.Write(transferPos.y);
-            writer.Write(destinationPos.x);
-            writer.Write(destinationPos.y);
             writer.Write(victim);
         }
         public new static Push Deserialize(NetworkReader reader)
         {
             Push evt = new Push();
-            evt.sourcePos = new Vector2Int();
-            evt.sourcePos.x = reader.ReadInt32();
-            evt.sourcePos.y = reader.ReadInt32();
-            evt.transferPos = new Vector2Int();
-            evt.transferPos.x = reader.ReadInt32();
-            evt.transferPos.y = reader.ReadInt32();
-            evt.destinationPos = new Vector2Int();
-            evt.destinationPos.x = reader.ReadInt32();
-            evt.destinationPos.y = reader.ReadInt32();
             evt.victim = reader.ReadInt16();
             return evt;
         }
         public override string ToString()
         {
-            return ToString("pushed " + victim + " from " + sourcePos + " through " + transferPos + " to " + destinationPos);
+            return ToString("pushed " + victim);
         }
     }
 
@@ -298,12 +283,14 @@ public abstract class GameEvent
     {
         internal const byte EVENT_ID = 9;
         internal Vector2Int returnLocation;
+        internal Robot.Orientation returnDir;
         internal short returnHealth;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
             writer.Write(returnLocation.x);
             writer.Write(returnLocation.y);
+            writer.Write((byte)returnDir);
             writer.Write(returnHealth);
         }
         public new static Death Deserialize(NetworkReader reader)
@@ -312,6 +299,7 @@ public abstract class GameEvent
             evt.returnLocation = new Vector2Int();
             evt.returnLocation.x = reader.ReadInt32();
             evt.returnLocation.y = reader.ReadInt32();
+            evt.returnDir = (Robot.Orientation)reader.ReadByte();
             evt.returnHealth = reader.ReadInt16();
             return evt;
         }

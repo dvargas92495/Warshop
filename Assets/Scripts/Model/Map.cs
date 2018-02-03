@@ -64,10 +64,20 @@ public class Map
         return map;
     }
 
+    public Space VecToSpace(Vector2Int v)
+    {
+        return VecToSpace(v.x,v.y);
+    }
+
+    public Space VecToSpace(int x, int y)
+    {
+        if (y < 0 || y >= Height || x < 0 || x >= Width) return null;
+        return spaces[y * Width + x];
+    }
+
     public short GetIdOnSpace(Vector2Int v)
     {
-        if (v.y < 0 || v.y >= Height || v.x < 0 || v.x >= Width) return -1;
-        return GetIdOnSpace(spaces[v.y * Width + v.x]);
+        return GetIdOnSpace(VecToSpace(v));
     }
 
     public short GetIdOnSpace(Space s)
@@ -84,7 +94,8 @@ public class Map
 
     public Space.SpaceType getSpaceType(int x, int y)
     {
-        return spaces[y * Width + x].spaceType;
+        if (VecToSpace(x, y) == null) return Space.SpaceType.NULL;
+        return VecToSpace(x,y).spaceType;
     }
 
     public Vector2Int GetQueuePosition(byte i, bool isPrimary)
@@ -96,7 +107,7 @@ public class Map
 
     public bool IsSpaceOccupied(Vector2Int v)
     {
-        return IsSpaceOccupied(spaces[v.y * Width + v.x]);
+        return IsSpaceOccupied(VecToSpace(v));
     }
 
     public bool IsSpaceOccupied(Space s)
@@ -105,7 +116,11 @@ public class Map
     }
 
     internal void UpdateObjectLocation(int x, int y, short objectId) {
-        objectLocations[objectId] = spaces[y*Width + x];
+        objectLocations[objectId] = VecToSpace(x,y);
+    }
+    internal void RemoveObjectLocation(short objectId)
+    {
+        objectLocations.Remove(objectId);
     }
 
     public class Space
@@ -153,7 +168,8 @@ public class Map
             BLANK,
             SPAWN,
             PRIMARY_QUEUE,
-            SECONDARY_QUEUE
+            SECONDARY_QUEUE,
+            NULL
         }
         public void Serialize(NetworkWriter writer)
         {

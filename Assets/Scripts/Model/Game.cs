@@ -152,24 +152,10 @@ public class Game
             HashSet<Command> currentCmds = priorityToCommands[p];
             List<GameEvent> priorityEvents = new List<GameEvent>();
 
-            HashSet<Command.Rotate> rotateCmds = new HashSet<Command.Rotate>(currentCmds.Where((Command c) => c is Command.Rotate).Select((Command c) => (Command.Rotate)c));
-            IEnumerable<GameEvent> rotateEvents = processRotateCommands(rotateCmds, robotIdToTurnObject);
-            priorityEvents.AddRange(rotateEvents);
-
-            HashSet<Command.Move> movCmds = new HashSet<Command.Move>(currentCmds.Where((Command c) => c is Command.Move).Select((Command c) => (Command.Move)c));
-            IEnumerable<GameEvent> movEvents = processMoveCommands(movCmds, robotIdToTurnObject);
-            priorityEvents.AddRange(movEvents);
-
-            HashSet<Command.Attack> attackCmds = new HashSet<Command.Attack>(currentCmds.Where((Command c) => c is Command.Attack).Select((Command c) => (Command.Attack)c));
-            IEnumerable<GameEvent> attackEvents = processAttackCommands(attackCmds, robotIdToTurnObject);
-            priorityEvents.AddRange(attackEvents);
-
-            HashSet<Command.Special> specialCmds = new HashSet<Command.Special>(currentCmds.Where((Command c) => c is Command.Special).Select((Command c) => (Command.Special)c));
-            IEnumerable<GameEvent> specialEvents = processSpecialCommands(specialCmds, robotIdToTurnObject);
-            priorityEvents.AddRange(specialEvents);
-
-            priorityEvents.AddRange(processPriorityFinish(primary.team, true));
-            priorityEvents.AddRange(processPriorityFinish(secondary.team, false));
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Rotate)));
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Move)));
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Attack)));
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Special)));
 
             processBatteryLoss(priorityEvents, p);
             events.AddRange(priorityEvents);
@@ -182,256 +168,55 @@ public class Game
         return events;
     }
 
-    private List<GameEvent> processRotateCommands(HashSet<Command.Rotate> rotateCmds, Dictionary<short, RobotTurnObject> robotIdToTurnObject)
+    private List<GameEvent> processCommands(HashSet<Command> allCommands, Dictionary<short, RobotTurnObject> robotIdToTurnObject, Type t)
     {
         List<GameEvent> events = new List<GameEvent>();
-        rotateCmds.ToList().ForEach((Command.Rotate c) => {
-            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
-            List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]);
-            if (evts.Count == 0)
-            {
-                events.AddRange(primaryRobot.Rotate(c.direction, c.owner.Equals(primary.name)));
-            } else
-            {
-                events.AddRange(evts);
-            }
-        });
-        return events;
-    }
-
-    private List<GameEvent> processMoveCommands(HashSet<Command.Move> moves, Dictionary<short, RobotTurnObject> robotIdToTurnObject)
-    {
-        List<GameEvent> events = new List<GameEvent>();
-
-        moves.ToList().ForEach((Command.Move c) =>
+        HashSet<Command> commands = new HashSet<Command>(allCommands.Where((Command c) => c.GetType().Equals(t)));
+        commands.ToList().ForEach((Command c) =>
         {
-            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
+            Robot primaryRobot = GetRobot(c.robotId);
             List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]);
             if (evts.Count > 0)
             {
                 events.AddRange(evts);
-                moves.Remove(c);
+                commands.Remove(c);
             }
         });
 
-        Dictionary<short, Vector2Int> idsToDiffs = new Dictionary<short, Vector2Int>();
-        moves.ToList().ForEach((Command.Move c) =>
+        Dictionary<short, List<GameEvent>> idsToWantedEvents = new Dictionary<short, List<GameEvent>>();
+        commands.ToList().ForEach((Command c) =>
         {
-            Vector2Int diff = Vector2Int.zero;
-            switch (c.direction)
+            Robot primaryRobot = GetRobot(c.robotId);
+            bool isPrimary = c.owner.Equals(primary.name);
+            if (c is Command.Rotate)
             {
-                case Command.Direction.UP:
-                    diff = Vector2Int.up;
-                    break;
-                case Command.Direction.DOWN:
-                    diff = Vector2Int.down;
-                    break;
-                case Command.Direction.LEFT:
-                    diff = Vector2Int.left;
-                    break;
-                case Command.Direction.RIGHT:
-                    diff = Vector2Int.right;
-                    break;
-            }
-            idsToDiffs[c.robotId] = diff;
-        });
-        Dictionary<short, short> pusherIdsToPushee = new Dictionary<short, short>();
-        idsToDiffs.Keys.ToList().ForEach((short key) =>
-        {
-            Robot primaryRobot = Robot.Get(allRobots, key);
-            Vector2Int newspace = primaryRobot.position + idsToDiffs[key];
-            short pushId = board.GetIdOnSpace(newspace);
-            if (
-            pushId >= 0 &&
-            !idsToDiffs.ContainsKey(pushId) &&
-            primaryRobot.IsFacing(idsToDiffs[key]) &&
-            !Robot.Get(allRobots, pushId).IsFacing(Util.Flip(idsToDiffs[key]))
-            ) // A pushed robot
+                idsToWantedEvents[c.robotId] = primaryRobot.Rotate(((Command.Rotate)c).direction, isPrimary);
+            } else if (c is Command.Move)
             {
-                pusherIdsToPushee[key] = pushId;
+                board.RemoveObjectLocation(c.robotId);
+                idsToWantedEvents[c.robotId] = primaryRobot.Move(((Command.Move)c).direction, isPrimary);
+            } else if (c is Command.Attack)
+            {
+                if (board.GetQueuePosition(primaryRobot.queueSpot, isPrimary).Equals(primaryRobot.position)) events.Add(primaryRobot.Fail(c));
+                else idsToWantedEvents[c.robotId] = primaryRobot.Attack(isPrimary);
             }
         });
-        pusherIdsToPushee.Keys.ToList().ForEach((short key) => idsToDiffs[pusherIdsToPushee[key]] = idsToDiffs[key]);
 
-        Array.ForEach(board.spaces, (Map.Space s) => {
-            Dictionary<short, bool> idsWantSpace = new Dictionary<short, bool>();
-            idsToDiffs.Keys.ToList().ForEach((short key) => {
-                Robot primaryRobot = Robot.Get(allRobots, key);
-                Vector2 newspace = primaryRobot.position + idsToDiffs[key];
-                if (newspace.x == s.x && newspace.y == s.y)
-                {
-                    idsWantSpace[key] = (idsToDiffs[key].Equals(Robot.OrientationToVector(primaryRobot.orientation)) && moves.Any((Command.Move c) => c.robotId == key));
-                }
+        bool valid = false;
+        while (!valid)
+        {
+            valid = true;
+            idsToWantedEvents.Keys.ToList().ForEach((short id) =>
+            {
+                valid = Validate(idsToWantedEvents[id]);
             });
-            if (idsWantSpace.Count > 1)
-            {
-                List<short> facing = idsWantSpace.Keys.ToList().FindAll((short key) => idsWantSpace[key]);
-                string blocker = "";
-                if (facing.Count == 1)
-                {
-                    Robot winner = Robot.Get(allRobots, facing[0]);
-                    idsWantSpace.Remove(winner.id);
-                    blocker = winner.name;
-                }
-                else
-                {
-                    blocker = "Each Other";
-                }
-                if (board.IsSpaceOccupied(s))
-                {
-                    blocker = Robot.Get(allRobots, board.GetIdOnSpace(s)).name;
-                }
-                moves.RemoveWhere((Command.Move c) => {
-                    if (idsWantSpace.ContainsKey(c.robotId) || (pusherIdsToPushee.ContainsKey(c.robotId) && idsWantSpace.ContainsKey(pusherIdsToPushee[c.robotId])))
-                    {
-                        GameEvent.Block evt = new GameEvent.Block();
-                        evt.primaryRobotId = c.robotId;
-                        evt.blockingObject = blocker;
-                        evt.primaryBattery = (c.owner.Equals(primary.name) ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
-                        evt.secondaryBattery = (c.owner.Equals(primary.name) ? (short)0:GameConstants.DEFAULT_MOVE_POWER);
-                        events.Add(evt);
-                        return true;
-                    }
-                    return false;
-                });
-            }
-        });
-        HashSet<Robot> robotLocationsToUpdate = new HashSet<Robot>();
-        moves.ToList().ForEach((Command.Move c) =>
-        {
-            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
-            Vector2Int diff = idsToDiffs[c.robotId];
-
-            Vector2Int newspace = primaryRobot.position + diff;
-            Action<string> generateBlockEvent = (string s) =>
-            {
-                GameEvent.Block evt = new GameEvent.Block();
-                evt.primaryRobotId = c.robotId;
-                evt.blockingObject = s;
-                evt.primaryBattery = (c.owner.Equals(primary.name) ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
-                evt.secondaryBattery = (c.owner.Equals(primary.name) ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
-                events.Add(evt);
-                moves.Remove(c);
-            };
-            Func<Vector2Int, short, bool, bool> itIsBlocked = (Vector2Int v, short rid, bool softMove) =>
-            {
-                if (v.x < 0 || v.x >= board.Width || v.y < 0 || v.y >= board.Height)
-                 {
-                     generateBlockEvent("Wall");
-                     return true;
-                 }
-                Map.Space space = board.spaces[v.y * board.Width + v.x];
-                if (space.spaceType == Map.Space.SpaceType.VOID)
-                 {
-                     generateBlockEvent("Wall");
-                     return true;
-                 }
-                if (space.spaceType == Map.Space.SpaceType.PRIMARY_BASE || space.spaceType == Map.Space.SpaceType.SECONDARY_BASE)
-                 {
-                     generateBlockEvent("Base");
-                     return true;
-                 }
-                if (space.spaceType == Map.Space.SpaceType.PRIMARY_QUEUE || space.spaceType == Map.Space.SpaceType.SECONDARY_QUEUE)
-                 {
-                     generateBlockEvent("Queue");
-                     return true;
-                 }
-                if (
-                board.IsSpaceOccupied(space) && 
-                (softMove || Robot.Get(allRobots, board.GetIdOnSpace(space)).IsFacing(Util.Flip(idsToDiffs[rid]))) && //TODO: This is ugly. Should be able to do blocks above
-                !idsToDiffs.ContainsKey(board.GetIdOnSpace(space))
-                )
-                {
-                    generateBlockEvent(Robot.Get(allRobots, board.GetIdOnSpace(space)).name);
-                    return true;
-                }
-                return false;
-            };
-            if (itIsBlocked(newspace, primaryRobot.id, !primaryRobot.IsFacing(idsToDiffs[primaryRobot.id]))){
-                return;
-            }
-            if (
-                board.IsSpaceOccupied(newspace) &&
-                pusherIdsToPushee.ContainsKey(primaryRobot.id) &&
-                pusherIdsToPushee[primaryRobot.id] == board.GetIdOnSpace(newspace)
-            )
-            {
-                Robot currentBot = Robot.Get(allRobots, board.GetIdOnSpace(newspace));
-                if (!itIsBlocked(newspace + diff, currentBot.id, true))
-                {
-                    events.AddRange(primaryRobot.Push(diff, currentBot, c.owner.Equals(primary.name)));
-                    robotLocationsToUpdate.Add(currentBot);
-                    robotLocationsToUpdate.Add(primaryRobot);
-                }
-            }
-            else
-            {
-                events.AddRange(primaryRobot.Move(diff, c.owner.Equals(primary.name)));
-                robotLocationsToUpdate.Add(primaryRobot);
-            }
-        });
-
-        robotLocationsToUpdate.ToList().ForEach(((Robot r) => {
-            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-        }));
-
-        return events;
-    }
-
-    private List<GameEvent> processAttackCommands(HashSet<Command.Attack> attackCmds, Dictionary<short, RobotTurnObject> robotIdToTurnObject)
-    {
-        List<GameEvent> events = new List<GameEvent>();
-        attackCmds.ToList().ForEach(((Command.Attack c) => {
-            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
-            List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]);
-            if (evts.Count == 0)
-            {
-                List<Vector2Int> locs = primaryRobot.GetVictimLocations();
-                locs.ForEach((Vector2Int v) =>
-                {
-                    bool isPrimary = c.owner.Equals(primary.name);
-                    if (board.getSpaceType(v.x, v.y) == Map.Space.SpaceType.PRIMARY_BASE)
-                    {
-                        evts.AddRange(primaryRobot.Battery(!isPrimary, isPrimary));
-                    }
-                    else if (board.getSpaceType(v.x, v.y) == Map.Space.SpaceType.SECONDARY_BASE)
-                    {
-                        evts.AddRange(primaryRobot.Battery(isPrimary, isPrimary));
-                    }
-                });
-                Robot[] victims = Array.FindAll(allRobots, (robot) => locs.Contains(robot.position));
-                if (victims.Length == 0 && evts.Count == 0)
-                {
-                    evts.AddRange(primaryRobot.Miss(c.owner.Equals(primary.name)));
-                }
-                else if (victims.Length > 0)
-                {
-                    evts.AddRange(primaryRobot.Attack(victims, c.owner.Equals(primary.name)));
-                }
-            }
-            events.AddRange(evts);
-        }));
-        events.ForEach((GameEvent e) =>
-        {
-            if (e is GameEvent.Poison)
-            {
-                GameEvent.Damage evt = new GameEvent.Damage();
-                evt.primaryRobotId = e.primaryRobotId;
-                evt.damage = 1;
-                endOfTurnEvents.Add(evt);
-            }
-        });
-        return events;
-    }
-
-    private List<GameEvent> processSpecialCommands(HashSet<Command.Special> specials, Dictionary<short, RobotTurnObject> robotIdToTurnObject)
-    {
-        List<GameEvent> events = new List<GameEvent>();
-        specials.ToList().ForEach((Command.Special c) =>
-        {
-            Robot primaryRobot = Robot.Get(allRobots, c.robotId);
-            events.AddRange(primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]));
-        });
+            if (!valid) continue;
+            valid = AreValidTogether(idsToWantedEvents);
+        }
+        idsToWantedEvents.Values.ToList().ForEach(events.AddRange);
+        events.ForEach(Update);
+        events.AddRange(processPriorityFinish(primary.team, true));
+        events.AddRange(processPriorityFinish(secondary.team, false));
         return events;
     }
 
@@ -443,9 +228,16 @@ public class Game
             if (r.health <= 0)
             {
                 Vector2Int v = board.GetQueuePosition(r.queueSpot, isPrimary);
-                evts.AddRange(r.Death(v, isPrimary));
+                GameEvent.Death death = new GameEvent.Death();
+                r.health = death.returnHealth = r.startingHealth;
+                r.position = death.returnLocation = v;
+                r.orientation = death.returnDir = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;
+                death.primaryRobotId = r.id;
+                death.primaryBattery = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating : 0);
+                death.secondaryBattery = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
                 board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
                 endOfTurnEvents.RemoveAll((GameEvent e) => e.primaryRobotId == r.id);
+                evts.Add(death);
             }
         });
         return evts;
@@ -459,7 +251,7 @@ public class Game
             if (e is GameEvent.Damage)
             {
                 GameEvent.Damage damageEvent = (GameEvent.Damage)e;
-                Robot victim = Robot.Get(allRobots, e.primaryRobotId);
+                Robot victim = GetRobot(e.primaryRobotId);
                 victim.health -= damageEvent.damage;
                 damageEvent.remainingHealth = victim.health;
                 damageEvent.primaryBattery = damageEvent.secondaryBattery = 0;
@@ -479,5 +271,256 @@ public class Game
             secondary.battery -= e.secondaryBattery;
             e.secondaryBattery = secondary.battery;
         });
+    }
+
+    private bool Validate(List<GameEvent> events)
+    {
+        bool valid = true;
+        events.ToList().ForEach((GameEvent g) =>
+        {
+            if (valid) valid = valid && Validate(events, g);
+            else Invalidate(g);
+        });
+        return valid;
+    }
+
+    private bool Validate(List<GameEvent> events, GameEvent g)
+    {
+        if (g is GameEvent.Move) return Validate(events, (GameEvent.Move)g);
+        else if (g is GameEvent.Push) return Validate(events, (GameEvent.Push)g);
+        else if (g is GameEvent.Attack) return Validate(events, (GameEvent.Attack)g);
+        return true;
+    }
+
+    private bool Validate(List<GameEvent> events, GameEvent.Move g)
+    {
+        int index = events.IndexOf(g);
+        if (events.Count > index + 1 && events[index + 1] is GameEvent.Push) return true;
+        Func<string, bool> generateBlockEvent = (string s) =>
+        {
+            GameEvent.Block evt = new GameEvent.Block();
+            evt.Transfer(g);
+            evt.blockingObject = s;
+            board.UpdateObjectLocation(g.sourcePos.x, g.sourcePos.y, g.primaryRobotId);
+            events.RemoveAt(index);
+            events.Insert(index, evt);
+            return false;
+        };
+        if (g.destinationPos.x < 0 || g.destinationPos.x >= board.Width || g.destinationPos.y < 0 || g.destinationPos.y >= board.Height)
+        {
+            return generateBlockEvent("Wall");
+        }
+        Map.Space space = board.VecToSpace(g.destinationPos);
+        if (space.spaceType == Map.Space.SpaceType.VOID)
+        {
+            return generateBlockEvent("Wall");
+        }
+        if (space.spaceType == Map.Space.SpaceType.PRIMARY_BASE || space.spaceType == Map.Space.SpaceType.SECONDARY_BASE)
+        {
+            return generateBlockEvent("Battery");
+        }
+        if (space.spaceType == Map.Space.SpaceType.PRIMARY_QUEUE || space.spaceType == Map.Space.SpaceType.SECONDARY_QUEUE)
+        {
+            return generateBlockEvent("Queue");
+        }
+        if (board.IsSpaceOccupied(space))
+        {
+            Vector2Int diff = g.destinationPos - g.sourcePos;
+            Robot occupant = GetRobot(board.GetIdOnSpace(space));
+            if (
+                g.primaryRobotId == events[0].primaryRobotId &&
+                GetRobot(g.primaryRobotId).IsFacing(diff) &&
+                !occupant.IsFacing(Util.Flip(diff))
+            )
+            {
+                GameEvent.Push push = new GameEvent.Push();
+                push.primaryRobotId = g.primaryRobotId;
+                push.victim = occupant.id;
+                events.Add(push);
+                GameEvent.Move move = new GameEvent.Move();
+                move.primaryRobotId = occupant.id;
+                move.sourcePos = g.destinationPos;
+                move.destinationPos = g.destinationPos + diff;
+                board.RemoveObjectLocation(occupant.id);
+                events.Add(move);
+                return false;
+            }
+            else
+            {
+               return generateBlockEvent(occupant.name);
+            }
+        }
+        return true;
+    }
+
+    private bool Validate(List<GameEvent> events, GameEvent.Push g)
+    {
+        int index = events.IndexOf(g);
+        if (events.Count > index + 1 && events[index + 1] is GameEvent.Block)
+        {
+            GameEvent.Block block = new GameEvent.Block();
+            block.blockingObject = ((GameEvent.Block)events[index+1]).blockingObject;
+            GameEvent.Move original = (GameEvent.Move)events[index - 1];
+            block.Transfer(original);
+            board.UpdateObjectLocation(original.sourcePos.x, original.sourcePos.y, original.primaryRobotId);
+            events.RemoveRange(index - 1, 3);
+            events.Add(block);
+            return false;
+        }
+        return true;
+    }
+
+    private bool Validate(List<GameEvent> events, GameEvent.Attack g)
+    {
+        int index = events.IndexOf(g);
+        if (events.Count > index + 1 && (events[index + 1] is GameEvent.Battery || events[index+1] is GameEvent.Miss || events[index+1] is GameEvent.Damage)) return true;
+        Robot attacker = GetRobot(g.primaryRobotId);
+        bool hitABattery = false;
+        g.locs.ToList().ForEach((Vector2Int v) =>
+        {
+            Map.Space.SpaceType st = board.getSpaceType(v.x, v.y);
+            if (st == Map.Space.SpaceType.PRIMARY_BASE || st == Map.Space.SpaceType.SECONDARY_BASE)
+            {
+                bool isPrimary = primary.team.Contains(attacker);
+                bool isPrimaryBase = st == Map.Space.SpaceType.PRIMARY_BASE;
+                GameEvent.Battery evt = new GameEvent.Battery();
+                evt.opponentsBase = (isPrimary && !isPrimaryBase) || (!isPrimary && isPrimaryBase);
+                evt.primaryRobotId = g.primaryRobotId;
+                evt.damage = attacker.attack;
+                short drain = (short)(GameConstants.DEFAULT_BATTERY_MULTIPLIER * attacker.attack);
+                evt.primaryBattery += isPrimaryBase ? drain : (short)0;
+                evt.secondaryBattery += isPrimaryBase ? (short)0: drain;
+                events.Insert(index + 1, evt);
+                hitABattery = true;
+            } else if (st == Map.Space.SpaceType.PRIMARY_QUEUE || st == Map.Space.SpaceType.SECONDARY_QUEUE)
+            {
+                g.locs = g.locs.Where((Vector2Int vv) => !vv.Equals(v)).ToArray();
+            }
+        });
+        Robot[] victims = Array.FindAll(allRobots, (robot) => g.locs.Contains(robot.position));
+        if (victims.Length == 0 && !hitABattery)
+        {
+            GameEvent.Miss evt = new GameEvent.Miss();
+            evt.primaryRobotId = g.primaryRobotId;
+            events.Insert(index + 1, evt);
+        }
+        else if (victims.Length > 0)
+        {
+            Array.ForEach(victims, (Robot r) =>
+            {
+                List<GameEvent> evts = attacker.Damage(r);
+                events.InsertRange(index + 1, evts);
+            });
+        }
+        return true;
+    }
+
+    private bool AreValidTogether(Dictionary<short, List<GameEvent>> idsToWantedEvents)
+    {
+        Dictionary<Vector2Int, List<short>> spaceToIds = new Dictionary<Vector2Int, List<short>>();
+        idsToWantedEvents.Keys.ToList().ForEach((short key) =>
+        {
+            Robot primaryRobot = GetRobot(key);
+            idsToWantedEvents[key].ForEach((GameEvent e) =>
+            {
+                if (e is GameEvent.Move)
+                {
+                    Vector2Int newspace = ((GameEvent.Move)e).destinationPos;
+                    if (spaceToIds.ContainsKey(newspace)) spaceToIds[newspace].Add(key);
+                    else spaceToIds[newspace] = new List<short>() { key };
+                }
+            });
+        });
+        bool valid = true;
+        spaceToIds.Keys.ToList().ForEach((Vector2Int space) =>
+        {
+            List<short> idsWantSpace = spaceToIds[space];
+            if (idsWantSpace.Count > 1)
+            {
+                valid = false;
+                List<short> facing = idsWantSpace.FindAll((short key) => {
+                    GameEvent.Move g = idsToWantedEvents[key].Find((GameEvent e) => e is GameEvent.Move && ((GameEvent.Move)e).destinationPos.Equals(space)) as GameEvent.Move;
+                    return g.primaryRobotId == key && GetRobot(key).IsFacing(g.destinationPos - g.sourcePos);
+                });
+                string blocker = "";
+                if (facing.Count == 1)
+                {
+                    Robot winner = GetRobot(facing[0]);
+                    idsWantSpace.Remove(winner.id);
+                    blocker = winner.name;
+                }
+                else
+                {
+                    blocker = "Each Other"; //TODO: Better label
+                }
+                idsWantSpace.ForEach((short key) =>
+                {
+                    List<GameEvent> wanted = idsToWantedEvents[key];
+                    GameEvent.Block block = new GameEvent.Block();
+                    block.blockingObject = blocker;
+                    GameEvent.Move original = wanted.Find((GameEvent e) => e is GameEvent.Move && ((GameEvent.Move)e).destinationPos.Equals(space)) as GameEvent.Move;
+                    block.Transfer(original);
+                    board.UpdateObjectLocation(original.sourcePos.x, original.sourcePos.y, original.primaryRobotId);
+                    int index = wanted.IndexOf(original);
+                    int size = wanted.Count - index;
+                    wanted.GetRange(index, size).ForEach(Invalidate);
+                    wanted.RemoveRange(index, size);
+                    wanted.Add(block);
+                });
+            }
+        });
+        return valid;
+    }
+
+    private void Invalidate(GameEvent g)
+    {
+        if (g is GameEvent.Move) Invalidate((GameEvent.Move)g);
+    }
+
+    private void Invalidate(GameEvent.Move g)
+    {
+        board.UpdateObjectLocation(g.sourcePos.x, g.sourcePos.y, g.primaryRobotId);
+    }
+
+    private void Update(GameEvent g)
+    {
+        if (g is GameEvent.Move) Update((GameEvent.Move)g);
+        else if (g is GameEvent.Rotate) Update((GameEvent.Rotate)g);
+        else if (g is GameEvent.Damage) Update((GameEvent.Damage)g);
+        else if (g is GameEvent.Poison) Update((GameEvent.Poison)g);
+    }
+
+    private void Update(GameEvent.Move g)
+    {
+        Robot r = GetRobot(g.primaryRobotId);
+        r.position = g.destinationPos;
+        board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
+    }
+
+    private void Update(GameEvent.Rotate g)
+    {
+        Robot r = GetRobot(g.primaryRobotId);
+        r.orientation = g.destinationDir;
+    }
+
+    private void Update(GameEvent.Damage g)
+    {
+        Robot r = GetRobot(g.primaryRobotId);
+        r.health = g.remainingHealth;
+    }
+
+    private void Update(GameEvent.Poison g)
+    {
+        Robot r = GetRobot(g.primaryRobotId);
+        GameEvent.Damage evt = new GameEvent.Damage();
+        evt.primaryRobotId = g.primaryRobotId;
+        evt.damage = 1;
+        evt.remainingHealth = (short)(r.health - 1);
+        endOfTurnEvents.Add(evt);
+    }
+
+    private Robot GetRobot(short id)
+    {
+        return Array.Find(allRobots, (Robot r) => r.id == id);
     }
 }
