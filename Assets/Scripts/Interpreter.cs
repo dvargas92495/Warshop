@@ -198,11 +198,11 @@ public class Interpreter {
             {
                 Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());
             }
-            Logger.ClientLog("Output to history what happened: " + evt.ToString());
+            uiController.DisplayEvent(evt.ToString());
             uiController.SetBattery(evt.primaryBattery, evt.secondaryBattery);
             yield return new WaitForSeconds(eventDelay);
         }
-        Logger.ClientLog("Finished Events");
+        uiController.DisplayEvent("Finished Events, Submit Your Moves!");
         myturn = true;
         Array.ForEach(robotControllers, (RobotController r) => r.canCommand = !r.isOpponent);
     }

@@ -20,6 +20,7 @@ public class UIController : MonoBehaviour {
     public GameObject UsersRobots;
     public GameObject userRobotPanel;
 
+    public Text EventLog;
     public Button SubmitCommands;
 
     private GameObject modalTextBackdrop;
@@ -176,6 +177,11 @@ public class UIController : MonoBehaviour {
     public void Flip()
     {
         boardCamera.transform.Rotate(new Vector3(0, 0, 180));
+    }
+
+    public void DisplayEvent(string s)
+    {
+        EventLog.text = s;
     }
 
     /*
