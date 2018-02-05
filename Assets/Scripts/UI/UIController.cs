@@ -169,7 +169,7 @@ public class UIController : MonoBehaviour {
     {
         float x = BackgroundPanel.GetComponent<RectTransform>().anchorMax.x;
         boardCamera.rect = new Rect(x, 0, 1 - x, 1);
-        boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-2)/2;
+        boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-20)/2;
         boardCamera.orthographicSize = Interpreter.boardController.boardCellsHeight / 2;
         if (!isPrimary) Flip();
     }

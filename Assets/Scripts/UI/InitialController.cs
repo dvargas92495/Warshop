@@ -29,6 +29,16 @@ public class InitialController : MonoBehaviour {
     public RobotController robotBase;
     public Sprite[] robotDir;
 
+    //TEMP JUST FOR PLAYTEST: DELETE
+    public Text starText;
+    private Dictionary<string, byte> starRatings = new Dictionary<string, byte>()
+    {
+        {"Bronze Grunt", 1 },
+        {"Silver Grunt", 2 },
+        {"Golden Grunt", 3 },
+        {"Platinum Grunt", 4 },
+    };
+
     public void Awake()
     {
         isServer = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null);
@@ -107,6 +117,7 @@ public class InitialController : MonoBehaviour {
             }
             thisBoard.onClick.AddListener(() =>
             {
+                if (byte.Parse(starText.text.Substring(0, 1)) != 8) return;
                 StartGame(
                     t.name,
                     (myRoster.text.Length > 0 ? myRoster.text.Substring(0, myRoster.text.Length - 1).Split('\n') : new string[0]),
@@ -119,7 +130,15 @@ public class InitialController : MonoBehaviour {
         myAdd.onClick.AddListener(() =>
         {
             string robot = mySelect.options[mySelect.value].text;
-            myRoster.text += robot + "\n";
+            byte count = byte.Parse(starText.text.Substring(0,1));
+            if (starRatings[robot] + count <= 8)
+            {
+                count += starRatings[robot];
+                myRoster.text += robot + "\n";
+                starText.text = count + "/8 STARS";
+                Debug.Log(count);
+                if (count == 8) starText.text += " READY!";
+            }
         });
         opponentAdd.onClick.AddListener(() =>
         {
@@ -135,6 +154,11 @@ public class InitialController : MonoBehaviour {
         }
         mySelect.AddOptions(opts);
         opponentSelect.AddOptions(opts);
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyUp(KeyCode.Space)) { myRoster.text = ""; starText.text = "0/8 STARS"; }
     }
 
     void StartGame(string b, string[] mybots, string[] opbots, string myname, string opponentname)

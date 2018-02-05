@@ -23,7 +23,7 @@ public class TileController : MonoBehaviour {
                 becomeBlank();
                 break;
             case Map.Space.SpaceType.SPAWN:
-                becomeSpawn();
+                becomeBlank();
                 break;
             case Map.Space.SpaceType.PRIMARY_BASE:
             case Map.Space.SpaceType.SECONDARY_BASE:
