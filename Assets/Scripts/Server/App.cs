@@ -181,6 +181,7 @@ public class App {
             resp.events = events.ToArray();
             foreach (int cid in appgame.connectionIds())
             {
+                if (cid != appgame.primary.connectionId && cid == appgame.secondary.connectionId) Array.ForEach(resp.events, (GameEvent g) => g.Flip());
                 Send(cid, Messages.TURN_EVENTS, resp);
             }
         }

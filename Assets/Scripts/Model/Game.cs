@@ -43,11 +43,11 @@ public class Game
         }
     }
 
-    internal HashSet<int> connectionIds()
+    internal List<int> connectionIds()
     {
-        HashSet<int> ids = new HashSet<int>();
+        List<int> ids = new List<int>();
         ids.Add(primary.connectionId);
-        ids.Add(secondary.connectionId);
+        if (!ids.Contains(secondary.connectionId)) ids.Add(secondary.connectionId);
         return ids;
     }
 

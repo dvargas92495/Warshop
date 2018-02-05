@@ -3015,11 +3015,6 @@ MonoBehaviour:
   robotBase: {fileID: 114303540073418012, guid: 80728159308e23b4d9f9bfbb0e53167d,
     type: 2}
   robotDir:
-  - {fileID: 21300000, guid: a5af1c4f8cd70414ea759f626367901e, type: 3}
-  - {fileID: 21300000, guid: 45cc1e30e7692c747991458a6832ec96, type: 3}
-  - {fileID: 21300000, guid: 93a9aa447d0d46b4f9b836b6457722c4, type: 3}
-  - {fileID: 21300000, guid: e8b4e6343a77f664e941525b49136305, type: 3}
-  - {fileID: 21300000, guid: c63fd3171eaeec94595e4ff5a841a7dd, type: 3}
   - {fileID: 21300000, guid: 008c5c4cad38043428b07d6f301a928d, type: 3}
   - {fileID: 21300000, guid: fe3bc24ae2ef48b4caab1a3569d7b5e7, type: 3}
   - {fileID: 21300000, guid: cda49f25bdef0f9488b04316673693f1, type: 3}

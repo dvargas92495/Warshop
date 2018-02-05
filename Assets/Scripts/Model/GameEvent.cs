@@ -71,13 +71,19 @@ public abstract class GameEvent
     }
     public string ToString(string message)
     {
-        return "Robot " + primaryRobotId + " " + message + " on priority " + priority + ". Battery: " + primaryBattery + "|" + secondaryBattery;
+        return "Robot " + primaryRobotId + " " + message + " on priority " + priority + ".";
     }
     public void Transfer(GameEvent g)
     {
         primaryRobotId = g.primaryRobotId;
         primaryBattery = g.primaryBattery;
         secondaryBattery = g.secondaryBattery;
+    }
+    public void Flip()
+    {
+        short battery = primaryBattery;
+        primaryBattery = secondaryBattery;
+        secondaryBattery = battery;
     }
     public class Empty : GameEvent
     {
