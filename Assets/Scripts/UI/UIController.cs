@@ -81,6 +81,7 @@ public class UIController : MonoBehaviour {
         {
             SetRobotPanel(opponentPlayer.team[i], opponentRobotPanel, OpponentsRobots.transform);
         }
+        opponentScore.text = opponentPlayer.battery.ToString();
     }
 
     void SetUsersPlayerPanel(Game.Player userPlayer)
@@ -90,6 +91,29 @@ public class UIController : MonoBehaviour {
         {
             SetRobotPanel(userPlayer.team[i], userRobotPanel, UsersRobots.transform);
         }
+        userScore.text = userPlayer.battery.ToString();
+    }
+
+    Game.Player GetFromPanelAndDestroy(bool isUser)
+    {
+        string nametext = (isUser ? userNameText.text : opponentNameText.text);
+        string name = nametext.Substring(0, nametext.IndexOf("'s Robots:"));
+        GameObject panelContainer = (isUser ? UsersRobots : OpponentsRobots);
+        Robot[] team = new Robot[panelContainer.transform.childCount];
+        for (int i = 0; i<panelContainer.transform.childCount; i++)
+        {
+            Transform child = panelContainer.transform.GetChild(i);
+            TMP_Text[] fields = child.GetComponentsInChildren<TMP_Text>();
+            Robot r = Robot.create(fields[0].text);
+            r.id = short.Parse(child.name.Substring("Robot".Length));
+            r.attack = short.Parse(child.transform.GetChild(1).GetChild(1).GetComponentInChildren<Text>().text);
+            r.health = short.Parse(child.transform.GetChild(1).GetChild(0).GetComponentInChildren<Text>().text);
+            team[i] = r;
+            Destroy(child.gameObject);
+        }
+        Game.Player p = new Game.Player(team, name);
+        p.battery = short.Parse(isUser ? userScore.text : opponentScore.text);
+        return p;
     }
 
     public void SetRobotPanel(Robot r, GameObject reference, Transform parent)
@@ -177,6 +201,13 @@ public class UIController : MonoBehaviour {
     public void Flip()
     {
         boardCamera.transform.Rotate(new Vector3(0, 0, 180));
+        if (GameConstants.LOCAL_MODE)
+        {
+            Game.Player user = GetFromPanelAndDestroy(true);
+            Game.Player opponent = GetFromPanelAndDestroy(false);
+            SetUsersPlayerPanel(opponent);
+            SetOpponentPlayerPanel(user);
+        }
     }
 
     public void DisplayEvent(string s)

@@ -1,5 +1,5 @@
 Battery
-Flybot,Jaguar,Slinkbot
-Virusbot,Pithon
+Silver Grunt,Golden Grunt
+Platinum Grunt,Bronze Grunt
 Vargas
 Calvin

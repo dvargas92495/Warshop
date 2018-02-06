@@ -16,7 +16,7 @@ public class Robot
     internal Vector2Int position;
     internal Orientation orientation;
     internal byte queueSpot;
-    private Robot(string _name, string _description)
+    internal Robot(string _name, string _description)
     {
         name = _name;
         description = _description;
