@@ -142,64 +142,28 @@ public class Interpreter {
     public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
         Logger.ClientLog("Received Events: " + events.Count);
-        foreach(GameEvent evt in events)
+        byte currentPriority = byte.MaxValue;
+        List<GameEvent> eventsThisPriority = new List<GameEvent>();
+        for(int i = 0; i < events.Count; i++)
         {
-            RobotController primaryRobot = GetRobot(evt.primaryRobotId);
-            if (evt is GameEvent.Rotate)
+            GameEvent e = events[i];
+            if (e.priority < currentPriority)
             {
-                GameEvent.Rotate rot = (GameEvent.Rotate)evt;
-                primaryRobot.displayRotate(Robot.OrientationToVector(rot.destinationDir));
-            } else if (evt is GameEvent.Move)
-            {
-                GameEvent.Move mov = (GameEvent.Move)evt;
-                primaryRobot.displayMove(mov.destinationPos);
-            }
-            else if (evt is GameEvent.Attack)
-            {
-                //TODO: Attack animation?
-            }
-            else if (evt is GameEvent.Block)
-            {
-               //TODO: Blocked animation?
-            }
-            else if (evt is GameEvent.Push)
-            {
-                //TODO: Push animation?
-            }
-            else if (evt is GameEvent.Miss)
-            {
-                //TODO: Miss animation?
-            }
-            else if (evt is GameEvent.Battery)
-            {
-                //TODO: Battery animation?
-            }
-            else if (evt is GameEvent.Fail)
-            {
-                //TODO: Fail animation?
-            }
-            else if (evt is GameEvent.Death)
-            {
-                GameEvent.Death death = (GameEvent.Death)evt;
-                primaryRobot.displayMove(death.returnLocation);
-                primaryRobot.displayRotate(Robot.OrientationToVector(death.returnDir));
-                uiController.UpdateAttributes(death.primaryRobotId, death.returnHealth, -1);
-            }
-            else if (evt is GameEvent.Poison)
-            {
-                //TODO: Poison animation?
-            }
-            else if (evt is GameEvent.Damage)
-            {
-                GameEvent.Damage dmg = (GameEvent.Damage)evt;
-                uiController.UpdateAttributes(dmg.primaryRobotId, dmg.remainingHealth, -1);
+                foreach (GameEvent evt in eventsThisPriority)
+                {
+                    RobotController primaryRobot = GetRobot(evt.primaryRobotId);
+                    evt.Animate(primaryRobot);
+                }
+                eventsThisPriority.Clear();
+                currentPriority = e.priority;
+                i--;
             }
             else
             {
-                Logger.ClientLog("ERROR: Unhandled Event - " + evt.ToString());
+                uiController.DisplayEvent(e.ToString());
+                uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
+                eventsThisPriority.Add(e);
             }
-            uiController.DisplayEvent(evt.ToString());
-            uiController.SetBattery(evt.primaryBattery, evt.secondaryBattery);
             yield return new WaitForSeconds(eventDelay);
         }
         uiController.DisplayEvent("Finished Events, Submit Your Moves!");

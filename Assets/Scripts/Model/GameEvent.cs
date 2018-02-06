@@ -85,6 +85,7 @@ public abstract class GameEvent
         primaryBattery = secondaryBattery;
         secondaryBattery = battery;
     }
+    public virtual void Animate(RobotController r){}
     public class Empty : GameEvent
     {
         internal const byte EVENT_ID = 0;
@@ -111,6 +112,10 @@ public abstract class GameEvent
             rot.sourceDir = (Robot.Orientation)reader.ReadByte();
             rot.destinationDir = (Robot.Orientation)reader.ReadByte();
             return rot;
+        }
+        public override void Animate(RobotController r)
+        {
+            r.displayRotate(Robot.OrientationToVector(destinationDir));
         }
         public override string ToString()
         {
@@ -141,6 +146,10 @@ public abstract class GameEvent
             evt.destinationPos.x = reader.ReadInt32();
             evt.destinationPos.y = reader.ReadInt32();
             return evt;
+        }
+        public override void Animate(RobotController r)
+        {
+            r.displayMove(destinationPos);
         }
         public override string ToString()
         {
@@ -309,6 +318,12 @@ public abstract class GameEvent
             evt.returnHealth = reader.ReadInt16();
             return evt;
         }
+        public override void Animate(RobotController r)
+        {
+            r.displayMove(returnLocation);
+            r.displayRotate(Robot.OrientationToVector(returnDir));
+            r.displatStats(returnHealth, -1);
+        }
         public override string ToString()
         {
             return ToString("dies and returns to queue");
@@ -349,6 +364,10 @@ public abstract class GameEvent
             evt.damage = reader.ReadInt16();
             evt.remainingHealth = reader.ReadInt16();
             return evt;
+        }
+        public override void Animate(RobotController r)
+        {
+            r.displatStats(remainingHealth, -1);
         }
         public override string ToString()
         {
