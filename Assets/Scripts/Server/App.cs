@@ -184,6 +184,10 @@ public class App {
                 if (cid != appgame.primary.connectionId && cid == appgame.secondary.connectionId) Array.ForEach(resp.events, (GameEvent g) => g.Flip());
                 Send(cid, Messages.TURN_EVENTS, resp);
             }
+        } else
+        {
+            int cid = (p.Equals(appgame.primary) ? appgame.secondary.connectionId : appgame.primary.connectionId);
+            Send(cid, Messages.WAITING_COMMANDS, new Messages.OpponentWaitingMessage());
         }
     }
 

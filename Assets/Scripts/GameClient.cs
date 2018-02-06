@@ -19,7 +19,8 @@ public class GameClient : MonoBehaviour {
     {
         { MsgType.Connect, OnConnect },
         { Messages.GAME_READY, OnGameReady },
-        { Messages.TURN_EVENTS, OnTurnEvents }
+        { Messages.TURN_EVENTS, OnTurnEvents },
+        { Messages.WAITING_COMMANDS, OnOpponentWaiting }
     };
 
     public static void Initialize(string playerId, string boardFile) {
@@ -138,6 +139,11 @@ public class GameClient : MonoBehaviour {
         Messages.TurnEventsMessage msg = netMsg.ReadMessage<Messages.TurnEventsMessage>();
         List<GameEvent> events = new List<GameEvent>(msg.events);
         Interpreter.PlayEvents(events);
+    }
+
+    private static void OnOpponentWaiting(NetworkMessage netMsg)
+    {
+        Interpreter.uiController.DisplayEvent(GameConstants.OPPONENT_WAITING);
     }
 
     public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String myname, String opponentname)

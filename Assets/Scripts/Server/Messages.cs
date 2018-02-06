@@ -8,6 +8,7 @@ public class Messages {
     public const short GAME_READY = MsgType.Highest + 3;
     public const short SUBMIT_COMMANDS = MsgType.Highest + 4;
     public const short TURN_EVENTS = MsgType.Highest + 5;
+    public const short WAITING_COMMANDS = MsgType.Highest + 6;
     public class EmptyMessage : MessageBase { }
     public static EmptyMessage EMPTY = new EmptyMessage();
     public class FakeConnectMessage : MessageBase
@@ -103,4 +104,5 @@ public class Messages {
             }
         }
     }
+    public class OpponentWaitingMessage : MessageBase { }
 }

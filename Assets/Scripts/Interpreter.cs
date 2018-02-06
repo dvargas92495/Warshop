@@ -70,24 +70,18 @@ public class Interpreter {
 
     private static void InitializeRobots(Game.Player[] playerTurns)
     {
-        int playerCount = 0;
-        int robotCount = 0;
-        int p1count = 0; //hack
         robotControllers = new RobotController[playerTurns[0].team.Length + playerTurns[1].team.Length];
-        foreach (Game.Player player in playerTurns)
+        for (int p = 0; p < playerTurns.Length;p++)
         {
-            foreach(Robot robot in player.team)
+            Game.Player player = playerTurns[p];
+            for (int i = 0; i < player.team.Length; i++)
             {
-                RobotController r = RobotController.Load(robot);
-                r.isOpponent = playerCount == 1;
+                RobotController r = RobotController.Load(player.team[i]);
+                r.isOpponent = p == 1;
                 r.canCommand = !r.isOpponent;
                 r.transform.GetChild(0).GetComponent<Image>().color = (r.isOpponent ? Color.red : Color.blue);
-                robotControllers[p1count + robotCount] = r;
-                robotCount++;
+                robotControllers[playerTurns[0].team.Length * p + i] = r;
             }
-            p1count = robotCount;
-            robotCount = 0;
-            playerCount++;
         }
     }
 
@@ -108,6 +102,7 @@ public class Interpreter {
         {
             Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
         }
+        uiController.DisplayEvent(GameConstants.IM_WAITING);
         List<Command> commands = new List<Command>();
         string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
         foreach (RobotController robot in robotControllers)
@@ -123,7 +118,6 @@ public class Interpreter {
             robot.commands.Clear();
         }
         myturn = false;
-        Logger.ClientLog("Sending Commands: " + commands.Count);
         GameClient.SendSubmitCommands(commands, username);
     }
 
@@ -141,7 +135,6 @@ public class Interpreter {
 
     public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
-        Logger.ClientLog("Received Events: " + events.Count);
         byte currentPriority = byte.MaxValue;
         List<GameEvent> eventsThisPriority = new List<GameEvent>();
         for(int i = 0; i < events.Count; i++)
@@ -166,7 +159,7 @@ public class Interpreter {
             }
             yield return new WaitForSeconds(eventDelay);
         }
-        uiController.DisplayEvent("Finished Events, Submit Your Moves!");
+        uiController.DisplayEvent(GameConstants.FINISHED_EVENTS);
         myturn = true;
         Array.ForEach(robotControllers, (RobotController r) => r.canCommand = !r.isOpponent);
     }
