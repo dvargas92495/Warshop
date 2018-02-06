@@ -1,64 +1,26 @@
 ﻿using UnityEngine;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 
-public class Model
+public class GruntTest : TestBase
 {
-
-    private static Game testgame;
 
     [OneTimeSetUp]
     public void BeforeAllTests()
     {
-        testgame = new Game();
-        testgame.board = new Map(
-            "5 8\n" +
-            "Q Q V Q Q\n" +
-            "S W A W S\n" +
-            "W W W W W\n" +
-            "W W W W W\n" +
-            "W W W W W\n" +
-            "W W W W W\n" +
-            "s W B W s\n" +
-            "q q V q q\n"
-        );
-        testgame.Join(new string[]
+        BeforeAllTests(new string[]
         {
             "Bronze Grunt",
             "Silver Grunt",
             "Golden Grunt",
             "Platinum Grunt"
-        }, "primary", 1);
-        testgame.Join(new string[]
+        }, new string[]
         {
             "Bronze Grunt",
             "Silver Grunt",
             "Golden Grunt",
             "Platinum Grunt"
-        }, "secondary", 2);
-    }
-
-    public void BeforeEachTest()
-    {
-        BeforeEachTest(new Dictionary<short, Vector2Int>());
-    }
-
-    public void BeforeEachTest(Dictionary<short,Vector2Int> pos)
-    {
-        Action<Game.Player, bool> reset = (Game.Player p, bool isPrimary) =>
-        {
-            p.battery = GameConstants.POINTS_TO_WIN;
-            Array.ForEach(p.team, (Robot r) =>
-            {
-                r.health = r.startingHealth;
-                r.position = pos.ContainsKey(r.id) ? pos[r.id] : testgame.board.GetQueuePosition(r.queueSpot, isPrimary);
-                r.orientation = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;
-                testgame.board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-            });
-        };
-        reset(testgame.primary, true);
-        reset(testgame.secondary, false);
+        });
     }
 
     [Test]
@@ -643,39 +605,164 @@ public class Model
         Assert.IsInstanceOf<GameEvent.Miss>(events[2]);
         Assert.AreEqual(expected, primaryBronze.health);
     }
+}
 
-    private static Command.Rotate RotateCommand(Command.Direction d, short r)
-    {
-        Command.Rotate c = new Command.Rotate(d);
-        c.robotId = r;
-        return c;
-    }
+public class PithonTest : TestBase
+{
 
-    private static Command.Move MoveCommand(Command.Direction d, short r)
+    [OneTimeSetUp]
+    public void BeforeAllTests()
     {
-        Command.Move m = new Command.Move(d);
-        m.robotId = r;
-        return m;
-    }
-
-    private static Command.Attack AttackCommand(short r)
-    {
-        Command.Attack a = new Command.Attack();
-        a.robotId = r;
-        return a;
-    }
-
-    private static List<GameEvent> SimulateCommands(params Command[] cmds)
-    {
-        List<Command> primaryCmds = new List<Command>();
-        List<Command> secondaryCmds = new List<Command>();
-        Array.ForEach(cmds, (Command c) =>
+        BeforeAllTests(new string[]
         {
-            if (Array.Exists(testgame.primary.team, (Robot r) => r.id==c.robotId)) primaryCmds.Add(c);
-            else secondaryCmds.Add(c);
+            "Pithon"
+        }, new string[]
+        {
+            "Pithon",
+            "Silver Grunt"
         });
-        testgame.primary.StoreCommands(primaryCmds);
-        testgame.secondary.StoreCommands(secondaryCmds);
-        return testgame.CommandsToEvents();
     }
+
+    [Test]
+    public void TestAttackPoisons()
+    {
+        Robot primaryPithon = testgame.primary.team[0];
+        Robot secondarySilver = testgame.secondary.team[1];
+        BeforeEachTest(new Dictionary<short, Vector2Int> {
+            { primaryPithon.id, new Vector2Int(1,1) },
+            { secondarySilver.id, new Vector2Int(1,2) }
+        });
+        short expected = (short)(secondarySilver.health - primaryPithon.attack - 1);
+        List<GameEvent> events = SimulateCommands(
+            RotateCommand(Command.Direction.UP, primaryPithon.id),
+            AttackCommand(primaryPithon.id)
+        );
+        Assert.AreEqual(5, events.Count);
+        Assert.IsInstanceOf<GameEvent.Attack>(events[1]);
+        Assert.IsInstanceOf<GameEvent.Damage>(events[2]);
+        Assert.IsInstanceOf<GameEvent.Poison>(events[3]);
+        Assert.IsInstanceOf<GameEvent.Damage>(events[4]);
+        Assert.AreEqual(expected, secondarySilver.health);
+    }
+
+    [Test]
+    public void TestPoisonKills()
+    {
+        Robot primaryPithon = testgame.primary.team[0];
+        Robot secondarySilver = testgame.secondary.team[1];
+        BeforeEachTest(new Dictionary<short, Vector2Int> {
+            { primaryPithon.id, new Vector2Int(1,1) },
+            { secondarySilver.id, new Vector2Int(1,2) }
+        });
+        SimulateCommands(
+            MoveCommand(Command.Direction.UP, primaryPithon.id),
+            AttackCommand(primaryPithon.id)
+        );
+        for (int i = 0; i < 5; i++) SimulateCommands();
+        Assert.AreEqual(secondarySilver.startingHealth, secondarySilver.health);
+        SimulateCommands();
+        Assert.AreEqual(secondarySilver.startingHealth, secondarySilver.health);
+    }
+}
+
+public class JaguarTest : TestBase
+{
+
+    [OneTimeSetUp]
+    public void BeforeAllTests()
+    {
+        BeforeAllTests(new string[]
+        {
+            "Jaguar"
+        }, new string[]
+        {
+            "Jaguar"
+        });
+    }
+
+    [Test]
+    public void TestThreeMoves()
+    {
+        Robot primaryJaguar = testgame.primary.team[0];
+        BeforeEachTest();
+        Vector2Int expected = primaryJaguar.position + Vector2Int.up * 3;
+        List<GameEvent> events = SimulateCommands(
+            MoveCommand(Command.Direction.UP, primaryJaguar.id),
+            MoveCommand(Command.Direction.UP, primaryJaguar.id),
+            MoveCommand(Command.Direction.UP, primaryJaguar.id)
+        );
+        Assert.AreEqual(3, events.Count);
+        Assert.IsInstanceOf<GameEvent.Move>(events[0]);
+        Assert.IsInstanceOf<GameEvent.Move>(events[1]);
+        Assert.IsInstanceOf<GameEvent.Move>(events[2]);
+        Assert.AreEqual(expected, primaryJaguar.position);
+    }
+
+    [Test]
+    public void TestAttackThirdMoveFails()
+    {
+        Robot primaryJaguar = testgame.primary.team[0];
+        BeforeEachTest();
+        Vector2Int expected = primaryJaguar.position + Vector2Int.up * 2;
+        List<GameEvent> events = SimulateCommands(
+            MoveCommand(Command.Direction.UP, primaryJaguar.id),
+            AttackCommand(primaryJaguar.id),
+            MoveCommand(Command.Direction.UP, primaryJaguar.id),
+            MoveCommand(Command.Direction.UP, primaryJaguar.id)
+        );
+        Assert.AreEqual(5, events.Count);
+        Assert.IsInstanceOf<GameEvent.Fail>(events[4]);
+        Assert.AreEqual(expected, primaryJaguar.position);
+    }
+
+    [Test]
+    public void TestAttackFailsAfterThirdMove()
+    {
+        Robot primaryJaguar = testgame.primary.team[0];
+        BeforeEachTest();
+        Vector2Int expected = primaryJaguar.position + Vector2Int.up * 3;
+        List<GameEvent> events = SimulateCommands(
+            MoveCommand(Command.Direction.UP, primaryJaguar.id),
+            MoveCommand(Command.Direction.UP, primaryJaguar.id),
+            MoveCommand(Command.Direction.UP, primaryJaguar.id),
+            AttackCommand(primaryJaguar.id)
+        );
+        Assert.AreEqual(4, events.Count);
+        Assert.IsInstanceOf<GameEvent.Fail>(events[3]);
+        Assert.AreEqual(expected, primaryJaguar.position);
+    }
+}
+
+public class SlinkbotTest : TestBase
+{
+
+    [OneTimeSetUp]
+    public void BeforeAllTests()
+    {
+        BeforeAllTests(new string[]
+        {
+            "Slinkbot",
+            "Silver Grunt"
+        }, new string[]
+        {
+            "Silver Grunt"
+        });
+    }
+
+    [Test]
+    public void TestMoveSimpleMove()
+    {
+        Robot primarySlink = testgame.primary.team[0];
+        BeforeEachTest();
+        Vector2Int expected = primarySlink.position + Vector2Int.up * 2;
+        List<GameEvent> events = SimulateCommands(
+            RotateCommand(Command.Direction.UP, primarySlink.id),
+            MoveCommand(Command.Direction.UP, primarySlink.id)
+        );
+        Assert.AreEqual(3, events.Count);
+        Assert.IsInstanceOf<GameEvent.Move>(events[1]);
+        Assert.IsInstanceOf<GameEvent.Move>(events[2]);
+        Assert.AreEqual(expected, primarySlink.position);
+    }
+
 }
