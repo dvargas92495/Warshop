@@ -135,12 +135,11 @@ public class Interpreter {
 
     public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
-        byte currentPriority = byte.MaxValue;
+        byte currentPriority = GameConstants.MAX_PRIORITY;
         List<GameEvent> eventsThisPriority = new List<GameEvent>();
-        for(int i = 0; i < events.Count; i++)
+        for(int i = 0; i <= events.Count; i++)
         {
-            GameEvent e = events[i];
-            if (e.priority < currentPriority)
+            if (i == events.Count || events[i].priority < currentPriority)
             {
                 foreach (GameEvent evt in eventsThisPriority)
                 {
@@ -148,14 +147,14 @@ public class Interpreter {
                     evt.Animate(primaryRobot);
                 }
                 eventsThisPriority.Clear();
-                currentPriority = e.priority;
-                i--;
+                currentPriority--;
+                if (currentPriority != 0) i--;
             }
             else
             {
-                uiController.DisplayEvent(e.ToString());
-                uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
-                eventsThisPriority.Add(e);
+                uiController.DisplayEvent(events[i].ToString());
+                uiController.SetBattery(events[i].primaryBattery, events[i].secondaryBattery);
+                eventsThisPriority.Add(events[i]);
             }
             yield return new WaitForSeconds(eventDelay);
         }

@@ -136,7 +136,6 @@ public class InitialController : MonoBehaviour {
                 count += starRatings[robot];
                 myRoster.text += robot + "\n";
                 starText.text = count + "/8 STARS";
-                Debug.Log(count);
                 if (count == 8) starText.text += " READY!";
             }
         });
