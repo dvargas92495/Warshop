@@ -13,11 +13,12 @@ public class Interpreter {
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static RobotController[] robotControllers;
-    public static int eventDelay = 1;
+    public const int eventDelay = 1;
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
     private static bool myturn;
     private static bool isPrimary;
+    private static int turnNumber = 1;
 
     public static void ConnectToServer(string playerId, string opponentId, string boardFile)
     {
@@ -135,7 +136,7 @@ public class Interpreter {
 
     public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
-        byte currentPriority = GameConstants.MAX_PRIORITY;
+        byte currentPriority = GameConstants.MAX_PRIORITY + 1;
         List<GameEvent> eventsThisPriority = new List<GameEvent>();
         for(int i = 0; i <= events.Count; i++)
         {
@@ -148,7 +149,11 @@ public class Interpreter {
                 }
                 eventsThisPriority.Clear();
                 currentPriority--;
-                if (currentPriority != 0) i--;
+                if (currentPriority != byte.MaxValue)
+                {
+                    uiController.StartEventModal(turnNumber, currentPriority);
+                    i--;
+                }
             }
             else
             {
@@ -159,6 +164,7 @@ public class Interpreter {
             yield return new WaitForSeconds(eventDelay);
         }
         uiController.DisplayEvent(GameConstants.FINISHED_EVENTS);
+        turnNumber++;
         myturn = true;
         Array.ForEach(robotControllers, (RobotController r) => r.canCommand = !r.isOpponent);
     }

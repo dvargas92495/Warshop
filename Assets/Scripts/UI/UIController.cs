@@ -20,21 +20,18 @@ public class UIController : MonoBehaviour {
     public GameObject UsersRobots;
     public GameObject userRobotPanel;
 
-    public Text EventLog;
+    public Image EventModal;
     public Button SubmitCommands;
+    public Button EventButton;
+    public Text EventTitle;
+    public Button CancelButton;
+    public Text EventLog;
 
-    private GameObject modalTextBackdrop;
-    private GameObject modalDisplayPanel;
 
-    public Text placeholder;
-    public GameObject modalPanelObject;
-    public Button cancelButton;
+
     public Sprite[] sprites;
     public Camera boardCamera;
 
-	private GameObject robotImagePanel;
-
-	private Sprite robotSprite;
     private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
 
     void Start()
@@ -70,6 +67,10 @@ public class UIController : MonoBehaviour {
                 ClearCommands(robotIdToPanel[id].transform);
             }
         });
+
+        EventButton.onClick.AddListener(() => EventModal.gameObject.SetActive(!EventModal.gameObject.activeInHierarchy));
+
+        CancelButton.onClick.AddListener(() => EventModal.gameObject.SetActive(false));
 
         SetBattery(playerObjects[0].battery, playerObjects[1].battery);
     }
@@ -212,48 +213,13 @@ public class UIController : MonoBehaviour {
 
     public void DisplayEvent(string s)
     {
-        EventLog.text = s;
+        EventLog.text += s + ".\n";
     }
 
-    /*
-    public void resetModal()
+    public void StartEventModal(int turn, byte p)
     {
-        modalDisplayPanel = getChildGameObject(modalPanelObject, "ModalDisplay");
-        modalTextBackdrop = getChildGameObject(modalDisplayPanel, "Text Backdrop");
-        foreach (Transform child in modalTextBackdrop.transform)
-        {
-            Destroy(child.gameObject);
-        }
+        EventTitle.text = "TURN " + turn + " - PRIORITY " + p;
+        EventLog.text = "";
+        EventModal.gameObject.SetActive(true);
     }
-    public void formatActionsModalTextLines(List<string> textLines)
-    {
-        // grab size of whole box, 390, 575
-        modalDisplayPanel = getChildGameObject(modalPanelObject, "ModalDisplay");
-        modalTextBackdrop = getChildGameObject(modalDisplayPanel, "Text Backdrop");
-        float xWidth = 390f - 35;
-        //float yWidth = 575f;
-        float ySpacer = 0;
-        float yStart = -200;
-        // For each textline in textLines, create new gameObject with text in it
-        for (int i = 0; i < textLines.Count; i++)
-        {
-            GameObject textBox = new GameObject("textBox");
-            textBox.transform.SetParent(modalTextBackdrop.transform);
-            Text textToAdd = textBox.AddComponent<Text>();
-            textToAdd.text = textLines[i];
-            textToAdd.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-            textToAdd.transform.Rotate(new Vector3(180, 0, 0));
-            textToAdd.transform.localScale = new Vector3(1.15f, 2.5f, 0);
-            textToAdd.transform.localPosition = new Vector3(35f, ySpacer + yStart, 0f);
-            textToAdd.rectTransform.sizeDelta= new Vector2(xWidth,50);
-            ySpacer = ySpacer + 75;
-
-        }
-    }
-
-    void ClosePanel()
-    {
-        modalPanelObject.SetActive(false);
-        resetModal();
-    }*/
 }

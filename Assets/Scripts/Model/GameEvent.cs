@@ -71,7 +71,7 @@ public abstract class GameEvent
     }
     public string ToString(string message)
     {
-        return "Robot " + primaryRobotId + " " + message + " on priority " + priority + ".";
+        return "Robot " + primaryRobotId + " " + message;
     }
     public void Transfer(GameEvent g)
     {
@@ -269,7 +269,7 @@ public abstract class GameEvent
         }
         public override string ToString()
         {
-            return ToString("attacked " + (opponentsBase ? "opponent's":"its own") + " battery with " + damage + " damage.");
+            return ToString("attacked " + (opponentsBase ? "opponent's":"its own") + " battery with " + damage + " damage");
         }
     }
 
@@ -290,7 +290,7 @@ public abstract class GameEvent
         }
         public override string ToString()
         {
-            return ToString("failed to execute " + failedCmd + " due to limit.");
+            return ToString("failed to execute " + failedCmd + " due to limit");
         }
     }
 
