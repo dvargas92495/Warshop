@@ -2,10 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TileController : MonoBehaviour {
 
-    public Material[] tileMaterials;
+    public Sprite battery;
 
     public void OnMouseUp()
     {
@@ -17,58 +18,26 @@ public class TileController : MonoBehaviour {
         switch (spaceType)
         {
             case Map.Space.SpaceType.VOID:
-                becomeVoid();
+                gameObject.GetComponent<Image>().color = Color.black;
                 break;
             case Map.Space.SpaceType.BLANK:
-                becomeBlank();
+                gameObject.GetComponent<Image>().color = Color.white;
                 break;
             case Map.Space.SpaceType.SPAWN:
-                becomeBlank();
+                gameObject.GetComponent<Image>().color = Color.white;
                 break;
             case Map.Space.SpaceType.PRIMARY_BASE:
+                gameObject.GetComponent<Image>().sprite = battery;
+                break;
             case Map.Space.SpaceType.SECONDARY_BASE:
-                becomeBase();
+                gameObject.GetComponent<Image>().sprite = battery;
+                transform.Rotate(Vector3.forward * 180);
                 break;
             case Map.Space.SpaceType.PRIMARY_QUEUE:
             case Map.Space.SpaceType.SECONDARY_QUEUE:
-                becomeQueue();
+                gameObject.GetComponent<Image>().color = Color.yellow;
                 break;
         }
     }
 
-    public void SetScore(int score)
-    {
-        TextMesh label = gameObject.GetComponentInChildren<TextMesh>();
-        label.text = score.ToString();
-    }
-
-    void becomeVoid()
-    {
-        displayMaterial("Void");
-    }
-
-    void becomeBlank()
-    {
-        displayMaterial("White");
-    }
-
-    void becomeSpawn()
-    {
-        displayMaterial("Spawn");
-    }
-
-    void becomeBase()
-    {
-        displayMaterial("Base");
-    }
-
-    void becomeQueue()
-    {
-        displayMaterial("Queue");
-    }
-
-    void displayMaterial(string mat)
-    {
-        gameObject.GetComponent<Renderer>().material = Array.Find(tileMaterials, (Material m) => m.name.Equals(mat));
-    }	
 }

@@ -3089,10 +3089,10 @@ MonoBehaviour:
   robotBase: {fileID: 114303540073418012, guid: 80728159308e23b4d9f9bfbb0e53167d,
     type: 2}
   robotDir:
-  - {fileID: 21300000, guid: 008c5c4cad38043428b07d6f301a928d, type: 3}
-  - {fileID: 21300000, guid: fe3bc24ae2ef48b4caab1a3569d7b5e7, type: 3}
-  - {fileID: 21300000, guid: cda49f25bdef0f9488b04316673693f1, type: 3}
-  - {fileID: 21300000, guid: 7d511e6011696eb44acecdcdffcd5643, type: 3}
+  - {fileID: 21300000, guid: 8b53ad2badfdffe43bc3c044f51e6ed5, type: 3}
+  - {fileID: 21300000, guid: 02dc1b41115ea9041951cc350a91a15f, type: 3}
+  - {fileID: 21300000, guid: 8f0eda1c1090d27429770128c69165e5, type: 3}
+  - {fileID: 21300000, guid: f48f027a5c8ff6845ab264a559af8b05, type: 3}
   starText: {fileID: 918025265}
 --- !u!114 &1248752723
 MonoBehaviour:
