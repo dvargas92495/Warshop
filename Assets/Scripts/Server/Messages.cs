@@ -86,6 +86,7 @@ public class Messages {
     public class TurnEventsMessage : MessageBase
     {
         public GameEvent[] events;
+        public int turn;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(events.Length);
@@ -94,6 +95,7 @@ public class Messages {
                 evt.Serialize(writer);
                 evt.FinishMessage(writer);
             });
+            writer.Write(turn);
         }
         public override void Deserialize(NetworkReader reader)
         {
@@ -102,6 +104,7 @@ public class Messages {
             {
                 events[i] = GameEvent.Deserialize(reader);
             }
+            turn = reader.ReadInt32();
         }
     }
     public class OpponentWaitingMessage : MessageBase { }

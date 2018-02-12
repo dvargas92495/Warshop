@@ -11,8 +11,9 @@ public class Game
     internal List<GameEvent> endOfTurnEvents = new List<GameEvent>();
     internal Map board;
     internal short nextRobotId;
+    internal int turn = 1;
 
-    internal Game() { }
+    internal Game() {}
 
     internal void Join(string[] t, string n, int cid)
     {
@@ -124,6 +125,13 @@ public class Game
         {
             priority = p;
         }
+    }
+
+    public int GetTurn()
+    {
+        int turnNumber = turn;
+        turn++;
+        return turnNumber;
     }
 
     public List<GameEvent> CommandsToEvents()

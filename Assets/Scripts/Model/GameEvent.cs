@@ -322,7 +322,7 @@ public abstract class GameEvent
         {
             r.displayMove(returnLocation);
             r.displayRotate(Robot.OrientationToVector(returnDir));
-            r.displatStats(returnHealth, -1);
+            r.displayHealth(returnHealth);
         }
         public override string ToString()
         {
@@ -367,7 +367,7 @@ public abstract class GameEvent
         }
         public override void Animate(RobotController r)
         {
-            r.displatStats(remainingHealth, -1);
+            r.displayHealth(remainingHealth);
         }
         public override string ToString()
         {

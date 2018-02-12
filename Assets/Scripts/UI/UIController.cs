@@ -23,12 +23,12 @@ public class UIController : MonoBehaviour {
     public Image EventModal;
     public Button SubmitCommands;
     public Button EventButton;
+    public Button StepBackButton;
+    public Button StepForwardButton;
     public Text EventTitle;
     public Button CancelButton;
     public Text EventLog;
-
-
-
+    
     public Sprite[] sprites;
     public Camera boardCamera;
 
@@ -69,8 +69,9 @@ public class UIController : MonoBehaviour {
         });
 
         EventButton.onClick.AddListener(() => EventModal.gameObject.SetActive(!EventModal.gameObject.activeInHierarchy));
-
         CancelButton.onClick.AddListener(() => EventModal.gameObject.SetActive(false));
+        StepBackButton.onClick.AddListener(Interpreter.StepBackward);
+        StepForwardButton.onClick.AddListener(Interpreter.StepForward);
 
         SetBattery(playerObjects[0].battery, playerObjects[1].battery);
     }
@@ -177,17 +178,44 @@ public class UIController : MonoBehaviour {
         }
     }
 
-    public void UpdateAttributes(short id, short health, short attack)
+    public void UpdateHealth(short id, short health)
     {
         Transform panel = robotIdToPanel[id].transform.GetChild(1);
         panel.GetChild(0).GetComponentInChildren<Text>().text = health.ToString();
-        if (attack >= 0) panel.GetChild(1).GetComponentInChildren<Text>().text = attack.ToString();
+    }
+
+    public void UpdateAttack(short id, short attack)
+    {
+        Transform panel = robotIdToPanel[id].transform.GetChild(1);
+        panel.GetChild(1).GetComponentInChildren<Text>().text = attack.ToString();
+    }
+
+    public short GetHealth(short id)
+    {
+        Transform panel = robotIdToPanel[id].transform.GetChild(1);
+        return short.Parse(panel.GetChild(0).GetComponentInChildren<Text>().text);
+    }
+
+    public short GetAttack(short id)
+    {
+        Transform panel = robotIdToPanel[id].transform.GetChild(1);
+        return short.Parse(panel.GetChild(1).GetComponentInChildren<Text>().text);
     }
 
     public void SetBattery(int a, int b)
     {
         userScore.SetText(a.ToString());
         opponentScore.SetText(b.ToString());
+    }
+
+    public short GetUserBattery()
+    {
+        return short.Parse(userScore.text);
+    }
+
+    public short GetOpponentBattery()
+    {
+        return short.Parse(opponentScore.text);
     }
 
     public void PositionCamera(bool isPrimary)

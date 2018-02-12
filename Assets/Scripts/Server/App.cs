@@ -179,6 +179,7 @@ public class App {
             Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();
             List<GameEvent> events = appgame.CommandsToEvents();
             resp.events = events.ToArray();
+            resp.turn = appgame.GetTurn();
             foreach (int cid in appgame.connectionIds())
             {
                 if (cid != appgame.primary.connectionId && cid == appgame.secondary.connectionId) Array.ForEach(resp.events, (GameEvent g) => g.Flip());

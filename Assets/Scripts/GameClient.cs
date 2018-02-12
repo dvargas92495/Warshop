@@ -138,7 +138,7 @@ public class GameClient : MonoBehaviour {
     {
         Messages.TurnEventsMessage msg = netMsg.ReadMessage<Messages.TurnEventsMessage>();
         List<GameEvent> events = new List<GameEvent>(msg.events);
-        Interpreter.PlayEvents(events);
+        Interpreter.PlayEvents(events, msg.turn);
     }
 
     private static void OnOpponentWaiting(NetworkMessage netMsg)

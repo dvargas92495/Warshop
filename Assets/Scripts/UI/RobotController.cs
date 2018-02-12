@@ -193,8 +193,8 @@ public class RobotController : MonoBehaviour
         transform.rotation = Quaternion.LookRotation(Vector3.forward, new Vector3(v.x, v.y));
     }
     
-    public void displatStats(short health, short attack)
+    public void displayHealth(short health)
     {
-        Interpreter.uiController.UpdateAttributes(id, health, attack);
+        Interpreter.uiController.UpdateHealth(id, health);
     }
 }
