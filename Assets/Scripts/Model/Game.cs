@@ -24,7 +24,7 @@ public class Game
             Robot r = Robot.create(t[i]);
             r.id = nextRobotId;
             nextRobotId++;
-            r.queueSpot = i;
+            r.queueSpot = (byte)(i % 4);
             r.position = board.GetQueuePosition(r.queueSpot, isPrimary);
             board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
             r.orientation = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;

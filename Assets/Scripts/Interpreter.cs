@@ -242,8 +242,8 @@ public class Interpreter {
                 uiController.UpdateHealth(r.id, (short)bf.Deserialize(ms));
                 uiController.UpdateAttack(r.id, (short)bf.Deserialize(ms));
             }
-            short userBattery = (short)bf.Deserialize(ms);
-            short opponentBattery = (short)bf.Deserialize(ms);
+            int userBattery = (int)bf.Deserialize(ms);
+            int opponentBattery = (int)bf.Deserialize(ms);
             uiController.SetBattery(userBattery, opponentBattery);
             uiController.EventTitle.text = (string)bf.Deserialize(ms);
             uiController.EventLog.text = (string)bf.Deserialize(ms);

@@ -125,7 +125,7 @@ public class Map
     public Vector2Int GetQueuePosition(byte i, bool isPrimary)
     {
         Space[] queueSpaces = Array.FindAll(spaces, (Space s) => s is Queue);
-        Space queueSpace = Array.Find(queueSpaces, (Space s) => ((Queue)s).index == i % queueSpaces.Length && ((Queue)s).isPrimary == isPrimary);
+        Space queueSpace = Array.Find(queueSpaces, (Space s) => ((Queue)s).index == i && ((Queue)s).isPrimary == isPrimary);
         return new Vector2Int(queueSpace.x, queueSpace.y);
     }
 

@@ -204,18 +204,18 @@ public class UIController : MonoBehaviour {
 
     public void SetBattery(int a, int b)
     {
-        userScore.SetText(a.ToString());
-        opponentScore.SetText(b.ToString());
+        userScore.text = a.ToString();
+        opponentScore.text = b.ToString();
     }
 
-    public short GetUserBattery()
+    public int GetUserBattery()
     {
-        return short.Parse(userScore.text);
+        return int.Parse(userScore.text);
     }
 
-    public short GetOpponentBattery()
+    public int GetOpponentBattery()
     {
-        return short.Parse(opponentScore.text);
+        return int.Parse(opponentScore.text);
     }
 
     public void PositionCamera(bool isPrimary)
