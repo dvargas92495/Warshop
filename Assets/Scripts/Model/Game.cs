@@ -121,6 +121,7 @@ public class Game
             { typeof(Command.Special), GameConstants.DEFAULT_SPECIAL_POWER }
         };
         internal byte priority;
+        internal bool isDead;
         internal RobotTurnObject(byte p)
         {
             priority = p;
@@ -142,9 +143,9 @@ public class Game
         Dictionary<byte, HashSet<Command>> priorityToCommands = new Dictionary<byte, HashSet<Command>>();
         Dictionary<short, RobotTurnObject> robotIdToTurnObject = new Dictionary<short, RobotTurnObject>();
         Array.ForEach(allRobots, (Robot r) => robotIdToTurnObject[r.id] = new RobotTurnObject(r.priority));
-        for (byte p = GameConstants.MAX_PRIORITY; p > 0; p--)
+        for (int p = GameConstants.MAX_PRIORITY; p >= 0; p--)
         {
-            priorityToCommands[p] = new HashSet<Command>();
+            priorityToCommands[(byte)p] = new HashSet<Command>();
         }
         commands.ForEach((Command c) =>
         {
@@ -155,24 +156,19 @@ public class Game
             }
         });
         List<GameEvent> events = new List<GameEvent>();
-        for (byte p = GameConstants.MAX_PRIORITY; p > 0; p--)
+        for (int p = GameConstants.MAX_PRIORITY; p >= 0; p--)
         {
-            HashSet<Command> currentCmds = priorityToCommands[p];
-            List<GameEvent> priorityEvents = new List<GameEvent>();
+            HashSet<Command> currentCmds = priorityToCommands[(byte)p];
+            List<GameEvent> priorityEvents = (p == 0 ? processEndOfTurn() : new List<GameEvent>());
 
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Rotate)));
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Move)));
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Attack)));
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Special)));
 
-            processBatteryLoss(priorityEvents, p);
+            processBatteryLoss(priorityEvents, (byte)p);
             events.AddRange(priorityEvents);
         }
-        List<GameEvent> priorityZeroEvents = processEndOfTurn();
-        priorityZeroEvents.AddRange(processPriorityFinish(primary.team, true));
-        priorityZeroEvents.AddRange(processPriorityFinish(secondary.team, false));
-        processBatteryLoss(priorityZeroEvents, 0);
-        events.AddRange(priorityZeroEvents);
         return events;
     }
 
@@ -182,8 +178,16 @@ public class Game
         HashSet<Command> commands = new HashSet<Command>(allCommands.Where((Command c) => c.GetType().Equals(t)));
         commands.ToList().ForEach((Command c) =>
         {
+            List<GameEvent> evts = new List<GameEvent>();
+            bool isPrimary = c.owner.Equals(primary.name);
             Robot primaryRobot = GetRobot(c.robotId);
-            List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId], c.owner.Equals(primary.name));
+            if (robotIdToTurnObject[c.robotId].isDead)
+            {
+                GameEvent f = primaryRobot.Fail(c, "it's dead", isPrimary);
+                f.primaryBattery = f.secondaryBattery = 0;
+                evts.Add(f);
+            }
+            if (evts.Count == 0) evts.AddRange(primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId], c.owner.Equals(primary.name)));
             if (evts.Count > 0)
             {
                 events.AddRange(evts);
@@ -205,7 +209,7 @@ public class Game
                 idsToWantedEvents[c.robotId] = primaryRobot.Move(((Command.Move)c).direction, isPrimary);
             } else if (c is Command.Attack)
             {
-                if (board.GetQueuePosition(primaryRobot.queueSpot, isPrimary).Equals(primaryRobot.position)) events.Add(primaryRobot.Fail(c, isPrimary));
+                if (board.GetQueuePosition(primaryRobot.queueSpot, isPrimary).Equals(primaryRobot.position)) events.Add(primaryRobot.Fail(c, "it's in queue", isPrimary));
                 else idsToWantedEvents[c.robotId] = primaryRobot.Attack(isPrimary);
             }
         });
@@ -223,32 +227,34 @@ public class Game
         }
         idsToWantedEvents.Values.ToList().ForEach(events.AddRange);
         events.ForEach(Update);
+
+        Func<Robot[], bool, List<GameEvent>> processPriorityFinish = (Robot[] team, bool isPrimary) =>
+        {
+            List<GameEvent> evts = new List<GameEvent>();
+            Array.ForEach(team, (Robot r) =>
+            {
+                if (r.health <= 0)
+                {
+                    Vector2Int v = board.GetQueuePosition(r.queueSpot, isPrimary);
+                    GameEvent.Death death = new GameEvent.Death();
+                    r.health = death.returnHealth = r.startingHealth;
+                    r.position = death.returnLocation = v;
+                    r.orientation = death.returnDir = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;
+                    death.primaryRobotId = r.id;
+                    death.primaryBattery = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating : 0);
+                    death.secondaryBattery = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
+                    board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
+                    endOfTurnEvents.RemoveAll((GameEvent e) => e.primaryRobotId == r.id);
+                    evts.Add(death);
+                    robotIdToTurnObject[r.id].isDead = true;
+                }
+            });
+            return evts;
+        };
+
         events.AddRange(processPriorityFinish(primary.team, true));
         events.AddRange(processPriorityFinish(secondary.team, false));
         return events;
-    }
-
-    private List<GameEvent> processPriorityFinish(Robot[] team, bool isPrimary)
-    {
-        List<GameEvent> evts = new List<GameEvent>();
-        Array.ForEach(team, (Robot r) =>
-        {
-            if (r.health <= 0)
-            {
-                Vector2Int v = board.GetQueuePosition(r.queueSpot, isPrimary);
-                GameEvent.Death death = new GameEvent.Death();
-                r.health = death.returnHealth = r.startingHealth;
-                r.position = death.returnLocation = v;
-                r.orientation = death.returnDir = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;
-                death.primaryRobotId = r.id;
-                death.primaryBattery = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating : 0);
-                death.secondaryBattery = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
-                board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-                endOfTurnEvents.RemoveAll((GameEvent e) => e.primaryRobotId == r.id);
-                evts.Add(death);
-            }
-        });
-        return evts;
     }
 
     private List<GameEvent> processEndOfTurn()
@@ -455,6 +461,7 @@ public class Game
                 {
                     generateBlockEvent(r2.name, m1.destinationPos)(key1);
                     generateBlockEvent(r1.name, m2.destinationPos)(key2);
+                    valid = false;
                 }
             });
         });

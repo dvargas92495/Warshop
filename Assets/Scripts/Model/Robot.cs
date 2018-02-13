@@ -176,14 +176,15 @@ public class Robot
         }
         else
         {
-            evts.Add(Fail(c, isPrimary));
+            evts.Add(Fail(c, "of limit", isPrimary));
         }
         return evts;
     }
-    internal GameEvent Fail(Command c, bool isPrimary)
+    internal GameEvent Fail(Command c, string reason, bool isPrimary)
     {
         GameEvent.Fail fail = new GameEvent.Fail();
         fail.failedCmd = c.GetType().ToString().Substring("Command.".Length);
+        fail.reason = reason;
         fail.primaryRobotId = c.robotId;
         fail.primaryBattery = (isPrimary ? Game.RobotTurnObject.power[c.GetType()] : (byte)0);
         return fail;
@@ -284,7 +285,7 @@ public class Robot
                 }
                 else
                 {
-                    return new List<GameEvent>() { Fail(c, isPrimary) };
+                    return new List<GameEvent>() { Fail(c, "of limit", isPrimary) };
                 }
             } else
             {
@@ -294,7 +295,7 @@ public class Robot
                 }
                 else
                 {
-                    return new List<GameEvent>() { Fail(c, isPrimary) };
+                    return new List<GameEvent>() { Fail(c, "of limit", isPrimary) };
                 }
             }
         }

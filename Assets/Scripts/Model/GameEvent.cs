@@ -297,20 +297,23 @@ public abstract class GameEvent
     {
         internal const byte EVENT_ID = 8;
         internal string failedCmd;
+        internal string reason;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
             writer.Write(failedCmd);
+            writer.Write(reason);
         }
         public new static Fail Deserialize(NetworkReader reader)
         {
             Fail evt = new Fail();
             evt.failedCmd = reader.ReadString();
+            evt.reason = reader.ReadString();
             return evt;
         }
         public override string ToString()
         {
-            return ToString("failed to execute " + failedCmd + " due to limit");
+            return ToString("failed to execute " + failedCmd + " beacause " + reason);
         }
     }
 
@@ -343,6 +346,7 @@ public abstract class GameEvent
             r.displayMove(returnLocation);
             r.displayRotate(Robot.OrientationToVector(returnDir));
             r.displayHealth(returnHealth);
+            r.gameObject.SetActive(false);
         }
         public override string ToString()
         {

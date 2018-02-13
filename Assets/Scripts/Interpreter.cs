@@ -176,7 +176,10 @@ public class Interpreter {
         uiController.DisplayEvent(GameConstants.FINISHED_EVENTS);
         History.Add(priorityToState);
         myturn = true;
-        Array.ForEach(robotControllers, (RobotController r) => r.canCommand = !r.isOpponent);
+        Array.ForEach(robotControllers, (RobotController r) => {
+            r.canCommand = !r.isOpponent;
+            r.gameObject.SetActive(true);
+        });
     }
 
     public static void DestroyCommandMenu()

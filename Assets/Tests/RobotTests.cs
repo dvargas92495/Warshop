@@ -575,6 +575,31 @@ public class GruntTest : TestBase
     }
 
     [Test]
+    public void TestAttackDeathFailedMove()
+    {
+        Robot primaryBronze = testgame.primary.team[0];
+        Robot secondarySilver = testgame.secondary.team[1];
+        BeforeEachTest(new Dictionary<short, Vector2Int> {
+            { primaryBronze.id, new Vector2Int(1,1) },
+            { secondarySilver.id, new Vector2Int(1,2) }
+        });
+        List<GameEvent> events = SimulateCommands(
+            RotateCommand(Command.Direction.RIGHT, primaryBronze.id),
+            RotateCommand(Command.Direction.DOWN, secondarySilver.id),
+            AttackCommand(secondarySilver.id),
+            MoveCommand(Command.Direction.UP, primaryBronze.id)
+        );
+        Assert.AreEqual(6, events.Count);
+        Assert.IsInstanceOf<GameEvent.Attack>(events[2]);
+        Assert.IsInstanceOf<GameEvent.Damage>(events[3]);
+        Assert.IsInstanceOf<GameEvent.Death>(events[4]);
+        Assert.IsInstanceOf<GameEvent.Fail>(events[5]);
+        Assert.AreEqual(primaryBronze.startingHealth, primaryBronze.health);
+        Assert.AreEqual(Vector2Int.zero, primaryBronze.position);
+        Assert.AreEqual(Robot.Orientation.NORTH, primaryBronze.orientation);
+    }
+
+    [Test]
     public void TestAttackFail()
     {
         Robot primaryBronze = testgame.primary.team[0];
