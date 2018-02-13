@@ -12,7 +12,7 @@ public class BoardController : MonoBehaviour {
     public List< List<TileController>> allLocations = new List<List<TileController>>();
 
     // Use this for initialization
-    void Start()
+    void Awake()
     {
         Interpreter.InitializeBoard(this);
     }

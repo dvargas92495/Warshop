@@ -61,12 +61,8 @@ public class Interpreter {
     {
         uiController = ui;
         uiController.InitializeUICanvas(playerTurnObjectArray);
-        if (boardController)
-        {
-            Debug.Log("UI second");
-            uiController.PositionCamera(isPrimary);
-            History.Add(new Dictionary<byte, byte[]> { { 0, SerializeState() } });
-        }
+        uiController.PositionCamera(isPrimary);
+        History.Add(new Dictionary<byte, byte[]> { { 0, SerializeState() } });
     }
 
     public static void InitializeBoard(BoardController bc)
@@ -74,12 +70,6 @@ public class Interpreter {
         boardController = bc;
         boardController.InitializeBoard(board);
         InitializeRobots(playerTurnObjectArray);
-        if (uiController)
-        {
-            Debug.Log("Board second");
-            uiController.PositionCamera(isPrimary);
-            History.Add(new Dictionary<byte, byte[]> { { 0, SerializeState() } });
-        }
     }
 
     private static void InitializeRobots(Game.Player[] playerTurns)
@@ -177,7 +167,7 @@ public class Interpreter {
             else
             {
                 events[i].DisplayEvent(GetRobot(events[i].primaryRobotId));
-                uiController.DisplayEvent(events[i].ToString());
+                uiController.DisplayEvent(FormatEvent(events[i].ToString()));
                 uiController.SetBattery(events[i].primaryBattery, events[i].secondaryBattery);
                 eventsThisPriority.Add(events[i]);
             }
@@ -288,6 +278,22 @@ public class Interpreter {
     private static RobotController GetRobot(short id)
     {
         return Array.Find(robotControllers, (RobotController r) => r.id == id);
+    }
+
+    private static string FormatEvent(string s)
+    {
+        string[] parts = s.Split(' ');
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (parts[i].Equals("Robot"))
+            {
+                short id = short.Parse(parts[i + 1]);
+                RobotController r = GetRobot(id);
+                parts[i] = (!r.isOpponent ? "Your" : "Opponent's");
+                parts[i + 1] = r.name;
+            }
+        }
+        return string.Join(" ", parts);
     }
 }
 
