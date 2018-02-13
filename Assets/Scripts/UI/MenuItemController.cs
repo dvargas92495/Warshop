@@ -4,9 +4,9 @@ using UnityEngine;
 public class MenuItemController : MonoBehaviour {
 
     Action callback;
-    public MeshRenderer background;
-    public Material onHover;
-    public Material offHover;
+    public SpriteRenderer background;
+    internal Color onHover = Color.gray;
+    internal Color offHover = new Color(0.75f, 0.75f, 0.75f);
     internal bool isSubMenu;
     internal bool clicked;
 
@@ -16,7 +16,7 @@ public class MenuItemController : MonoBehaviour {
         Array.ForEach(transform.parent.GetComponentsInChildren<MenuItemController>(), (MenuItemController mi) => otherClicked = otherClicked || mi.clicked);
         if (!otherClicked || isSubMenu)
         {
-            background.material = onHover;
+            background.color = onHover;
         }
     }
 
@@ -24,7 +24,7 @@ public class MenuItemController : MonoBehaviour {
     {
         if (!clicked)
         {
-            background.material = offHover;
+            background.color = offHover;
         }
     }
 
@@ -44,14 +44,14 @@ public class MenuItemController : MonoBehaviour {
                     });
                 } else
                 {
-                    mi.background.material = offHover;
+                    mi.background.color = offHover;
                 }
             }
         }
         if (shouldClick)
         {
             clicked = true;
-            background.material = onHover;
+            background.color = onHover;
             callback();
         }
     }

@@ -1,12 +1,15 @@
 fileFormatVersion: 2
 guid: 20eaf5f3168b0b64c88f58e2660c0e6f
-timeCreated: 1516391615
+timeCreated: 1518468055
 licenseType: Free
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
   - menuItem: {fileID: 1712457456641724, guid: c61b7eb0b15141e4485b91704203a20d, type: 2}
+  - eventArrow: {fileID: 114755876433841534, guid: 0ec74add9afba8b4cb2c69239a746618,
+      type: 2}
+  - move: {fileID: 21300000, guid: 9f8a5e97079be804e942a69a378f0402, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

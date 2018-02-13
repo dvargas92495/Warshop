@@ -307,6 +307,7 @@ public class Game
         Func<string, bool> generateBlockEvent = (string s) =>
         {
             GameEvent.Block evt = new GameEvent.Block();
+            evt.deniedPos = g.destinationPos;
             evt.Transfer(g);
             evt.blockingObject = s;
             board.UpdateObjectLocation(g.sourcePos.x, g.sourcePos.y, g.primaryRobotId);
@@ -369,6 +370,7 @@ public class Game
             GameEvent.Block block = new GameEvent.Block();
             block.blockingObject = ((GameEvent.Block)events[index+1]).blockingObject;
             GameEvent.Move original = (GameEvent.Move)events[index - 1];
+            block.deniedPos = original.destinationPos;
             block.Transfer(original);
             board.UpdateObjectLocation(original.sourcePos.x, original.sourcePos.y, original.primaryRobotId);
             events.RemoveRange(index - 1, 3);
@@ -428,7 +430,6 @@ public class Game
         Dictionary<Vector2Int, List<short>> spaceToIds = new Dictionary<Vector2Int, List<short>>();
         idsToWantedEvents.Keys.ToList().ForEach((short key) =>
         {
-            Robot primaryRobot = GetRobot(key);
             idsToWantedEvents[key].ForEach((GameEvent e) =>
             {
                 if (e is GameEvent.Move)
@@ -467,6 +468,7 @@ public class Game
                     GameEvent.Block block = new GameEvent.Block();
                     block.blockingObject = blocker;
                     GameEvent.Move original = wanted.Find((GameEvent e) => e is GameEvent.Move && ((GameEvent.Move)e).destinationPos.Equals(space)) as GameEvent.Move;
+                    block.deniedPos = original.destinationPos;
                     block.Transfer(original);
                     board.UpdateObjectLocation(original.sourcePos.x, original.sourcePos.y, original.primaryRobotId);
                     int index = wanted.IndexOf(original);

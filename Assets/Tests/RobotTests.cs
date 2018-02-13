@@ -176,7 +176,6 @@ public class GruntTest : TestBase
             { primaryBronze.id, new Vector2Int(1,1) },
             { primaryPlatinum.id, new Vector2Int(1,2) }
         });
-        Vector2Int primaryExpected = primaryPlatinum.position;
         List<GameEvent> events = SimulateCommands(
             RotateCommand(Command.Direction.RIGHT, primaryPlatinum.id),
             RotateCommand(Command.Direction.UP, primaryBronze.id),

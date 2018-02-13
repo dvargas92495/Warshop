@@ -8,7 +8,7 @@ public class BoardController : MonoBehaviour {
     //Area board is allowed to be in
     public int boardCellsWide;
     public int boardCellsHeight;
-    public GameObject tile;
+    public TileController tile;
     public List< List<TileController>> allLocations = new List<List<TileController>>();
 
     // Use this for initialization
@@ -26,9 +26,7 @@ public class BoardController : MonoBehaviour {
             List<TileController> row = new List<TileController>();
             for (int x = 0; x < boardCellsWide; x++)
             {
-                GameObject cell = Instantiate(tile, transform);
-                cell.GetComponent<RectTransform>().position = new Vector2(x, y);
-                TileController currentCell = cell.GetComponent<TileController>();
+                TileController currentCell = Instantiate(tile, new Vector2(x, y), Quaternion.identity, transform);
                 currentCell.LoadTile(board.getSpaceType(x,y));
                 row.Add(currentCell);
             }
@@ -43,7 +41,7 @@ public class BoardController : MonoBehaviour {
             return;
         }
         TileController loc = allLocations[y][x];
-        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, GameConstants.ROBOTZ);
+        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y);
     }
 
 }

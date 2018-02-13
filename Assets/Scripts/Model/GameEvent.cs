@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Networking;
 
 public abstract class GameEvent
@@ -86,6 +87,7 @@ public abstract class GameEvent
         secondaryBattery = battery;
     }
     public virtual void Animate(RobotController r){}
+    public virtual void DisplayEvent(RobotController r) {}
     public class Empty : GameEvent
     {
         internal const byte EVENT_ID = 0;
@@ -151,9 +153,13 @@ public abstract class GameEvent
         {
             r.displayMove(destinationPos);
         }
+        public override void DisplayEvent(RobotController r)
+        {
+            r.displayEvent(r.moveArrow, destinationPos);
+        }
         public override string ToString()
         {
-            return ToString("moved from " + sourcePos + " to " + destinationPos);
+            return ToString("moved");
         }
     }
 
@@ -183,9 +189,13 @@ public abstract class GameEvent
             }
             return evt;
         }
+        public override void DisplayEvent(RobotController r)
+        {
+            Array.ForEach(locs, (Vector2Int v) =>  r.displayEvent(r.attackArrow, v));
+        }
         public override string ToString()
         {
-            return ToString("attacked " + string.Join(",", locs));
+            return ToString("attacked");
         }
     }
 
@@ -193,16 +203,26 @@ public abstract class GameEvent
     {
         internal const byte EVENT_ID = 4;
         internal string blockingObject;
+        internal Vector2Int deniedPos;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
             writer.Write(blockingObject);
+            writer.Write(deniedPos.x);
+            writer.Write(deniedPos.y);
         }
         public new static Block Deserialize(NetworkReader reader)
         {
             Block evt = new Block();
             evt.blockingObject = reader.ReadString();
+            evt.deniedPos = new Vector2Int();
+            evt.deniedPos.x = reader.ReadInt32();
+            evt.deniedPos.y = reader.ReadInt32();
             return evt;
+        }
+        public override void DisplayEvent(RobotController r)
+        {
+            r.displayEvent(r.blockArrow, deniedPos);
         }
         public override string ToString()
         {
@@ -368,6 +388,10 @@ public abstract class GameEvent
         public override void Animate(RobotController r)
         {
             r.displayHealth(remainingHealth);
+        }
+        public override void DisplayEvent(RobotController r)
+        {
+            r.displayEvent(r.damageArrow, new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y));
         }
         public override string ToString()
         {

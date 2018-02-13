@@ -209,7 +209,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boardCellsWide: 0
   boardCellsHeight: 0
-  tile: {fileID: 1022008981100928, guid: 8cf26a144fe69a34fb03103c015fd34d, type: 2}
+  tile: {fileID: 114061480948572856, guid: 8cf26a144fe69a34fb03103c015fd34d, type: 2}
 --- !u!1 &350167615
 GameObject:
   m_ObjectHideFlags: 0

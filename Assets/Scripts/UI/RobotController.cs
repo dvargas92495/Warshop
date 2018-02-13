@@ -8,19 +8,26 @@ public class RobotController : MonoBehaviour
     public short id { get; protected set; }
     internal bool isOpponent;
     internal bool canCommand;
+    internal bool inTurn;
+    internal bool isMenuShown;
+    internal List<SpriteRenderer> currentEvents = new List<SpriteRenderer>();
     internal List<Command> commands = new List<Command>();
 
     public MenuItemController menuItem;
+    public SpriteRenderer eventArrow;
+    public Sprite moveArrow;
+    public Sprite blockArrow;
+    public Sprite attackArrow;
+    public Sprite damageArrow;
+
     internal static RobotController robotBase;
     internal static Sprite[] robotDir;
-    protected bool inTurn;
-    internal bool isMenuShown;
 
 
     public static RobotController Load(Robot robot)
     {
         RobotController r = Instantiate(robotBase, Interpreter.boardController.transform);
-        Image sprite = r.GetComponent<Image>();
+        SpriteRenderer sprite = r.GetComponent<SpriteRenderer>();
         sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
         r.name = robot.name;
         r.id = robot.id;
@@ -145,6 +152,7 @@ public class RobotController : MonoBehaviour
             });
         }
         float menuW = transform.localScale.x;
+        float menuH = transform.localScale.y;
         float itemW = menuItem.transform.localScale.x;
         float itemH = menuItem.transform.localScale.y;
         Vector3 up = Interpreter.uiController.boardCamera.transform.up;
@@ -155,24 +163,25 @@ public class RobotController : MonoBehaviour
             choice.transform.rotation = Interpreter.uiController.boardCamera.transform.rotation;
             choice.SetCallback(opts[i]);
             choice.GetComponentInChildren<TextMesh>().text = vals[i];
-            choice.transform.position += up*(itemH*(-i - 0.5f + (opts.Count/2.0f)));
+            choice.GetComponentInChildren<MeshRenderer>().sortingOrder = choice.GetComponent<SpriteRenderer>().sortingOrder + 1;
+            choice.transform.position += up*(menuH*itemH*(-i - 0.5f + (opts.Count/2.0f)));
             if (transform.position.x > (Interpreter.boardController.boardCellsWide/2) + Interpreter.boardController.transform.position.x)
             {
-                choice.transform.position -= new Vector3(itemW / 2 + menuW / 2, 0);
-                if (isSubmenu) choice.transform.position -= new Vector3(itemW,0);
+                choice.transform.position -= new Vector3(itemW * menuW * 0.5f, 0);
+                if (isSubmenu) choice.transform.position -= new Vector3(itemW * menuW,0);
             }
             else
             {
-                choice.transform.position += new Vector3(itemW / 2 + menuW / 2, 0);
-                if (isSubmenu) choice.transform.position += new Vector3(itemW, 0);
+                choice.transform.position += new Vector3(itemW * menuW * 0.5f, 0);
+                if (isSubmenu) choice.transform.position += new Vector3(itemW * menuW, 0);
             }
             if (transform.position.y < Interpreter.boardController.boardCellsHeight/2)
             {
-                choice.transform.position += Vector3.up*(((opts.Count/2.0f) - 0.5f) * itemH);
+                choice.transform.position += Vector3.up*(((opts.Count/2.0f) - 0.5f) * itemH * menuH);
             }
             else
             {
-                choice.transform.position -= Vector3.up*(((opts.Count/2.0f) - 0.5f) * itemH);
+                choice.transform.position -= Vector3.up*(((opts.Count/2.0f) - 0.5f) * itemH * menuH);
             }
             choice.isSubMenu = isSubmenu;
         }
@@ -196,5 +205,20 @@ public class RobotController : MonoBehaviour
     public void displayHealth(short health)
     {
         Interpreter.uiController.UpdateHealth(id, health);
+    }
+
+    public void displayEvent(Sprite eventType, Vector2Int targetLoc)
+    {
+        Vector3 loc = new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2);
+        Quaternion rot = Quaternion.LookRotation(Vector3.forward, loc - transform.position);
+        SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
+        addedEvent.sprite = eventType;
+        currentEvents.Add(addedEvent);
+    }
+
+    public void clearEvents()
+    {
+        currentEvents.ForEach((SpriteRenderer i) => Destroy(i.gameObject));
+        currentEvents.Clear();
     }
 }

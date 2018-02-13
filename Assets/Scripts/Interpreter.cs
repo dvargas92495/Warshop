@@ -93,7 +93,7 @@ public class Interpreter {
                 RobotController r = RobotController.Load(player.team[i]);
                 r.isOpponent = p == 1;
                 r.canCommand = !r.isOpponent;
-                r.transform.GetChild(0).GetComponent<Image>().color = (r.isOpponent ? Color.red : Color.blue);
+                r.transform.GetChild(0).GetComponent<SpriteRenderer>().color = (r.isOpponent ? Color.red : Color.blue);
                 robotControllers[playerTurns[0].team.Length * p + i] = r;
             }
         }
@@ -163,6 +163,7 @@ public class Interpreter {
                 {
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
                     evt.Animate(primaryRobot);
+                    primaryRobot.clearEvents();
                 }
                 eventsThisPriority.Clear();
                 priorityToState[currentPriority] = SerializeState();
@@ -175,6 +176,7 @@ public class Interpreter {
             }
             else
             {
+                events[i].DisplayEvent(GetRobot(events[i].primaryRobotId));
                 uiController.DisplayEvent(events[i].ToString());
                 uiController.SetBattery(events[i].primaryBattery, events[i].secondaryBattery);
                 eventsThisPriority.Add(events[i]);
