@@ -315,27 +315,22 @@ public class Game
             events.Insert(index, evt);
             return false;
         };
-        if (g.destinationPos.x < 0 || g.destinationPos.x >= board.Width || g.destinationPos.y < 0 || g.destinationPos.y >= board.Height)
+        if (board.IsVoid(g.destinationPos))
         {
             return generateBlockEvent("Wall");
         }
-        Map.Space space = board.VecToSpace(g.destinationPos);
-        if (space.spaceType == Map.Space.SpaceType.VOID)
-        {
-            return generateBlockEvent("Wall");
-        }
-        if (space.spaceType == Map.Space.SpaceType.PRIMARY_BASE || space.spaceType == Map.Space.SpaceType.SECONDARY_BASE)
+        if (board.IsBattery(g.destinationPos))
         {
             return generateBlockEvent("Battery");
         }
-        if (space.spaceType == Map.Space.SpaceType.PRIMARY_QUEUE || space.spaceType == Map.Space.SpaceType.SECONDARY_QUEUE)
+        if (board.IsQueue(g.destinationPos))
         {
             return generateBlockEvent("Queue");
         }
-        if (board.IsSpaceOccupied(space))
+        if (board.IsSpaceOccupied(g.destinationPos))
         {
             Vector2Int diff = g.destinationPos - g.sourcePos;
-            Robot occupant = GetRobot(board.GetIdOnSpace(space));
+            Robot occupant = GetRobot(board.GetIdOnSpace(g.destinationPos));
             if (
                 g.primaryRobotId == events[0].primaryRobotId &&
                 GetRobot(g.primaryRobotId).IsFacing(diff) &&
@@ -388,11 +383,10 @@ public class Game
         bool hitABattery = false;
         g.locs.ToList().ForEach((Vector2Int v) =>
         {
-            Map.Space.SpaceType st = board.getSpaceType(v.x, v.y);
-            if (st == Map.Space.SpaceType.PRIMARY_BASE || st == Map.Space.SpaceType.SECONDARY_BASE)
+            if (board.IsBattery(v))
             {
                 bool isPrimary = primary.team.Contains(attacker);
-                bool isPrimaryBase = st == Map.Space.SpaceType.PRIMARY_BASE;
+                bool isPrimaryBase = board.IsPrimary(v);
                 GameEvent.Battery evt = new GameEvent.Battery();
                 evt.opponentsBase = (isPrimary && !isPrimaryBase) || (!isPrimary && isPrimaryBase);
                 evt.primaryRobotId = g.primaryRobotId;
@@ -402,7 +396,7 @@ public class Game
                 evt.secondaryBattery += isPrimaryBase ? (short)0: drain;
                 events.Insert(index + 1, evt);
                 hitABattery = true;
-            } else if (st == Map.Space.SpaceType.PRIMARY_QUEUE || st == Map.Space.SpaceType.SECONDARY_QUEUE)
+            } else if (board.IsQueue(v))
             {
                 g.locs = g.locs.Where((Vector2Int vv) => !vv.Equals(v)).ToArray();
             }

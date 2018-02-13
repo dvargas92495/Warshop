@@ -30,7 +30,7 @@ public class Map
             string[] cells = lines[y+1].Trim().Split(' ');
             for (int x = 0; x < Width; x++)
             {
-                spaces[y * Width + x] = new Space(cells[x]);
+                spaces[y * Width + x] = Space.Create(cells[x][0]);
                 spaces[y * Width + x].x = x;
                 spaces[y * Width + x].y = y;
             }
@@ -75,6 +75,36 @@ public class Map
         return spaces[y * Width + x];
     }
 
+    public bool IsVoid(Vector2Int v)
+    {
+        Space s = VecToSpace(v);
+        if (s == null) return true;
+        return s is Void;
+    }
+
+    public bool IsBattery(Vector2Int v)
+    {
+        Space s = VecToSpace(v);
+        if (s == null) return false;
+        return s is Battery;
+    }
+
+    public bool IsQueue(Vector2Int v)
+    {
+        Space s = VecToSpace(v);
+        if (s == null) return false;
+        return s is Queue;
+    }
+
+    public bool IsPrimary(Vector2Int v)
+    {
+        Space s = VecToSpace(v);
+        if (s == null) return true;
+        else if (s is Battery) return ((Battery)s).isPrimary;
+        else if (s is Queue) return ((Queue)s).isPrimary;
+        else return true;
+    }
+
     public short GetIdOnSpace(Vector2Int v)
     {
         return GetIdOnSpace(VecToSpace(v));
@@ -92,16 +122,10 @@ public class Map
         }
     }
 
-    public Space.SpaceType getSpaceType(int x, int y)
-    {
-        if (VecToSpace(x, y) == null) return Space.SpaceType.NULL;
-        return VecToSpace(x,y).spaceType;
-    }
-
     public Vector2Int GetQueuePosition(byte i, bool isPrimary)
     {
-        Space[] queueSpaces = Array.FindAll(spaces, (Space s) => s.spaceType == (isPrimary ? Space.SpaceType.PRIMARY_QUEUE : Space.SpaceType.SECONDARY_QUEUE));
-        Space queueSpace = queueSpaces[i % queueSpaces.Length];
+        Space[] queueSpaces = Array.FindAll(spaces, (Space s) => s is Queue);
+        Space queueSpace = Array.Find(queueSpaces, (Space s) => ((Queue)s).index == i % queueSpaces.Length && ((Queue)s).isPrimary == isPrimary);
         return new Vector2Int(queueSpace.x, queueSpace.y);
     }
 
@@ -123,62 +147,100 @@ public class Map
         objectLocations.Remove(objectId);
     }
 
-    public class Space
+    public abstract class Space
     {
-        internal SpaceType spaceType;
         internal int x;
         internal int y;
-        internal Space(string s)
+        internal static Space Create(char s)
         {
             switch (s)
             {
-                case "V":
-                    spaceType = SpaceType.VOID;
-                    break;
-                case "W":
-                    spaceType = SpaceType.BLANK;
-                    break;
-                case "S":
-                case "s":
-                    spaceType = SpaceType.SPAWN;
-                    break;
-                case "A":
-                    spaceType = SpaceType.PRIMARY_BASE;
-                    break;
-                case "B":
-                    spaceType = SpaceType.SECONDARY_BASE;
-                    break;
-                case "Q":
-                    spaceType = SpaceType.PRIMARY_QUEUE;
-                    break;
-                case "q":
-                    spaceType = SpaceType.SECONDARY_QUEUE;
-                    break;
+                case 'W':
+                    return new Blank();
+                case 'P':
+                case 'p':
+                    return new Battery(char.IsUpper(s));
+                case 'A':
+                case 'a':
+                case 'B':
+                case 'b':
+                case 'C':
+                case 'c':
+                case 'D':
+                case 'd':
+                    bool p = char.IsUpper(s);
+                    byte i = (byte)(p ? s - 'A': s - 'a');
+                    return new Queue(i, p);
+                case 'V':
+                default:
+                    return new Void();
             }
         }
-        private Space(SpaceType t)
-        {
-            spaceType = t;
-        }
-        public enum SpaceType
-        {
-            VOID,
-            PRIMARY_BASE,
-            SECONDARY_BASE,
-            BLANK,
-            SPAWN,
-            PRIMARY_QUEUE,
-            SECONDARY_QUEUE,
-            NULL
-        }
-        public void Serialize(NetworkWriter writer)
-        {
-            writer.Write((byte)spaceType);
-        }
+        public abstract void Serialize(NetworkWriter writer);
         public static Space Deserialize(NetworkReader reader)
         {
-            return new Space((SpaceType)reader.ReadByte());
+            byte s = reader.ReadByte();
+            if (s == 0)
+            {
+                return new Void();
+            } else if (s == 1)
+            {
+                return new Blank();
+            } else if (s <= 3)
+            {
+                return new Battery(s == 2);
+            } else if (s <= 11)
+            {
+                bool p = s <= 7;
+                byte i = (byte)(p ? s - 4 : s - 8);
+                return new Queue(i, p);
+            }else
+            {
+                return new Void();
+            }
         }
+    }
+    private class Void : Space
+    {
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write((byte)0);
+        }
+    }
+    private class Blank : Space
+    {
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write((byte)1);
+        }
+    }
+    private class Battery : Space
+    {
+        internal bool isPrimary { private set; get; }
+        internal Battery(bool p)
+        {
+            isPrimary = p;
+        }
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write((byte)(isPrimary ? 2 : 3));
+        }
+    }
+    private class Queue : Space
+    {
+        internal bool isPrimary { private set; get; }
+        internal byte index { private set; get; }
+        internal Queue(byte i, bool p)
+        {
+            index = i;
+            isPrimary = p;
+        }
+        public override void Serialize(NetworkWriter writer)
+        {
+            byte s = (byte)((isPrimary ? 4:8) + index);
+            writer.Write(s);
+        }
+
     }
 }
 

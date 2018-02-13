@@ -10,32 +10,23 @@ public class TileController : MonoBehaviour {
         Interpreter.DestroyCommandMenu();
     }
 
-    public void LoadTile(Map.Space.SpaceType spaceType)
+    public void LoadTile(Map b, int x, int y)
     {
+        Vector2Int v = new Vector2Int(x, y);
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         sr.sprite = defaultSpace;
-        switch (spaceType)
+        if (b.IsVoid(v)) {
+            sr.color = Color.black;
+        } else if (b.IsQueue(v))
         {
-            case Map.Space.SpaceType.VOID:
-                sr.color = Color.black;
-                break;
-            case Map.Space.SpaceType.BLANK:
-                sr.color = Color.white;
-                break;
-            case Map.Space.SpaceType.SPAWN:
-                sr.color = Color.white;
-                break;
-            case Map.Space.SpaceType.PRIMARY_BASE:
-                sr.sprite = battery;
-                break;
-            case Map.Space.SpaceType.SECONDARY_BASE:
-                sr.sprite = battery;
-                sr.flipY = true;
-                break;
-            case Map.Space.SpaceType.PRIMARY_QUEUE:
-            case Map.Space.SpaceType.SECONDARY_QUEUE:
-                sr.color = Color.yellow;
-                break;
+            sr.color = Color.yellow;
+        } else if (b.IsBattery(v))
+        {
+            sr.sprite = battery;
+            sr.flipY = !b.IsPrimary(v);
+        } else
+        {
+            sr.color = Color.white;
         }
     }
 

@@ -257,7 +257,6 @@ public class Interpreter {
             newP = 0;
             turnNumber--;
         }
-        Debug.Log(turnNumber + " | " + (byte)newP);
         DeserializeState(History[turnNumber][(byte)newP]);
     }
 
@@ -271,7 +270,6 @@ public class Interpreter {
             newP = GameConstants.MAX_PRIORITY;
             turnNumber++;
         }
-        Debug.Log(turnNumber + " | " + (byte)newP);
         DeserializeState(History[turnNumber][(byte)newP]);
     }
 

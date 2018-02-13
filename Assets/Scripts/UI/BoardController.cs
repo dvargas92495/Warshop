@@ -27,7 +27,7 @@ public class BoardController : MonoBehaviour {
             for (int x = 0; x < boardCellsWide; x++)
             {
                 TileController currentCell = Instantiate(tile, new Vector2(x, y), Quaternion.identity, transform);
-                currentCell.LoadTile(board.getSpaceType(x,y));
+                currentCell.LoadTile(board, x, y);
                 row.Add(currentCell);
             }
             allLocations.Add(row);
