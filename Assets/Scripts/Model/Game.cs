@@ -421,6 +421,45 @@ public class Game
 
     private bool AreValidTogether(Dictionary<short, List<GameEvent>> idsToWantedEvents)
     {
+        bool valid = true;
+        Func<string, Vector2Int, Action<short>> generateBlockEvent = (string blocker, Vector2Int space) => new Action<short>((short key) =>
+        {
+            List<GameEvent> wanted = idsToWantedEvents[key];
+            GameEvent.Block block = new GameEvent.Block();
+            block.blockingObject = blocker;
+            GameEvent.Move original = wanted.Find((GameEvent e) => e is GameEvent.Move && ((GameEvent.Move)e).destinationPos.Equals(space)) as GameEvent.Move;
+            block.deniedPos = original.destinationPos;
+            block.Transfer(original);
+            board.UpdateObjectLocation(original.sourcePos.x, original.sourcePos.y, original.primaryRobotId);
+            int index = wanted.IndexOf(original);
+            int size = wanted.Count - index;
+            wanted.GetRange(index, size).ForEach(Invalidate);
+            wanted.RemoveRange(index, size);
+            wanted.Add(block);
+        });
+
+        //First do swapping positions check
+        idsToWantedEvents.Keys.ToList().ForEach((short key1) =>
+        {
+            idsToWantedEvents.Keys.ToList().ForEach((short key2) =>
+            {
+                Robot r1 = GetRobot(key1);
+                Robot r2 = GetRobot(key2);
+                GameEvent.Move m1 = idsToWantedEvents[key1].Find((GameEvent g) => {
+                    return g is GameEvent.Move && ((GameEvent.Move)g).destinationPos.Equals(r2.position);
+                }) as GameEvent.Move;
+                GameEvent.Move m2 = idsToWantedEvents[key2].Find((GameEvent g) => {
+                    return g is GameEvent.Move && ((GameEvent.Move)g).destinationPos.Equals(r1.position);
+                }) as GameEvent.Move;
+                if (m1 != null && m2 != null)
+                {
+                    generateBlockEvent(r2.name, m1.destinationPos)(key1);
+                    generateBlockEvent(r1.name, m2.destinationPos)(key2);
+                }
+            });
+        });
+
+        //Then do multiple robots contest for one position check
         Dictionary<Vector2Int, List<short>> spaceToIds = new Dictionary<Vector2Int, List<short>>();
         idsToWantedEvents.Keys.ToList().ForEach((short key) =>
         {
@@ -434,7 +473,6 @@ public class Game
                 }
             });
         });
-        bool valid = true;
         spaceToIds.Keys.ToList().ForEach((Vector2Int space) =>
         {
             List<short> idsWantSpace = spaceToIds[space];
@@ -456,21 +494,7 @@ public class Game
                 {
                     blocker = "Each Other"; //TODO: Better label
                 }
-                idsWantSpace.ForEach((short key) =>
-                {
-                    List<GameEvent> wanted = idsToWantedEvents[key];
-                    GameEvent.Block block = new GameEvent.Block();
-                    block.blockingObject = blocker;
-                    GameEvent.Move original = wanted.Find((GameEvent e) => e is GameEvent.Move && ((GameEvent.Move)e).destinationPos.Equals(space)) as GameEvent.Move;
-                    block.deniedPos = original.destinationPos;
-                    block.Transfer(original);
-                    board.UpdateObjectLocation(original.sourcePos.x, original.sourcePos.y, original.primaryRobotId);
-                    int index = wanted.IndexOf(original);
-                    int size = wanted.Count - index;
-                    wanted.GetRange(index, size).ForEach(Invalidate);
-                    wanted.RemoveRange(index, size);
-                    wanted.Add(block);
-                });
+                idsWantSpace.ForEach(generateBlockEvent(blocker, space));
             }
         });
         return valid;

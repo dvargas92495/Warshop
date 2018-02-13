@@ -12,14 +12,14 @@ public class TestBase
         testgame = new Game();
         testgame.board = new Map(
             "5 8\n" +
-            "Q Q V Q Q\n" +
-            "S W A W S\n" +
+            "A B V C D\n" +
+            "W W P W W\n" +
             "W W W W W\n" +
             "W W W W W\n" +
             "W W W W W\n" +
             "W W W W W\n" +
-            "s W B W s\n" +
-            "q q V q q\n"
+            "W W p W W\n" +
+            "a b V c d\n"
         );
         testgame.Join(t1, "primary", 1);
         testgame.Join(t2, "secondary", 2);

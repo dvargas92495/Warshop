@@ -307,11 +307,35 @@ public class GruntTest : TestBase
         Robot primaryBronze = testgame.primary.team[0];
         Robot secondaryBronze = testgame.secondary.team[0];
         BeforeEachTest(new Dictionary<short, Vector2Int> {
+            { primaryBronze.id, new Vector2Int(1,2) },
+            { secondaryBronze.id, new Vector2Int(2,2) }
+        });
+        Vector2Int primaryExpected = primaryBronze.position;
+        Vector2Int secondaryExpected = secondaryBronze.position;
+        List<GameEvent> events = SimulateCommands(
+            RotateCommand(Command.Direction.DOWN, secondaryBronze.id),
+            RotateCommand(Command.Direction.UP, primaryBronze.id),
+            MoveCommand(Command.Direction.LEFT, secondaryBronze.id),
+            MoveCommand(Command.Direction.RIGHT, primaryBronze.id)
+        );
+        Assert.AreEqual(4, events.Count);
+        Assert.IsInstanceOf<GameEvent.Block>(events[2]);
+        Assert.IsInstanceOf<GameEvent.Block>(events[3]);
+        Assert.AreEqual(primaryExpected, primaryBronze.position);
+        Assert.AreEqual(secondaryExpected, secondaryBronze.position);
+    }
+
+    [Test]
+    public void TestMoveSwapPositionsFacing()
+    {
+        Robot primaryBronze = testgame.primary.team[0];
+        Robot secondaryBronze = testgame.secondary.team[0];
+        BeforeEachTest(new Dictionary<short, Vector2Int> {
             { primaryBronze.id, new Vector2Int(1,1) },
             { secondaryBronze.id, new Vector2Int(1,2) }
         });
-        Vector2Int primaryExpected = secondaryBronze.position;
-        Vector2Int secondaryExpected = primaryBronze.position;
+        Vector2Int primaryExpected = primaryBronze.position;
+        Vector2Int secondaryExpected = secondaryBronze.position;
         List<GameEvent> events = SimulateCommands(
             RotateCommand(Command.Direction.DOWN, secondaryBronze.id),
             RotateCommand(Command.Direction.UP, primaryBronze.id),
@@ -319,8 +343,8 @@ public class GruntTest : TestBase
             MoveCommand(Command.Direction.UP, primaryBronze.id)
         );
         Assert.AreEqual(4, events.Count);
-        Assert.IsInstanceOf<GameEvent.Move>(events[2]);
-        Assert.IsInstanceOf<GameEvent.Move>(events[3]);
+        Assert.IsInstanceOf<GameEvent.Block>(events[2]);
+        Assert.IsInstanceOf<GameEvent.Block>(events[3]);
         Assert.AreEqual(primaryExpected, primaryBronze.position);
         Assert.AreEqual(secondaryExpected, secondaryBronze.position);
     }

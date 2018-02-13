@@ -226,7 +226,7 @@ public abstract class GameEvent
         }
         public override string ToString()
         {
-            return ToString("blocked by " + blockingObject);
+            return ToString("was blocked by " + blockingObject);
         }
     }
 
