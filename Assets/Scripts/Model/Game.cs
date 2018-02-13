@@ -113,13 +113,13 @@ public class Game
             { typeof(Command.Attack), GameConstants.DEFAULT_ATTACK_LIMIT },
             { typeof(Command.Special), GameConstants.DEFAULT_SPECIAL_LIMIT }
         };
-        /*static internal Dictionary<string, byte> power = new Dictionary<string, byte>()
+        static internal Dictionary<Type, byte> power = new Dictionary<Type, byte>()
         {
-            { typeof(Command.Rotate).ToString(), GameConstants.DEFAULT_ROTATE_POWER },
-            { typeof(Command.Move).ToString(), GameConstants.DEFAULT_MOVE_POWER },
-            { typeof(Command.Attack).ToString(), GameConstants.DEFAULT_ATTACK_POWER },
-            { typeof(Command.Special).ToString(), GameConstants.DEFAULT_SPECIAL_POWER }
-        };*/ // Uncomment if we want fails to cost power.
+            { typeof(Command.Rotate), GameConstants.DEFAULT_ROTATE_POWER },
+            { typeof(Command.Move), GameConstants.DEFAULT_MOVE_POWER },
+            { typeof(Command.Attack), GameConstants.DEFAULT_ATTACK_POWER },
+            { typeof(Command.Special), GameConstants.DEFAULT_SPECIAL_POWER }
+        };
         internal byte priority;
         internal RobotTurnObject(byte p)
         {
@@ -183,7 +183,7 @@ public class Game
         commands.ToList().ForEach((Command c) =>
         {
             Robot primaryRobot = GetRobot(c.robotId);
-            List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId]);
+            List<GameEvent> evts = primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId], c.owner.Equals(primary.name));
             if (evts.Count > 0)
             {
                 events.AddRange(evts);
@@ -205,7 +205,7 @@ public class Game
                 idsToWantedEvents[c.robotId] = primaryRobot.Move(((Command.Move)c).direction, isPrimary);
             } else if (c is Command.Attack)
             {
-                if (board.GetQueuePosition(primaryRobot.queueSpot, isPrimary).Equals(primaryRobot.position)) events.Add(primaryRobot.Fail(c));
+                if (board.GetQueuePosition(primaryRobot.queueSpot, isPrimary).Equals(primaryRobot.position)) events.Add(primaryRobot.Fail(c, isPrimary));
                 else idsToWantedEvents[c.robotId] = primaryRobot.Attack(isPrimary);
             }
         });

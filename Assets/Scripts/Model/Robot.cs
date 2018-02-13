@@ -165,7 +165,7 @@ public class Robot
         evt.remainingHealth = (short)(victim.health - attack);
         return new List<GameEvent>() { evt };
     }
-    internal virtual List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto)
+    internal virtual List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto, bool isPrimary)
     {
         List<GameEvent> evts = new List<GameEvent>();
         byte limit = Game.RobotTurnObject.limit[c.GetType()];
@@ -176,15 +176,16 @@ public class Robot
         }
         else
         {
-            evts.Add(Fail(c));
+            evts.Add(Fail(c, isPrimary));
         }
         return evts;
     }
-    internal GameEvent Fail(Command c)
+    internal GameEvent Fail(Command c, bool isPrimary)
     {
         GameEvent.Fail fail = new GameEvent.Fail();
         fail.failedCmd = c.GetType().ToString().Substring("Command.".Length);
         fail.primaryRobotId = c.robotId;
+        fail.primaryBattery = (isPrimary ? Game.RobotTurnObject.power[c.GetType()] : (byte)0);
         return fail;
     }
 
@@ -264,17 +265,17 @@ public class Robot
         )
         { }
 
-        internal override List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto)
+        internal override List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto, bool isPrimary)
         {
             if (c is Command.Rotate || c is Command.Special)
             {
-                return base.CheckFail(c, rto);
+                return base.CheckFail(c, rto, isPrimary);
             }
             else if (c is Command.Move)
             {
                 if (rto.num[typeof(Command.Attack)] == Game.RobotTurnObject.limit[typeof(Command.Attack)])
                 {
-                    return base.CheckFail(c, rto);
+                    return base.CheckFail(c, rto, isPrimary);
                 }
                 else if (rto.num[c.GetType()] < Game.RobotTurnObject.limit[c.GetType()] + 1)
                 {
@@ -283,17 +284,17 @@ public class Robot
                 }
                 else
                 {
-                    return new List<GameEvent>() { Fail(c) };
+                    return new List<GameEvent>() { Fail(c, isPrimary) };
                 }
             } else
             {
                 if (rto.num[typeof(Command.Move)] <= Game.RobotTurnObject.limit[typeof(Command.Move)])
                 {
-                    return base.CheckFail(c, rto);
+                    return base.CheckFail(c, rto, isPrimary);
                 }
                 else
                 {
-                    return new List<GameEvent>() { Fail(c) };
+                    return new List<GameEvent>() { Fail(c, isPrimary) };
                 }
             }
         }
