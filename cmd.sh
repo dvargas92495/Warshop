@@ -15,12 +15,13 @@ helpCmd() {
 
 cleanCmd(){
 	FLEET_BUILDS=$(aws gamelift describe-fleet-attributes --query "FleetAttributes[*].BuildId" --output text);
-    ALL_BUILDS=$(aws gamelift list-builds --query "Builds[*].BuildId" --output text);
+    ALL_BUILDS=$(aws gamelift list-builds --query "Builds[*].BuildId" --output text | head --bytes -2);
     for BUILD in $ALL_BUILDS
     do
-    	if [[ $BUILD = *$FLEET_BUILDS* ]]; then
+    	if [[ "$FLEET_BUILDS" = *"$BUILD"* ]]; then
     		echo "Valid Build $BUILD";
         else
+		    aws gamelift delete-build --build-id ${BUILD:-1};
         	echo "Deleted $BUILD";
         fi
     done
@@ -28,13 +29,14 @@ cleanCmd(){
 
 connectCmd(){
     rm -f MyPrivateKey.pem;
-	ALIAS_ID=$(aws gamelift list-aliases --query "Aliases[?Name==$PRODUCTION_ALIAS].AliasId" --output text | head --bytes -2);
+	ALIAS_ID=$(aws gamelift list-aliases --query "Aliases[?Name=='$PRODUCTION_ALIAS'].AliasId" --output text | head --bytes -2);
 	FLEET_ID=$(aws gamelift describe-alias --alias-id $ALIAS_ID --query "Alias.RoutingStrategy.FleetId" --output text | head --bytes -2);
     INSTANCE_ID=$(aws gamelift describe-instances --fleet-id $FLEET_ID --query "Instances[0].InstanceId" --output text | head --bytes -2);
     IP_ADDRESS=$(aws gamelift describe-instances --fleet-id $FLEET_ID --query "Instances[0].IpAddress" --output text | head --bytes -2);
 	aws gamelift get-instance-access --fleet-id $FLEET_ID --instance-id $INSTANCE_ID --query "InstanceAccess.Credentials.Secret" --output text | head --bytes -2 > MyPrivateKey.pem;
 	USER=$(aws gamelift get-instance-access --fleet-id $FLEET_ID --instance-id $INSTANCE_ID --query "InstanceAccess.Credentials.UserName" --output text | head --bytes -2);
 	chmod 400 MyPrivateKey.pem;
+	echo "Trying to connect to $FLEET_ID as $USER@$IP_ADDRESS...";
 	ssh -i MyPrivateKey.pem $USER@$IP_ADDRESS;
 }
 
