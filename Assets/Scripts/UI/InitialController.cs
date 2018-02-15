@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
@@ -47,6 +46,7 @@ public class InitialController : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
+        Logger.Setup(isServer);
         App.LinkAssets(boardfiles);
         if (isServer)
         {

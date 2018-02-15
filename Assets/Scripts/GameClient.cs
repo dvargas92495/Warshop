@@ -3,7 +3,6 @@ using System.Net;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using Amazon.Runtime;
 using Amazon.GameLift;
 using Amazon.GameLift.Model;
 using System.Net.Security;
@@ -13,8 +12,8 @@ public class GameClient : MonoBehaviour {
 
     private static NetworkClient client;
     private static AmazonGameLiftClient amazonClient;
-    private static string gameSessionId;
     private static string playerSessionId;
+    private static Logger log = new Logger(typeof(GameClient));
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
         { MsgType.Connect, OnConnect },
@@ -42,7 +41,7 @@ public class GameClient : MonoBehaviour {
             GameSession gameSession = describeRes.GameSessions.Find((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount);
             if (gameSession == null)
             {
-                Logger.ClientLog("No Game Session Available, creating one...");
+                log.Info("No Game Session Available, creating one...");
                 GameProperty gp = new GameProperty();
                 gp.Key = GameConstants.GAME_SESSION_PROPERTIES.BOARDFILE;
                 gp.Value = boardFile;
@@ -62,17 +61,16 @@ public class GameClient : MonoBehaviour {
                 }
                 if (!gameSession.Status.Equals(GameSessionStatus.ACTIVE))
                 {
-                    Logger.ClientLog(gameSession.Status);
+                    log.Info(gameSession.Status);
                     return;
                 }
             }
-            Logger.ClientLog("Game Session - " + gameSession.GameSessionId);
+            log.Info("Game Session - " + gameSession.GameSessionId);
             CreatePlayerSessionRequest playerSessionRequest = new CreatePlayerSessionRequest();
-            gameSessionId = playerSessionRequest.GameSessionId = gameSession.GameSessionId;
             playerSessionRequest.PlayerId = playerId;
             CreatePlayerSessionResponse playerSessionResponse = amazonClient.CreatePlayerSession(playerSessionRequest);
             playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId;
-            Logger.ClientLog("Player Session - " + playerSessionResponse.PlayerSession.PlayerSessionId);
+            log.Info("Player Session - " + playerSessionResponse.PlayerSession.PlayerSessionId);
             string ip = playerSessionResponse.PlayerSession.IpAddress;
             int port = playerSessionResponse.PlayerSession.Port;
             client = new NetworkClient();
@@ -81,7 +79,7 @@ public class GameClient : MonoBehaviour {
                 client.RegisterHandler(pair.Key, pair.Value);
             }
             client.Connect(ip, port);
-            Logger.ClientLog("Attempting to connect to " + ip + ":" + port);
+            log.Info("Attempting to connect to " + ip + ":" + port);
         } else
         {
             Messages.FakeConnectMessage msg = new Messages.FakeConnectMessage();
@@ -123,14 +121,14 @@ public class GameClient : MonoBehaviour {
 
     private static void OnConnect(NetworkMessage netMsg)
     {
-        Logger.ClientLog("Connected");
+        log.Info("Connected");
         Interpreter.SendPlayerInfo();
     }
 
     private static void OnGameReady(NetworkMessage netMsg)
     {
         Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
-        Logger.ClientLog("Received Game Information");
+        log.Info("Received Game Information");
         Interpreter.LoadBoard(msg.myTeam, msg.opponentTeam, msg.opponentname, msg.board, msg.isPrimary);
     }
 

@@ -20,7 +20,6 @@
     internal const string OPPONENT_WAITING = "Opponent is waiting for you to submit your moves...";
 
     internal const string APP_LOG_DIR = "/local/game/logs";
-    internal const string APP_ERROR_DIR = "/local/game/error";
     internal static string PRODUCTION_ALIAS = "Z8_App";
     internal class GAME_SESSION_PROPERTIES {
         internal const string BOARDFILE = "boardFile";

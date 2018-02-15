@@ -6,14 +6,12 @@ using Aws.GameLift;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
 
-[assembly: log4net.Config.XmlConfigurator(Watch=true)]
-
 public class App {
 
     private static int PORT = 12345; //TODO make this vary
     private static Game appgame;
     private static Dictionary<string,string> boardFiles;
-    private static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(App));
+    private static readonly Logger log = new Logger(typeof(App));
 
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
@@ -35,7 +33,7 @@ public class App {
     {
         GenericOutcome outcome = GameLiftServerAPI.InitSDK();
         Application.targetFrameRate = 60;
-        Logger.ServerLog("GameLiftServerAPI Outcome: " + outcome.Success);
+        log.Info("GameLiftServerAPI Outcome: " + outcome.Success);
         if (outcome.Success)
         {
             GameLiftServerAPI.ProcessReady(new ProcessParameters(
@@ -45,8 +43,7 @@ public class App {
                 PORT,
                 new LogParameters(new List<string>()
                 {
-                    GameConstants.APP_LOG_DIR,
-                    GameConstants.APP_ERROR_DIR
+                    GameConstants.APP_LOG_DIR
                 })
             ));
             foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
@@ -54,10 +51,10 @@ public class App {
                 NetworkServer.RegisterHandler(pair.Key, pair.Value);
             }
             NetworkServer.Listen(PORT);
-            Logger.ServerLog("Listening");
+            log.Info("Listening");
         } else
         {
-            Logger.OutcomeError(outcome);
+            log.Error(outcome);
         }
     }
 
@@ -115,7 +112,7 @@ public class App {
 
     private static void OnConnect(NetworkMessage netMsg)
     {
-        Logger.CallbackLog(netMsg, "Client Connected");
+        log.Info(netMsg, "Client Connected");
         if (!GameConstants.USE_SERVER)
         {
             Messages.FakeConnectMessage msg = netMsg.ReadMessage<Messages.FakeConnectMessage>();
@@ -131,18 +128,18 @@ public class App {
 
     private static void OnDisconnect(NetworkMessage netMsg)
     {
-        Logger.CallbackLog(netMsg, "Client Disconnected");
+        log.Info(netMsg, "Client Disconnected");
         GameLiftServerAPI.TerminateGameSession();
     }
 
     private static void OnStartLocalGame(NetworkMessage netMsg)
     {
-        Logger.CallbackLog(netMsg, "Client Starting Local Game");
+        log.Info(netMsg, "Client Starting Local Game");
         Messages.StartLocalGameMessage msg = netMsg.ReadMessage<Messages.StartLocalGameMessage>();
         GenericOutcome outcome = GameLiftServerAPI.AcceptPlayerSession(msg.playerSessionId);
         if (!outcome.Success && GameConstants.USE_SERVER)
         {
-            Logger.OutcomeError(outcome);
+            log.Error(outcome);
             return;
         }
         appgame.Join(msg.myRobots, msg.myName, netMsg.conn.connectionId);
@@ -152,12 +149,12 @@ public class App {
 
     private static void OnStartGame(NetworkMessage netMsg)
     {
-        Logger.CallbackLog(netMsg, "Client Starting Game");
+        log.Info(netMsg, "Client Starting Game");
         Messages.StartGameMessage msg = netMsg.ReadMessage<Messages.StartGameMessage>();
         GenericOutcome outcome = GameLiftServerAPI.AcceptPlayerSession(msg.playerSessionId);
         if (!outcome.Success && GameConstants.USE_SERVER)
         {
-            Logger.OutcomeError(outcome);
+            log.Error(outcome);
             return;
         }
         appgame.Join(msg.myRobots, msg.myName, netMsg.conn.connectionId);
@@ -170,7 +167,7 @@ public class App {
 
     private static void OnSubmitCommands(NetworkMessage netMsg)
     {
-        Logger.CallbackLog(netMsg, "Client Submitting Commands");
+        log.Info(netMsg, "Client Submitting Commands");
         Messages.SubmitCommandsMessage msg = netMsg.ReadMessage<Messages.SubmitCommandsMessage>();
         Game.Player p = (appgame.primary.name.Equals(msg.owner) ? appgame.primary : appgame.secondary);
         p.StoreCommands(new List<Command>(msg.commands));
