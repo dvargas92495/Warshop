@@ -37,7 +37,7 @@ public class GameClient : MonoBehaviour {
             describeReq.FleetId = fleetId;
             describeReq.StatusFilter = GameSessionStatus.ACTIVE;
             DescribeGameSessionsResponse describeRes = amazonClient.DescribeGameSessions(describeReq);
-            Debug.Log("Game Sessions found: " + describeRes.GameSessions.Count);
+            log.Info("Game Sessions found: " + describeRes.GameSessions.Count);
             GameSession gameSession = describeRes.GameSessions.Find((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount);
             if (gameSession == null)
             {
@@ -49,19 +49,35 @@ public class GameClient : MonoBehaviour {
                 req.MaximumPlayerSessionCount = (GameConstants.LOCAL_MODE ? 1 : 2);
                 req.FleetId = fleetId;
                 req.GameProperties.Add(gp);
-                CreateGameSessionResponse res = amazonClient.CreateGameSession(req);
-                gameSession = res.GameSession;
-                int retries = 0;
-                while (gameSession.Status.Equals(GameSessionStatus.ACTIVATING) && retries < 100)
+                try
                 {
-                    describeReq = new DescribeGameSessionsRequest();
-                    describeReq.GameSessionId = res.GameSession.GameSessionId;
-                    gameSession = amazonClient.DescribeGameSessions(describeReq).GameSessions[0];
-                    retries++;
-                }
-                if (!gameSession.Status.Equals(GameSessionStatus.ACTIVE))
+                    CreateGameSessionResponse res = amazonClient.CreateGameSession(req);
+                    gameSession = res.GameSession;
+                    int retries = 0;
+                    while (gameSession.Status.Equals(GameSessionStatus.ACTIVATING) && retries < 100)
+                    {
+                        describeReq = new DescribeGameSessionsRequest();
+                        describeReq.GameSessionId = res.GameSession.GameSessionId;
+                        gameSession = amazonClient.DescribeGameSessions(describeReq).GameSessions[0];
+                        retries++;
+                    }
+                    if (!gameSession.Status.Equals(GameSessionStatus.ACTIVE))
+                    {
+                        log.Info(gameSession.Status);
+                        return;
+                    }
+                } catch (NotFoundException e) {
+                    log.Fatal(e);
+                    Interpreter.ClientError("Your game is out of date! Download the newest version");
+                    return;
+                } catch (FleetCapacityExceededException) {
+                    log.Error("No more processes available to reserve a fleet");
+                    Interpreter.ClientError("There's no more room to create a new game. Come back later.");
+                    return;
+                } catch (Exception e)
                 {
-                    log.Info(gameSession.Status);
+                    log.Fatal(e);
+                    Interpreter.ClientError("An unexpected error occurred! Please notify the developers.");
                     return;
                 }
             }

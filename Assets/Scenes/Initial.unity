@@ -1652,7 +1652,7 @@ GameObject:
   - component: {fileID: 642201434}
   - component: {fileID: 642201433}
   m_Layer: 5
-  m_Name: Loading
+  m_Name: Status
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1679,12 +1679,12 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 48
+    m_FontSize: 24
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 4
+    m_MinSize: 2
     m_MaxSize: 48
-    m_Alignment: 1
+    m_Alignment: 7
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
@@ -1710,11 +1710,11 @@ RectTransform:
   m_Father: {fileID: 731799149}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 75}
-  m_SizeDelta: {x: 320, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 40}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!1 &676277107
 GameObject:
   m_ObjectHideFlags: 0
@@ -3079,7 +3079,7 @@ MonoBehaviour:
   opponentSelect: {fileID: 1263169057}
   myRoster: {fileID: 338360273}
   opponentRoster: {fileID: 175588014}
-  loadingText: {fileID: 642201433}
+  statusText: {fileID: 642201433}
   keys: {fileID: 4900000, guid: b406813ac0bf4d9439b4e20d6e4c9bac, type: 3}
   localModeToggle: {fileID: 413148677}
   useServerToggle: {fileID: 1772817137}

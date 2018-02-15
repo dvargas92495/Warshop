@@ -19,7 +19,7 @@ public class InitialController : MonoBehaviour {
     public Dropdown opponentSelect;
     public Text myRoster;
     public Text opponentRoster;
-    public Text loadingText;
+    public Text statusText;
     public TextAsset keys;
     public Toggle localModeToggle;
     public Toggle useServerToggle;
@@ -166,7 +166,9 @@ public class InitialController : MonoBehaviour {
         RobotController.robotDir = robotDir;
         Interpreter.myRobotNames = mybots;
         Interpreter.opponentRobotNames = opbots;
-        loadingText.text = "Loading...";
+        Interpreter.initialController = this;
+        statusText.color = Color.black;
+        statusText.text = "Loading...";
         Interpreter.ConnectToServer(myname, opponentname, b);
     }
 }

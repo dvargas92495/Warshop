@@ -12,6 +12,7 @@ public class Interpreter {
     private static Game.Player[] playerTurnObjectArray;
     private static Map board;
 
+    internal static InitialController initialController;
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static RobotController[] robotControllers;
@@ -55,6 +56,12 @@ public class Interpreter {
         myturn = true;
         isPrimary = isP;
         SceneManager.LoadScene("Prototype");
+    }
+
+    public static void ClientError(string s)
+    {
+        initialController.statusText.color = Color.red;
+        initialController.statusText.text = s;
     }
 
     public static void InitializeUI(UIController ui)

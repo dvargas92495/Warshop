@@ -11,6 +11,7 @@ using log4net;
 class Logger {
 
     internal ILog log;
+    private static bool configured;
 
     internal Logger(Type t)
     {
@@ -42,47 +43,54 @@ class Logger {
         log.Error(message);
     }
 
+    internal void Fatal(Exception e)
+    {
+        log.Fatal(e.GetType() + " - " + e.Message);
+    }
+
+    internal void Fatal(object message)
+    {
+        log.Fatal(message);
+    }
+
     internal static void Setup(bool isServer)
     {
-        PatternLayout editorLayout = new PatternLayout
+        if (configured) return;
+        if (Application.isEditor)
         {
-            ConversionPattern = "%logger - %message%newline"
-        };
-        editorLayout.ActivateOptions();
-        UnityAppender unityAppender = new UnityAppender
+            PatternLayout editorLayout = new PatternLayout
+            {
+                ConversionPattern = "%logger - %message%newline"
+            };
+            editorLayout.ActivateOptions();
+            UnityAppender unityAppender = new UnityAppender
+            {
+                Layout = editorLayout
+            };
+            unityAppender.ActivateOptions();
+            BasicConfigurator.Configure(unityAppender);
+        }
+        else
         {
-            Layout = editorLayout
-        };
-        unityAppender.ActivateOptions();
-
-        PatternLayout fileLayout = new PatternLayout
-        {
-            ConversionPattern = "%date %-5level %12logger - %message%newline"
-        };
-        fileLayout.ActivateOptions();
-        AppenderSkeleton appender;
-        if (isServer)
-        {
-            // setup the appender that writes to Log\EventLog.txt
-            appender = new RollingFileAppender
+            PatternLayout fileLayout = new PatternLayout
+            {
+                ConversionPattern = "%date %-5level %12logger - %message%newline"
+            };
+            fileLayout.ActivateOptions();
+            RollingFileAppender appender = new RollingFileAppender
             {
                 AppendToFile = false,
-                File = GameConstants.APP_LOG_DIR + "/server.log",
+                File = GameConstants.APP_LOG_DIR + (isServer ? "/server.log" : "/client.log"),
                 Layout = fileLayout,
                 MaxSizeRollBackups = 5,
                 MaximumFileSize = "1GB",
                 RollingStyle = RollingFileAppender.RollingMode.Size,
                 StaticLogFileName = true
             };
-        } else
-        {
-            appender = new ConsoleAppender
-            {
-                Layout = fileLayout
-            };
+            appender.ActivateOptions();
+            BasicConfigurator.Configure(appender);
         }
-        appender.ActivateOptions();
-        BasicConfigurator.Configure(unityAppender, appender);
+        configured = true;
     }
 
     private class UnityAppender : AppenderSkeleton
