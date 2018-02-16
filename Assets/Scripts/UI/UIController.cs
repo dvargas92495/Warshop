@@ -108,8 +108,6 @@ public class UIController : MonoBehaviour {
             TMP_Text[] fields = child.GetComponentsInChildren<TMP_Text>();
             Robot r = Robot.create(fields[0].text);
             r.id = short.Parse(child.name.Substring("Robot".Length));
-            r.attack = short.Parse(child.transform.GetChild(1).GetChild(1).GetComponentInChildren<Text>().text);
-            r.health = short.Parse(child.transform.GetChild(1).GetChild(0).GetComponentInChildren<Text>().text);
             team[i] = r;
             Destroy(child.gameObject);
         }
@@ -124,8 +122,6 @@ public class UIController : MonoBehaviour {
         panel.name = "Robot" + r.id;
         Transform icon = panel.transform.GetChild(1);
         icon.GetComponent<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
-        icon.GetChild(0).GetComponentInChildren<Text>().text = r.health.ToString();
-        icon.GetChild(1).GetComponentInChildren<Text>().text = r.attack.ToString();
         TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
         fields[0].SetText(r.name);
         fields[1].SetText(r.description);
@@ -176,30 +172,6 @@ public class UIController : MonoBehaviour {
                 break;
             }
         }
-    }
-
-    public void UpdateHealth(short id, short health)
-    {
-        Transform panel = robotIdToPanel[id].transform.GetChild(1);
-        panel.GetChild(0).GetComponentInChildren<Text>().text = health.ToString();
-    }
-
-    public void UpdateAttack(short id, short attack)
-    {
-        Transform panel = robotIdToPanel[id].transform.GetChild(1);
-        panel.GetChild(1).GetComponentInChildren<Text>().text = attack.ToString();
-    }
-
-    public short GetHealth(short id)
-    {
-        Transform panel = robotIdToPanel[id].transform.GetChild(1);
-        return short.Parse(panel.GetChild(0).GetComponentInChildren<Text>().text);
-    }
-
-    public short GetAttack(short id)
-    {
-        Transform panel = robotIdToPanel[id].transform.GetChild(1);
-        return short.Parse(panel.GetChild(1).GetComponentInChildren<Text>().text);
     }
 
     public void SetBattery(int a, int b)

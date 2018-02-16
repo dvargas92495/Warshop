@@ -15,6 +15,8 @@ public class RobotController : MonoBehaviour
 
     public MenuItemController menuItem;
     public SpriteRenderer eventArrow;
+    public TextMesh HealthLabel;
+    public TextMesh AttackLabel;
     public Sprite moveArrow;
     public Sprite blockArrow;
     public Sprite attackArrow;
@@ -33,6 +35,10 @@ public class RobotController : MonoBehaviour
         r.id = robot.id;
         r.displayMove(robot.position);
         r.displayRotate(Robot.OrientationToVector(robot.orientation));
+        r.displayHealth(robot.health);
+        r.displayAttack(robot.attack);
+        r.HealthLabel.GetComponent<MeshRenderer>().sortingOrder = r.HealthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
+        r.AttackLabel.GetComponent<MeshRenderer>().sortingOrder = r.AttackLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
         return r;
     }
     
@@ -204,7 +210,22 @@ public class RobotController : MonoBehaviour
     
     public void displayHealth(short health)
     {
-        Interpreter.uiController.UpdateHealth(id, health);
+        HealthLabel.text = health.ToString();
+    }
+
+    public void displayAttack(short attack)
+    {
+        AttackLabel.text = attack.ToString();
+    }
+
+    public short GetHealth()
+    {
+        return short.Parse(HealthLabel.text);
+    }
+
+    public short GetAttack()
+    {
+        return short.Parse(AttackLabel.text);
     }
 
     public void displayEvent(Sprite eventType, Vector2Int targetLoc)

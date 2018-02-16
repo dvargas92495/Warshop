@@ -216,8 +216,8 @@ public class Interpreter {
                 bf.Serialize(ms, r.transform.rotation.eulerAngles.x);
                 bf.Serialize(ms, r.transform.rotation.eulerAngles.y);
                 bf.Serialize(ms, r.transform.rotation.eulerAngles.z);
-                bf.Serialize(ms, uiController.GetHealth(r.id));
-                bf.Serialize(ms, uiController.GetAttack(r.id));
+                bf.Serialize(ms, r.GetHealth());
+                bf.Serialize(ms, r.GetAttack());
             }
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
@@ -246,8 +246,8 @@ public class Interpreter {
                 float ry = (float)bf.Deserialize(ms);
                 float rz = (float)bf.Deserialize(ms);
                 r.transform.rotation = Quaternion.Euler(rx, ry, rz);
-                uiController.UpdateHealth(r.id, (short)bf.Deserialize(ms));
-                uiController.UpdateAttack(r.id, (short)bf.Deserialize(ms));
+                r.displayHealth((short)bf.Deserialize(ms));
+                r.displayAttack((short)bf.Deserialize(ms));
             }
             int userBattery = (int)bf.Deserialize(ms);
             int opponentBattery = (int)bf.Deserialize(ms);
