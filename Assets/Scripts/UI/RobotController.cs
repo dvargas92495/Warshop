@@ -17,10 +17,7 @@ public class RobotController : MonoBehaviour
     public SpriteRenderer eventArrow;
     public TextMesh HealthLabel;
     public TextMesh AttackLabel;
-    public Sprite moveArrow;
-    public Sprite blockArrow;
-    public Sprite attackArrow;
-    public Sprite damageArrow;
+    public Sprite[] arrows;
 
     internal static RobotController robotBase;
     internal static Sprite[] robotDir;
@@ -228,8 +225,9 @@ public class RobotController : MonoBehaviour
         return short.Parse(AttackLabel.text);
     }
 
-    public void displayEvent(Sprite eventType, Vector2Int targetLoc)
+    public void displayEvent(string eventName, Vector2Int targetLoc)
     {
+        Sprite eventType = Array.Find(arrows, (Sprite s) => s.name.Equals(eventName));
         Vector3 loc = new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2);
         Quaternion rot = Quaternion.LookRotation(Vector3.forward, loc - transform.position);
         SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);

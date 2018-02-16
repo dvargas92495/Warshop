@@ -160,7 +160,7 @@ public abstract class GameEvent
         }
         public override void DisplayEvent(RobotController r)
         {
-            r.displayEvent(r.moveArrow, destinationPos);
+            r.displayEvent("Move Arrow", destinationPos);
         }
         public override string ToString()
         {
@@ -196,7 +196,7 @@ public abstract class GameEvent
         }
         public override void DisplayEvent(RobotController r)
         {
-            Array.ForEach(locs, (Vector2Int v) =>  r.displayEvent(r.attackArrow, v));
+            Array.ForEach(locs, (Vector2Int v) =>  r.displayEvent("Attack Arrow", v));
         }
         public override string ToString()
         {
@@ -227,7 +227,7 @@ public abstract class GameEvent
         }
         public override void DisplayEvent(RobotController r)
         {
-            r.displayEvent(r.blockArrow, deniedPos);
+            r.displayEvent("Collision", deniedPos);
         }
         public override string ToString()
         {
@@ -400,7 +400,7 @@ public abstract class GameEvent
         }
         public override void DisplayEvent(RobotController r)
         {
-            r.displayEvent(r.damageArrow, new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y));
+            r.displayEvent("1 Damage", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y));
         }
         public override string ToString()
         {

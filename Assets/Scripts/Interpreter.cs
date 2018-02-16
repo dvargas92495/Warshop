@@ -219,6 +219,17 @@ public class Interpreter {
                 bf.Serialize(ms, r.transform.rotation.eulerAngles.z);
                 bf.Serialize(ms, r.GetHealth());
                 bf.Serialize(ms, r.GetAttack());
+                bf.Serialize(ms, r.currentEvents.Count);
+                r.currentEvents.ForEach((SpriteRenderer s) =>
+                {
+                    bf.Serialize(ms, s.transform.position.x);
+                    bf.Serialize(ms, s.transform.position.y);
+                    bf.Serialize(ms, s.transform.position.z);
+                    bf.Serialize(ms, s.transform.rotation.eulerAngles.x);
+                    bf.Serialize(ms, s.transform.rotation.eulerAngles.y);
+                    bf.Serialize(ms, s.transform.rotation.eulerAngles.z);
+                    bf.Serialize(ms, s.sprite.name);
+                });
             }
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
@@ -249,6 +260,23 @@ public class Interpreter {
                 r.transform.rotation = Quaternion.Euler(rx, ry, rz);
                 r.displayHealth((short)bf.Deserialize(ms));
                 r.displayAttack((short)bf.Deserialize(ms));
+                r.clearEvents();
+                int eventCount = (int)bf.Deserialize(ms);
+                for (int j = 0; j < eventCount; j++)
+                {
+                    float spx = (float)bf.Deserialize(ms);
+                    float spy = (float)bf.Deserialize(ms);
+                    float spz = (float)bf.Deserialize(ms);
+                    Vector3 spos = new Vector3(spx, spy, spz);
+                    float srx = (float)bf.Deserialize(ms);
+                    float sry = (float)bf.Deserialize(ms);
+                    float srz = (float)bf.Deserialize(ms);
+                    Quaternion srot = Quaternion.Euler(srx, sry, srz);
+                    string s = (string)bf.Deserialize(ms);
+                    r.displayEvent(s, Vector2Int.zero);
+                    r.currentEvents[j].transform.position = spos;
+                    r.currentEvents[j].transform.rotation = srot;
+                }
             }
             int userBattery = (int)bf.Deserialize(ms);
             int opponentBattery = (int)bf.Deserialize(ms);
@@ -289,7 +317,10 @@ public class Interpreter {
                 break;
             }
         }
-        if (!stepped) DeserializeState(presentState);
+        if (!stepped) {
+            DeserializeState(presentState);
+            currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
+        }
     }
 
     public static void StepBackward()
