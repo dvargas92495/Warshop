@@ -20,6 +20,7 @@ public class Interpreter {
     public const int eventDelay = 1;
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
+    private static Logger log = new Logger(typeof(GameClient));
     private static bool myturn;
     private static bool isPrimary;
     private static byte turnNumber = 1;
@@ -117,7 +118,6 @@ public class Interpreter {
         {
             Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
         }
-        uiController.DisplayEvent(GameConstants.IM_WAITING);
         List<Command> commands = new List<Command>();
         string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
         foreach (RobotController robot in robotControllers)
@@ -147,7 +147,6 @@ public class Interpreter {
     {
         turnNumber = t;
         DeserializeState(presentState);
-        uiController.StartEventModal(turnNumber, GameConstants.MAX_PRIORITY);
         uiController.StartCoroutine(EventsRoutine(events));
     }
 
@@ -169,12 +168,12 @@ public class Interpreter {
                     primaryRobot.clearEvents();
                 }
                 eventsThisPriority.Clear();
-                uiController.StartEventModal(turnNumber, r.priority);
             }
             else
             {
+                uiController.EventTitle.text = "T " + turnNumber + " - P " + e.priority;
                 e.DisplayEvent(GetRobot(e.primaryRobotId));
-                uiController.DisplayEvent(FormatEvent(e.ToString()));
+                log.Info(e.ToString());
                 uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
                 eventsThisPriority.Add(e);
             }
@@ -182,6 +181,7 @@ public class Interpreter {
         }
         History[turnNumber] = priorityToState;
         currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0};
+        uiController.EventTitle.text = "T " + turnNumber + " - P " + 0;
         presentState = SerializeState();
         myturn = true;
         Array.ForEach(robotControllers, (RobotController r) => {
@@ -234,7 +234,6 @@ public class Interpreter {
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
             bf.Serialize(ms, uiController.EventTitle.text);
-            bf.Serialize(ms, uiController.EventLog.text);
             return ms.ToArray();
         }
     }
@@ -282,8 +281,13 @@ public class Interpreter {
             int opponentBattery = (int)bf.Deserialize(ms);
             uiController.SetBattery(userBattery, opponentBattery);
             uiController.EventTitle.text = (string)bf.Deserialize(ms);
-            uiController.EventLog.text = (string)bf.Deserialize(ms);
         }
+    }
+
+    public static void BackToPresent()
+    {
+        DeserializeState(presentState);
+        currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
     }
 
     public static void StepForward()
@@ -318,8 +322,7 @@ public class Interpreter {
             }
         }
         if (!stepped) {
-            DeserializeState(presentState);
-            currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
+            BackToPresent();
         }
     }
 
@@ -361,6 +364,7 @@ public class Interpreter {
         return Array.Find(robotControllers, (RobotController r) => r.id == id);
     }
 
+    /* Saving this method in case we ever want to format events again
     private static string FormatEvent(string s)
     {
         string[] parts = s.Split(' ');
@@ -376,5 +380,6 @@ public class Interpreter {
         }
         return string.Join(" ", parts);
     }
+    */
 }
 

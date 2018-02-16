@@ -157,7 +157,7 @@ public class GameClient : MonoBehaviour {
 
     private static void OnOpponentWaiting(NetworkMessage netMsg)
     {
-        Interpreter.uiController.DisplayEvent(GameConstants.OPPONENT_WAITING);
+        //Interpreter.uiController.DisplayEvent(GameConstants.OPPONENT_WAITING);
     }
 
     public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String myname, String opponentname)

@@ -21,14 +21,11 @@ public class UIController : MonoBehaviour {
     public GameObject UsersRobots;
     public GameObject userRobotPanel;
 
-    public Image EventModal;
     public Button SubmitCommands;
-    public Button EventButton;
     public Button StepBackButton;
     public Button StepForwardButton;
+    public Button BackToPresent;
     public Text EventTitle;
-    public Button CancelButton;
-    public Text EventLog;
     
     public Sprite[] sprites;
     public Camera boardCamera;
@@ -69,8 +66,7 @@ public class UIController : MonoBehaviour {
             }
         });
 
-        EventButton.onClick.AddListener(() => EventModal.gameObject.SetActive(!EventModal.gameObject.activeInHierarchy));
-        CancelButton.onClick.AddListener(() => EventModal.gameObject.SetActive(false));
+        BackToPresent.onClick.AddListener(Interpreter.BackToPresent);
         StepBackButton.onClick.AddListener(Interpreter.StepBackward);
         StepForwardButton.onClick.AddListener(Interpreter.StepForward);
 
@@ -215,15 +211,4 @@ public class UIController : MonoBehaviour {
         }
     }
 
-    public void DisplayEvent(string s)
-    {
-        EventLog.text += s + ".\n";
-    }
-
-    public void StartEventModal(int turn, byte p)
-    {
-        EventTitle.text = "TURN " + turn + " - PRIORITY " + p;
-        EventLog.text = "";
-        EventModal.gameObject.SetActive(true);
-    }
 }
