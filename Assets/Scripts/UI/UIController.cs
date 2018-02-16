@@ -9,14 +9,15 @@ using TMPro;
 public class UIController : MonoBehaviour {
 
 	public Image BackgroundPanel;
+    public TextMesh ScoreModel;
 
     public TMP_Text opponentNameText;
-    public TMP_Text opponentScore;
+    public TextMesh opponentScore;
     public GameObject OpponentsRobots;
     public GameObject opponentRobotPanel;
 
     public TMP_Text userNameText;
-    public TMP_Text userScore;
+    public TextMesh userScore;
     public GameObject UsersRobots;
     public GameObject userRobotPanel;
 
@@ -51,7 +52,7 @@ public class UIController : MonoBehaviour {
     }
 
     //Loads the UICanvas and it's child components
-    public void InitializeUICanvas(Game.Player[] playerObjects)
+    public void InitializeUICanvas(Game.Player[] playerObjects, bool isPrimary)
     {
         // Set Opponent Player Panel & Robots
         SetOpponentPlayerPanel(playerObjects[1]);
@@ -73,7 +74,12 @@ public class UIController : MonoBehaviour {
         StepBackButton.onClick.AddListener(Interpreter.StepBackward);
         StepForwardButton.onClick.AddListener(Interpreter.StepForward);
 
+        userScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(isPrimary).transform);
+        userScore.GetComponent<MeshRenderer>().sortingOrder = 1;
+        opponentScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(!isPrimary).transform);
+        opponentScore.GetComponent<MeshRenderer>().sortingOrder = 1;
         SetBattery(playerObjects[0].battery, playerObjects[1].battery);
+        PositionCamera(isPrimary);
     }
 
     void SetOpponentPlayerPanel(Game.Player opponentPlayer)
@@ -83,7 +89,6 @@ public class UIController : MonoBehaviour {
         {
             SetRobotPanel(opponentPlayer.team[i], opponentRobotPanel, OpponentsRobots.transform);
         }
-        opponentScore.text = opponentPlayer.battery.ToString();
     }
 
     void SetUsersPlayerPanel(Game.Player userPlayer)
@@ -93,7 +98,6 @@ public class UIController : MonoBehaviour {
         {
             SetRobotPanel(userPlayer.team[i], userRobotPanel, UsersRobots.transform);
         }
-        userScore.text = userPlayer.battery.ToString();
     }
 
     Game.Player GetFromPanelAndDestroy(bool isUser)

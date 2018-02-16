@@ -44,4 +44,9 @@ public class BoardController : MonoBehaviour {
         robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y);
     }
 
+    public TileController GetVoidTile(bool isUser)
+    { //TODO - hacky
+        return allLocations[isUser ? 0 : 7][2];
+    }
+
 }

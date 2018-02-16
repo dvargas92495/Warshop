@@ -67,8 +67,7 @@ public class Interpreter {
     public static void InitializeUI(UIController ui)
     {
         uiController = ui;
-        uiController.InitializeUICanvas(playerTurnObjectArray);
-        uiController.PositionCamera(isPrimary);
+        uiController.InitializeUICanvas(playerTurnObjectArray, isPrimary);
         History.Add(new Dictionary<byte, byte[]> { { 0, SerializeState() } });
     }
 
