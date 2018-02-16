@@ -11,7 +11,7 @@ public class Game
     internal List<GameEvent> endOfTurnEvents = new List<GameEvent>();
     internal Map board;
     internal short nextRobotId;
-    internal int turn = 1;
+    internal byte turn = 1;
 
     internal Game() {}
 
@@ -128,9 +128,9 @@ public class Game
         }
     }
 
-    public int GetTurn()
+    public byte GetTurn()
     {
-        int turnNumber = turn;
+        byte turnNumber = turn;
         turn++;
         return turnNumber;
     }

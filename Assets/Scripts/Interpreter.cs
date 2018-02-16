@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+using System.Linq;
 
 public class Interpreter {
 
@@ -21,8 +22,12 @@ public class Interpreter {
     public static string[] opponentRobotNames = new string[0];
     private static bool myturn;
     private static bool isPrimary;
-    private static int turnNumber = 1;
-    private static List<Dictionary<byte, byte[]>> History = new List<Dictionary<byte, byte[]>>();
+    private static byte turnNumber = 1;
+    private static byte[] currentHistory = new byte[] { 1, GameConstants.MAX_PRIORITY, 0 };
+    private static byte[] presentState;
+
+    //[turnNumber][priority][commandtype]
+    private static Dictionary<byte, Dictionary<byte, Dictionary<byte, byte[]>>> History = new Dictionary<byte, Dictionary<byte, Dictionary<byte, byte[]>>>();
 
     public static void ConnectToServer(string playerId, string opponentId, string boardFile)
     {
@@ -68,7 +73,7 @@ public class Interpreter {
     {
         uiController = ui;
         uiController.InitializeUICanvas(playerTurnObjectArray, isPrimary);
-        History.Add(new Dictionary<byte, byte[]> { { 0, SerializeState() } });
+        presentState = SerializeState();
     }
 
     public static void InitializeBoard(BoardController bc)
@@ -138,23 +143,25 @@ public class Interpreter {
         r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, rid));
     }
 
-    public static void PlayEvents(List<GameEvent> events, int t)
+    public static void PlayEvents(List<GameEvent> events, byte t)
     {
-        DeserializeState(History[History.Count - 1][0]);
         turnNumber = t;
+        DeserializeState(presentState);
         uiController.StartEventModal(turnNumber, GameConstants.MAX_PRIORITY);
         uiController.StartCoroutine(EventsRoutine(events));
     }
 
     public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
-        byte currentPriority = GameConstants.MAX_PRIORITY;
         List<GameEvent> eventsThisPriority = new List<GameEvent>();
-        Dictionary<byte, byte[]> priorityToState = new Dictionary<byte, byte[]>();
-        for(int i = 0; i <= events.Count; i++)
+        Dictionary<byte, Dictionary<byte, byte[]>> priorityToState = new Dictionary<byte, Dictionary<byte, byte[]>>();
+        foreach(GameEvent e in events)
         {
-            if (i == events.Count || events[i].priority < currentPriority)
+            if (e is GameEvent.Resolve)
             {
+                GameEvent.Resolve r = (GameEvent.Resolve)e;
+                if (!priorityToState.ContainsKey(r.priority)) priorityToState[r.priority] = new Dictionary<byte, byte[]>();
+                priorityToState[r.priority][GameEvent.Resolve.GetByte(r.commandType)] = SerializeState();
                 foreach (GameEvent evt in eventsThisPriority)
                 {
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
@@ -162,25 +169,20 @@ public class Interpreter {
                     primaryRobot.clearEvents();
                 }
                 eventsThisPriority.Clear();
-                priorityToState[currentPriority] = SerializeState();
-                currentPriority--;
-                if (currentPriority != byte.MaxValue)
-                {
-                    uiController.StartEventModal(turnNumber, currentPriority);
-                    i--;
-                }
+                uiController.StartEventModal(turnNumber, r.priority);
             }
             else
             {
-                events[i].DisplayEvent(GetRobot(events[i].primaryRobotId));
-                uiController.DisplayEvent(FormatEvent(events[i].ToString()));
-                uiController.SetBattery(events[i].primaryBattery, events[i].secondaryBattery);
-                eventsThisPriority.Add(events[i]);
+                e.DisplayEvent(GetRobot(e.primaryRobotId));
+                uiController.DisplayEvent(FormatEvent(e.ToString()));
+                uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
+                eventsThisPriority.Add(e);
             }
             yield return new WaitForSeconds(eventDelay);
         }
-        uiController.DisplayEvent(GameConstants.FINISHED_EVENTS);
-        History.Add(priorityToState);
+        History[turnNumber] = priorityToState;
+        currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0};
+        presentState = SerializeState();
         myturn = true;
         Array.ForEach(robotControllers, (RobotController r) => {
             r.canCommand = !r.isOpponent;
@@ -256,30 +258,71 @@ public class Interpreter {
         }
     }
 
-    public static void StepBackward()
-    {
-        short p = short.Parse(uiController.EventTitle.text.Substring(uiController.EventTitle.text.Length - 1));
-        short newP = (short)(p + 1);
-        if (turnNumber == 0 && newP > 0) return;
-        if (newP > GameConstants.MAX_PRIORITY)
-        {
-            newP = 0;
-            turnNumber--;
-        }
-        DeserializeState(History[turnNumber][(byte)newP]);
-    }
-
     public static void StepForward()
     {
-        short p = short.Parse(uiController.EventTitle.text.Substring(uiController.EventTitle.text.Length - 1));
-        if (turnNumber == History.Count - 1 && p == 0) return;
-        short newP = (short)(p - 1);
-        if (newP < 0)
+        byte turn = currentHistory[0];
+        byte priority = currentHistory[1];
+        byte command = currentHistory[2];
+        bool stepped = false;
+        while (turn < turnNumber + 1)
         {
-            newP = GameConstants.MAX_PRIORITY;
-            turnNumber++;
+            if (command == 3)
+            {
+                command = 0;
+                if (priority == 0)
+                {
+                    priority = GameConstants.MAX_PRIORITY;
+                    turn++;
+                } else
+                {
+                    priority--;
+                }
+            } else
+            {
+                command++;
+            }
+            if (History.ContainsKey(turn) && History[turn].ContainsKey(priority) && History[turn][priority].ContainsKey(command))
+            {
+                DeserializeState(History[turn][priority][command]);
+                currentHistory = new byte[] { turn, priority, command };
+                stepped = true;
+                break;
+            }
         }
-        DeserializeState(History[turnNumber][(byte)newP]);
+        if (!stepped) DeserializeState(presentState);
+    }
+
+    public static void StepBackward()
+    {
+        byte turnNumber = currentHistory[0];
+        byte priority = currentHistory[1];
+        byte command = currentHistory[2];
+        while (!(turnNumber == 1 && priority == GameConstants.MAX_PRIORITY && command == 0))
+        {
+            if (command == 0)
+            {
+                command = 3;
+                if (priority == GameConstants.MAX_PRIORITY)
+                {
+                    priority = 0;
+                    turnNumber--;
+                }
+                else
+                {
+                    priority++;
+                }
+            }
+            else
+            {
+                command--;
+            }
+            if (History.ContainsKey(turnNumber) && History[turnNumber].ContainsKey(priority) && History[turnNumber][priority].ContainsKey(command))
+            {
+                DeserializeState(History[turnNumber][priority][command]);
+                currentHistory = new byte[] { turnNumber, priority, command };
+                break;
+            }
+        }
     }
 
     private static RobotController GetRobot(short id)
