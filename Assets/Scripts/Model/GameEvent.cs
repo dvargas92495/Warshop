@@ -412,13 +412,7 @@ public abstract class GameEvent
     {
         internal const byte EVENT_ID = 12;
         internal Type commandType;
-        private static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
-        {
-            {0, typeof(Command.Rotate) },
-            {1, typeof(Command.Move) },
-            {2, typeof(Command.Attack) },
-            {3, typeof(Command.Special) }
-        };
+        
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
@@ -427,12 +421,12 @@ public abstract class GameEvent
         public new static Resolve Deserialize(NetworkReader reader)
         {
             Resolve evt = new Resolve();
-            evt.commandType = byteToCmd[reader.ReadByte()];
+            evt.commandType = Command.byteToCmd[reader.ReadByte()];
             return evt;
         }
         public static byte GetByte(Type t)
         {
-            return byteToCmd.Keys.ToList().Find((byte b) => byteToCmd[b].Equals(t));
+            return Command.byteToCmd.Keys.ToList().Find((byte b) => Command.byteToCmd[b].Equals(t));
         }
     }
 }

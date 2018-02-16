@@ -20,7 +20,7 @@ public class Interpreter {
     public const int eventDelay = 1;
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
-    private static Logger log = new Logger(typeof(GameClient));
+    private static Logger log = new Logger(typeof(Interpreter));
     private static bool myturn;
     private static bool isPrimary;
     private static byte turnNumber = 1;
@@ -104,33 +104,28 @@ public class Interpreter {
     public static void SubmitActions()
     {
         DestroyCommandMenu();
-        if (GameConstants.LOCAL_MODE)
-        {
-            uiController.Flip();
-        }
         if (!GameConstants.LOCAL_MODE && !myturn)
         {
             return;
-        } else if (GameConstants.LOCAL_MODE && myturn)
-        {
-            Array.ForEach(robotControllers, (RobotController r) => r.canCommand = r.isOpponent);
-        } else
-        {
-            Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
         }
         List<Command> commands = new List<Command>();
         string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
         foreach (RobotController robot in robotControllers)
         {
-            List<Command> robotCommands = robot.commands;
-            foreach (Command cmd in robotCommands)
+            if (!robot.canCommand) continue;
+            foreach (Command cmd in robot.commands)
             {
                 Command c = cmd;
                 if (!isPrimary || !myturn) c = Util.Flip(c);
                 c.robotId = robot.id;
                 commands.Add(c);
             }
-            robot.commands.Clear();
+            uiController.ColorCommandsSubmitted(robot.id);
+        }
+        if (GameConstants.LOCAL_MODE)
+        {
+            uiController.Flip();
+            Array.ForEach(robotControllers, (RobotController r) => r.canCommand = r.isOpponent && myturn);
         }
         myturn = false;
         GameClient.SendSubmitCommands(commands, username);
@@ -147,6 +142,14 @@ public class Interpreter {
     {
         turnNumber = t;
         DeserializeState(presentState);
+        if (GameConstants.LOCAL_MODE)
+        {
+            foreach (RobotController robot in robotControllers)
+            {
+                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, robot.id));
+                uiController.ColorCommandsSubmitted(robot.id);
+            }
+        }
         uiController.StartCoroutine(EventsRoutine(events));
     }
 
@@ -159,6 +162,7 @@ public class Interpreter {
             if (e is GameEvent.Resolve)
             {
                 GameEvent.Resolve r = (GameEvent.Resolve)e;
+                uiController.HighlightCommands(r.commandType, r.priority);
                 if (!priorityToState.ContainsKey(r.priority)) priorityToState[r.priority] = new Dictionary<byte, byte[]>();
                 priorityToState[r.priority][GameEvent.Resolve.GetByte(r.commandType)] = SerializeState();
                 foreach (GameEvent evt in eventsThisPriority)
@@ -182,12 +186,14 @@ public class Interpreter {
         History[turnNumber] = priorityToState;
         currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0};
         uiController.EventTitle.text = "T " + turnNumber + " - P " + 0;
-        presentState = SerializeState();
         myturn = true;
         Array.ForEach(robotControllers, (RobotController r) => {
             r.canCommand = !r.isOpponent;
             r.gameObject.SetActive(true);
+            uiController.ClearCommands(r.id);
+            r.commands.Clear();
         });
+        presentState = SerializeState();
     }
 
     public static void DestroyCommandMenu()
@@ -230,6 +236,9 @@ public class Interpreter {
                     bf.Serialize(ms, s.transform.rotation.eulerAngles.z);
                     bf.Serialize(ms, s.sprite.name);
                 });
+                string[] cmds = uiController.getCommandText(r.id);
+                bf.Serialize(ms, cmds.Length);
+                Array.ForEach(cmds, (string s) => bf.Serialize(ms, s));
             }
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
@@ -276,6 +285,12 @@ public class Interpreter {
                     r.currentEvents[j].transform.position = spos;
                     r.currentEvents[j].transform.rotation = srot;
                 }
+                string[] cmds = new string[(int)bf.Deserialize(ms)];
+                for (int j = 0; j < cmds.Length; j++)
+                {
+                    cmds[j] = (string)bf.Deserialize(ms);
+                }
+                uiController.setCommandText(cmds, r.id);
             }
             int userBattery = (int)bf.Deserialize(ms);
             int opponentBattery = (int)bf.Deserialize(ms);
@@ -288,6 +303,11 @@ public class Interpreter {
     {
         DeserializeState(presentState);
         currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
+        foreach (RobotController r in robotControllers)
+        {
+            uiController.ClearCommands(r.id);
+            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, r.id));
+        }
     }
 
     public static void StepForward()
@@ -315,8 +335,7 @@ public class Interpreter {
             }
             if (History.ContainsKey(turn) && History[turn].ContainsKey(priority) && History[turn][priority].ContainsKey(command))
             {
-                DeserializeState(History[turn][priority][command]);
-                currentHistory = new byte[] { turn, priority, command };
+                GoTo(turn, priority, command );
                 stepped = true;
                 break;
             }
@@ -328,10 +347,10 @@ public class Interpreter {
 
     public static void StepBackward()
     {
-        byte turnNumber = currentHistory[0];
+        byte turn = currentHistory[0];
         byte priority = currentHistory[1];
         byte command = currentHistory[2];
-        while (!(turnNumber == 1 && priority == GameConstants.MAX_PRIORITY && command == 0))
+        while (!(turn == 1 && priority == GameConstants.MAX_PRIORITY && command == 0))
         {
             if (command == 0)
             {
@@ -339,7 +358,7 @@ public class Interpreter {
                 if (priority == GameConstants.MAX_PRIORITY)
                 {
                     priority = 0;
-                    turnNumber--;
+                    turn--;
                 }
                 else
                 {
@@ -350,11 +369,27 @@ public class Interpreter {
             {
                 command--;
             }
-            if (History.ContainsKey(turnNumber) && History[turnNumber].ContainsKey(priority) && History[turnNumber][priority].ContainsKey(command))
+            if (History.ContainsKey(turn) && History[turn].ContainsKey(priority) && History[turn][priority].ContainsKey(command))
             {
-                DeserializeState(History[turnNumber][priority][command]);
-                currentHistory = new byte[] { turnNumber, priority, command };
+                GoTo( turn, priority, command );
                 break;
+            }
+        }
+    }
+
+    private static void GoTo(byte turn, byte priority, byte command)
+    {
+        DeserializeState(History[turn][priority][command]);
+        currentHistory = new byte[] { turn, priority, command };
+        Array.ForEach(robotControllers, (RobotController r) => uiController.ColorCommandsSubmitted(r.id));
+        for (byte p = 0; p < GameConstants.MAX_PRIORITY; p++)
+        {
+            for (byte c = 0; c < 4; c++)
+            {
+                if (p > priority || (p == priority && c <= command))
+                {
+                    uiController.HighlightCommands(Command.byteToCmd[c], p);
+                }
             }
         }
     }

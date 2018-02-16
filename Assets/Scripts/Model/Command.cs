@@ -1,10 +1,19 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Networking;
 
 public abstract class Command
 {
     internal short robotId { get; set; }
     internal string owner { get; set; }
+    internal static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
+    {
+        {0, typeof(Rotate) },
+        {1, typeof(Move) },
+        {2, typeof(Attack) },
+        {3, typeof(Special) }
+    };
     public Command(){}
     public abstract void Serialize(NetworkWriter writer);
     public static Command Deserialize(NetworkReader reader)
