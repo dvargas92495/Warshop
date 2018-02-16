@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -55,6 +57,9 @@ public abstract class GameEvent
                 break;
             case Damage.EVENT_ID:
                 evt = Damage.Deserialize(reader);
+                break;
+            case Resolve.EVENT_ID:
+                evt = Resolve.Deserialize(reader);
                 break;
             default:
                 evt = new Empty();
@@ -400,6 +405,34 @@ public abstract class GameEvent
         public override string ToString()
         {
             return ToString("was damaged " + damage + " health down to " + remainingHealth);
+        }
+    }
+
+    public class Resolve : GameEvent
+    {
+        internal const byte EVENT_ID = 12;
+        internal Type commandType;
+        private static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
+        {
+            {0, typeof(Command.Rotate) },
+            {1, typeof(Command.Move) },
+            {2, typeof(Command.Attack) },
+            {3, typeof(Command.Special) }
+        };
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(GetByte(commandType));
+        }
+        public new static Resolve Deserialize(NetworkReader reader)
+        {
+            Resolve evt = new Resolve();
+            evt.commandType = byteToCmd[reader.ReadByte()];
+            return evt;
+        }
+        public static byte GetByte(Type t)
+        {
+            return byteToCmd.Keys.ToList().Find((byte b) => byteToCmd[b].Equals(t));
         }
     }
 }

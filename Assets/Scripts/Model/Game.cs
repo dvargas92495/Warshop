@@ -254,6 +254,12 @@ public class Game
 
         events.AddRange(processPriorityFinish(primary.team, true));
         events.AddRange(processPriorityFinish(secondary.team, false));
+        if (events.Count > 0)
+        {
+            GameEvent.Resolve resolve = new GameEvent.Resolve();
+            resolve.commandType = t;
+            events.Add(resolve);
+        }
         return events;
     }
 
@@ -272,6 +278,7 @@ public class Game
                 events.Add(damageEvent);
             }
         });
+        if (events.Count > 0) events.Add(new GameEvent.Resolve());
         return events;
     }
 
