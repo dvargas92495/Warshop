@@ -85,7 +85,8 @@ class Logger {
                 MaxSizeRollBackups = 5,
                 MaximumFileSize = "1GB",
                 RollingStyle = RollingFileAppender.RollingMode.Size,
-                StaticLogFileName = true
+                StaticLogFileName = true,
+                Threshold = Level.Info
             };
             appender.ActivateOptions();
             BasicConfigurator.Configure(appender);

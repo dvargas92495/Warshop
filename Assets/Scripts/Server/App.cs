@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Net;
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using Aws.GameLift;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
+using System.Net.Sockets;
 
 public class App {
 
-    private static int PORT = 12345; //TODO make this vary
+    private static int MIN_PORT = 12350;
+    private static int MAX_PORT = 12360;
     private static Game appgame;
     private static Dictionary<string,string> boardFiles;
     private static readonly Logger log = new Logger(typeof(App));
@@ -33,25 +37,28 @@ public class App {
     {
         GenericOutcome outcome = GameLiftServerAPI.InitSDK();
         Application.targetFrameRate = 60;
-        log.Info("GameLiftServerAPI Outcome: " + outcome.Success);
         if (outcome.Success)
         {
+            foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
+            {
+                NetworkServer.RegisterHandler(pair.Key, pair.Value);
+            }
+            int port = MIN_PORT;
+            for (; port < MAX_PORT; port++)
+            {
+                if (NetworkServer.Listen(port)) break;
+            }
             GameLiftServerAPI.ProcessReady(new ProcessParameters(
                 OnGameSession,
                 OnProcessTerminate,
                 OnHealthCheck,
-                PORT,
+                port,
                 new LogParameters(new List<string>()
                 {
                     GameConstants.APP_LOG_DIR
                 })
             ));
-            foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
-            {
-                NetworkServer.RegisterHandler(pair.Key, pair.Value);
-            }
-            NetworkServer.Listen(PORT);
-            log.Info("Listening");
+            log.Info("Listening on: " + port);
         } else
         {
             log.Error(outcome);
