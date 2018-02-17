@@ -13,12 +13,12 @@ public class UIController : MonoBehaviour {
     public TextMesh ScoreModel;
 
     public TMP_Text opponentNameText;
-    public TextMesh opponentScore;
+    internal TextMesh opponentScore;
     public GameObject OpponentsRobots;
     public GameObject opponentRobotPanel;
 
     public TMP_Text userNameText;
-    public TextMesh userScore;
+    internal TextMesh userScore;
     public GameObject UsersRobots;
     public GameObject userRobotPanel;
 
