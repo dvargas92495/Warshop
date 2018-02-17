@@ -42,40 +42,6 @@ public abstract class Command
         return cmd;
     }
 
-    internal static Vector2Int DirectionToVector(Direction d)
-    {
-        switch (d)
-        {
-            case Direction.UP:
-                return Vector2Int.up;
-            case Direction.DOWN:
-                return Vector2Int.down;
-            case Direction.LEFT:
-                return Vector2Int.left;
-            case Direction.RIGHT:
-                return Vector2Int.right;
-            default:
-                return Vector2Int.zero;
-        }
-    }
-
-    internal static Robot.Orientation DirectionToOrientation(Direction d)
-    {
-        switch (d)
-        {
-            case Direction.UP:
-                return Robot.Orientation.NORTH;
-            case Direction.DOWN:
-                return Robot.Orientation.SOUTH;
-            case Direction.LEFT:
-                return Robot.Orientation.WEST;
-            case Direction.RIGHT:
-                return Robot.Orientation.EAST;
-            default:
-                return 0;
-        }
-    }
-
     public override string ToString()
     {
         return "Empty Command";
@@ -84,53 +50,141 @@ public abstract class Command
     internal class Rotate : Command
     {
         internal const byte COMMAND_ID = 1;
+        internal const byte CLOCKWISE = 0;
+        internal const byte COUNTERCLOCKWISE = 1;
+        internal const byte FLIP = 2;
+        internal static Dictionary<byte, string> tostring = new Dictionary<byte, string>()
+        {
+            {CLOCKWISE, "Clockwise" },
+            {COUNTERCLOCKWISE, "Counterclockwise" },
+            {FLIP, "Flip" }
+        };
         internal const string DISPLAY = "ROTATE";
-        internal Direction direction { get; }
-        public Rotate(Direction dir)
+        internal byte direction { get; }
+        public Rotate(byte dir)
         {
             direction = dir;
         }
         public override string ToString()
         {
-            return DISPLAY + " " + direction;
+            return DISPLAY + " " + tostring[direction];
         }
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(COMMAND_ID);
-            writer.Write((byte)direction);
+            writer.Write(direction);
             writer.Write(robotId);
             writer.Write(owner);
         }
         public new static Rotate Deserialize(NetworkReader reader)
         {
-            return new Rotate((Direction)reader.ReadByte());
+            return new Rotate(reader.ReadByte());
         }
-}
+
+        internal static Robot.Orientation DirectionToOrientation(byte dir, Robot.Orientation orientation)
+        {
+            switch (dir)
+            {
+                case CLOCKWISE:
+                    switch (orientation)
+                    {
+                        case Robot.Orientation.NORTH:
+                            return Robot.Orientation.EAST;
+                        case Robot.Orientation.EAST:
+                            return Robot.Orientation.SOUTH;
+                        case Robot.Orientation.SOUTH:
+                            return Robot.Orientation.WEST;
+                        case Robot.Orientation.WEST:
+                            return Robot.Orientation.NORTH;
+                        default:
+                            return orientation;
+                    }
+                case COUNTERCLOCKWISE:
+                    switch (orientation)
+                    {
+                        case Robot.Orientation.NORTH:
+                            return Robot.Orientation.WEST;
+                        case Robot.Orientation.EAST:
+                            return Robot.Orientation.NORTH;
+                        case Robot.Orientation.SOUTH:
+                            return Robot.Orientation.EAST;
+                        case Robot.Orientation.WEST:
+                            return Robot.Orientation.SOUTH;
+                        default:
+                            return orientation;
+                    }
+                case FLIP:
+                    switch (orientation)
+                    {
+                        case Robot.Orientation.NORTH:
+                            return Robot.Orientation.SOUTH;
+                        case Robot.Orientation.EAST:
+                            return Robot.Orientation.WEST;
+                        case Robot.Orientation.SOUTH:
+                            return Robot.Orientation.NORTH;
+                        case Robot.Orientation.WEST:
+                            return Robot.Orientation.EAST;
+                        default:
+                            return orientation;
+                    }
+                default:
+                    return orientation;
+            }
+        }
+    }
 
     internal class Move : Command
     {
         internal const byte COMMAND_ID = 2;
+        internal const byte UP = 0;
+        internal const byte DOWN = 1;
+        internal const byte LEFT = 2;
+        internal const byte RIGHT = 3;
+        internal static Dictionary<byte, string> tostring = new Dictionary<byte, string>()
+        {
+            {UP, "Up" },
+            {DOWN, "Down" },
+            {LEFT, "Left" },
+            {RIGHT, "Right" }
+        };
         internal const string DISPLAY = "MOVE";
-        internal Direction direction { get; }
+        internal byte direction { get; }
 
-        public Move(Direction dir)
+        public Move(byte dir)
         {
             direction = dir;
         }
         public override string ToString()
         {
-            return DISPLAY + " " + direction;
+            return DISPLAY + " " + tostring[direction];
         }
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(COMMAND_ID);
-            writer.Write((byte)direction);
+            writer.Write(direction);
             writer.Write(robotId);
             writer.Write(owner);
         }
         public new static Move Deserialize(NetworkReader reader)
         {
-            return new Move((Direction)reader.ReadByte());
+            return new Move(reader.ReadByte());
+        }
+
+        internal static Vector2Int DirectionToVector(byte dir)
+        {
+            switch (dir)
+            {
+                case UP:
+                    return Vector2Int.up;
+                case DOWN:
+                    return Vector2Int.down;
+                case LEFT:
+                    return Vector2Int.left;
+                case RIGHT:
+                    return Vector2Int.right;
+                default:
+                    return Vector2Int.zero;
+            }
         }
     }
 
@@ -169,13 +223,5 @@ public abstract class Command
         {
             return new Special();
         }
-    }
-
-    public enum Direction
-    {
-        LEFT = 0,
-        RIGHT = 1,
-        UP = 2,
-        DOWN = 3
     }
 }

@@ -128,21 +128,21 @@ public class Robot
         return new List<Vector2Int>() { position + OrientationToVector(orientation) };
     }
 
-    internal List<GameEvent> Rotate(Command.Direction dir, bool isPrimary)
+    internal List<GameEvent> Rotate(byte dir, bool isPrimary)
     {
         GameEvent.Rotate evt = new GameEvent.Rotate();
         evt.sourceDir = orientation;
-        evt.destinationDir = Command.DirectionToOrientation(dir);
+        evt.destinationDir = Command.Rotate.DirectionToOrientation(dir, orientation);
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ROTATE_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ROTATE_POWER);
         return new List<GameEvent>() { evt };
     }
-    internal virtual List<GameEvent> Move(Command.Direction dir, bool isPrimary)
+    internal virtual List<GameEvent> Move(byte dir, bool isPrimary)
     {
         GameEvent.Move evt = new GameEvent.Move();
         evt.sourcePos = position;
-        evt.destinationPos = position + Command.DirectionToVector(dir);
+        evt.destinationPos = position + Command.Move.DirectionToVector(dir);
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
@@ -202,7 +202,7 @@ public class Robot
         )
         {}
 
-        internal override List<GameEvent> Move(Command.Direction dir, bool isPrimary)
+        internal override List<GameEvent> Move(byte dir, bool isPrimary)
         {
             List<GameEvent> events = base.Move(dir, isPrimary);
             GameEvent.Move first = events[0] as GameEvent.Move;

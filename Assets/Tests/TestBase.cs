@@ -47,14 +47,14 @@ public class TestBase
         reset(testgame.secondary, false);
     }
 
-    internal static Command.Rotate RotateCommand(Command.Direction d, short r)
+    internal static Command.Rotate RotateCommand(byte d, short r)
     {
         Command.Rotate c = new Command.Rotate(d);
         c.robotId = r;
         return c;
     }
 
-    internal static Command.Move MoveCommand(Command.Direction d, short r)
+    internal static Command.Move MoveCommand(byte d, short r)
     {
         Command.Move m = new Command.Move(d);
         m.robotId = r;

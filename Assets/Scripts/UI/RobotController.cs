@@ -57,12 +57,12 @@ public class RobotController : MonoBehaviour
      * Robot Model Before Turn Methods *
      ***********************************/
 
-    public void AddMoveCommand(Command.Direction dir)
+    public void AddMoveCommand(byte dir)
     {
         addRobotCommand(new Command.Move(dir));
     }
 
-    public void AddRotateCommand(Command.Direction dir)
+    public void AddRotateCommand(byte dir)
     {
         addRobotCommand(new Command.Rotate(dir));
     }
@@ -100,28 +100,30 @@ public class RobotController : MonoBehaviour
 
     private void displayShowMenu()
     {
-        List<String> dirList = new List<string>(){
-            Command.Direction.LEFT.ToString(),
-            Command.Direction.RIGHT.ToString(),
-            Command.Direction.UP.ToString(),
-            Command.Direction.DOWN.ToString()
-        };
         AddOptions(new List<Action>() {
             () => {
                 AddOptions(new List<Action>(){
-                    () => AddRotateCommand(Command.Direction.LEFT),
-                    () => AddRotateCommand(Command.Direction.RIGHT),
-                    () => AddRotateCommand(Command.Direction.UP),
-                    () => AddRotateCommand(Command.Direction.DOWN)
-                },dirList,true);
+                    () => AddRotateCommand(Command.Rotate.CLOCKWISE),
+                    () => AddRotateCommand(Command.Rotate.COUNTERCLOCKWISE),
+                    () => AddRotateCommand(Command.Rotate.FLIP),
+                },new List<string>(){
+                    Command.Rotate.tostring[Command.Rotate.CLOCKWISE],
+                    Command.Rotate.tostring[Command.Rotate.COUNTERCLOCKWISE],
+                    Command.Rotate.tostring[Command.Rotate.FLIP],
+                },true);
             },
             () => {
                 AddOptions(new List<Action>(){
-                    () => AddMoveCommand(Command.Direction.LEFT),
-                    () => AddMoveCommand(Command.Direction.RIGHT),
-                    () => AddMoveCommand(Command.Direction.UP),
-                    () => AddMoveCommand(Command.Direction.DOWN)
-                },dirList,true);
+                    () => AddMoveCommand(Command.Move.LEFT),
+                    () => AddMoveCommand(Command.Move.RIGHT),
+                    () => AddMoveCommand(Command.Move.UP),
+                    () => AddMoveCommand(Command.Move.DOWN)
+                },new List<string>(){
+                    Command.Move.tostring[Command.Move.LEFT],
+                    Command.Move.tostring[Command.Move.RIGHT],
+                    Command.Move.tostring[Command.Move.UP],
+                    Command.Move.tostring[Command.Move.DOWN],
+                },true);
             },
             () => {
                 AddAttackCommand();
