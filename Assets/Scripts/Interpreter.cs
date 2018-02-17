@@ -108,6 +108,7 @@ public class Interpreter {
         {
             return;
         }
+        uiController.SetButtons(false);
         List<Command> commands = new List<Command>();
         string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
         foreach (RobotController robot in robotControllers)
@@ -144,6 +145,7 @@ public class Interpreter {
         DeserializeState(presentState);
         if (GameConstants.LOCAL_MODE)
         {
+            uiController.SetButtons(false);
             foreach (RobotController robot in robotControllers)
             {
                 robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(robot.GetArrow(c.ToString()), robot.id));
@@ -193,6 +195,7 @@ public class Interpreter {
             uiController.ClearCommands(r.id);
             r.commands.Clear();
         });
+        uiController.SetButtons(true);
         presentState = SerializeState();
     }
 
@@ -308,6 +311,7 @@ public class Interpreter {
             r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToString()), r.id));
             r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
+        uiController.SubmitCommands.interactable = true;
     }
 
     public static void StepForward()
@@ -395,6 +399,7 @@ public class Interpreter {
                 }
             }
         }
+        uiController.SubmitCommands.interactable = false;
     }
 
     private static RobotController GetRobot(short id)

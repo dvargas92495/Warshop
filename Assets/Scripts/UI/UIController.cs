@@ -245,9 +245,15 @@ public class UIController : MonoBehaviour {
         boardCamera.transform.Rotate(new Vector3(0, 0, 180));
         if (GameConstants.LOCAL_MODE)
         {
+            SetButtons(true);
             robotIdToUserPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(!g.activeInHierarchy));
             robotIdToOpponentPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(!g.activeInHierarchy));
         }
+    }
+
+    public void SetButtons(bool b)
+    {
+        StepBackButton.interactable = StepForwardButton.interactable = BackToPresent.interactable = SubmitCommands.interactable = b;
     }
 
 }
