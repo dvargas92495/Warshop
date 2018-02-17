@@ -246,6 +246,10 @@ public class UIController : MonoBehaviour {
         if (GameConstants.LOCAL_MODE)
         {
             SetButtons(true);
+            LightUpPanel(false, true);
+            string u = userNameText.text;
+            userNameText.text = opponentNameText.text;
+            opponentNameText.text = u;
             robotIdToUserPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(!g.activeInHierarchy));
             robotIdToOpponentPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(!g.activeInHierarchy));
         }
@@ -254,6 +258,13 @@ public class UIController : MonoBehaviour {
     public void SetButtons(bool b)
     {
         StepBackButton.interactable = StepForwardButton.interactable = BackToPresent.interactable = SubmitCommands.interactable = b;
+    }
+
+    public void LightUpPanel(bool bright, bool isUser)
+    {
+        Image panel = (isUser ? UsersRobots : OpponentsRobots).transform.parent.GetComponent<Image>();
+        Color old = panel.color;
+        panel.color = new Color(old.r, old.g, old.b, (bright ? 1.0f : 0.5f));
     }
 
 }

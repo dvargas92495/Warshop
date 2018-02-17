@@ -109,6 +109,7 @@ public class Interpreter {
             return;
         }
         uiController.SetButtons(false);
+        uiController.LightUpPanel(true, true);
         List<Command> commands = new List<Command>();
         string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
         foreach (RobotController robot in robotControllers)
@@ -146,12 +147,14 @@ public class Interpreter {
         if (GameConstants.LOCAL_MODE)
         {
             uiController.SetButtons(false);
+            uiController.LightUpPanel(true, true);
             foreach (RobotController robot in robotControllers)
             {
                 robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(robot.GetArrow(c.ToString()), robot.id));
                 uiController.ColorCommandsSubmitted(robot.id);
             }
         }
+        uiController.LightUpPanel(true, false);
         uiController.StartCoroutine(EventsRoutine(events));
     }
 
@@ -196,6 +199,8 @@ public class Interpreter {
             r.commands.Clear();
         });
         uiController.SetButtons(true);
+        uiController.LightUpPanel(false, true);
+        uiController.LightUpPanel(false, false);
         presentState = SerializeState();
     }
 
