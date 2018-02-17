@@ -333,10 +333,13 @@ MonoBehaviour:
   HealthLabel: {fileID: 102736957411386890}
   AttackLabel: {fileID: 102573961694724984}
   arrows:
-  - {fileID: 21300000, guid: 9dc7f70044ef7934d82d63ed689c8330, type: 3}
   - {fileID: 21300000, guid: fc1b2e43d4d9f5e4a9a9cc0861db7683, type: 3}
-  - {fileID: 21300000, guid: 9c99cb9589a99254a9e23884cddf528a, type: 3}
-  - {fileID: 21300000, guid: 9f8a5e97079be804e942a69a378f0402, type: 3}
+  - {fileID: 21300000, guid: 0312ae82dfb99ad46aea45248a283afe, type: 3}
+  - {fileID: 21300000, guid: ff8ea06dcad5eb348b9a7bfd2cc9dfc0, type: 3}
+  - {fileID: 21300000, guid: a9c435e86b4dcd54196c0bd87481d6d0, type: 3}
+  - {fileID: 21300000, guid: 0d4646ca1f4f9be4d82313515dc2fb59, type: 3}
+  - {fileID: 21300000, guid: a71ba5fd5e8dbb649899958458aa1a7b, type: 3}
+  - {fileID: 21300000, guid: e0dfdc383cfe4a24fb0ad8d932784014, type: 3}
 --- !u!212 &212308555163392000
 SpriteRenderer:
   m_ObjectHideFlags: 1

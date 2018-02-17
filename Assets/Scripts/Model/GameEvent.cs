@@ -105,17 +105,20 @@ public abstract class GameEvent
     public class Rotate : GameEvent
     {
         internal const byte EVENT_ID = 1;
+        internal byte dir;
         internal Robot.Orientation sourceDir;
         internal Robot.Orientation destinationDir;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
+            writer.Write(dir);
             writer.Write((byte)sourceDir);
             writer.Write((byte)destinationDir);
         }
         public new static Rotate Deserialize(NetworkReader reader)
         {
             Rotate rot = new Rotate();
+            rot.dir = reader.ReadByte();
             rot.sourceDir = (Robot.Orientation)reader.ReadByte();
             rot.destinationDir = (Robot.Orientation)reader.ReadByte();
             return rot;
@@ -124,9 +127,13 @@ public abstract class GameEvent
         {
             r.displayRotate(Robot.OrientationToVector(destinationDir));
         }
+        public override void DisplayEvent(RobotController r)
+        {
+            r.displayEvent(Command.Rotate.tostring[dir] + " Arrow", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y) + Robot.OrientationToVector(sourceDir));
+        }
         public override string ToString()
         {
-            return ToString("rotated from " + sourceDir + " to " + destinationDir);
+            return ToString("rotated " + Command.Rotate.tostring[dir] + " from " + sourceDir + " to " + destinationDir);
         }
     }
 

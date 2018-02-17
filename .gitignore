@@ -5,6 +5,7 @@ obj/*
 *.sln
 *.csproj
 Assets/Confidential/*
+Assets/Confidential.meta
 Assets/InitTestScene*
 ClientBuild/*
 ServerBuild/*

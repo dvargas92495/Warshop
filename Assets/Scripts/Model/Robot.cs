@@ -131,6 +131,7 @@ public class Robot
     internal List<GameEvent> Rotate(byte dir, bool isPrimary)
     {
         GameEvent.Rotate evt = new GameEvent.Rotate();
+        evt.dir = dir;
         evt.sourceDir = orientation;
         evt.destinationDir = Command.Rotate.DirectionToOrientation(dir, orientation);
         evt.primaryRobotId = id;
