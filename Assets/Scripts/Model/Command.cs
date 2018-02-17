@@ -59,7 +59,7 @@ public abstract class Command
             {COUNTERCLOCKWISE, "Counterclockwise" },
             {FLIP, "Flip" }
         };
-        internal const string DISPLAY = "ROTATE";
+        internal const string DISPLAY = "Rotate";
         internal byte direction { get; }
         public Rotate(byte dir)
         {
@@ -67,7 +67,7 @@ public abstract class Command
         }
         public override string ToString()
         {
-            return DISPLAY + " " + tostring[direction];
+            return DISPLAY + " " + tostring[direction] + " Arrow";
         }
         public override void Serialize(NetworkWriter writer)
         {
@@ -147,7 +147,7 @@ public abstract class Command
             {LEFT, "Left" },
             {RIGHT, "Right" }
         };
-        internal const string DISPLAY = "MOVE";
+        internal const string DISPLAY = "Move";
         internal byte direction { get; }
 
         public Move(byte dir)
@@ -191,11 +191,11 @@ public abstract class Command
     internal class Attack : Command
     {
         internal const byte COMMAND_ID = 3;
-        internal const string DISPLAY = "ATTACK";
+        internal const string DISPLAY = "Attack";
 
         public override string ToString()
         {
-            return DISPLAY;
+            return DISPLAY + " Arrow";
         }
         public override void Serialize(NetworkWriter writer)
         {

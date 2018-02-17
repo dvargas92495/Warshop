@@ -129,7 +129,7 @@ public abstract class GameEvent
         }
         public override void DisplayEvent(RobotController r)
         {
-            r.displayEvent(Command.Rotate.tostring[dir] + " Arrow", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y) + Robot.OrientationToVector(sourceDir));
+            r.displayEvent("Rotate " + Command.Rotate.tostring[dir] + " Arrow", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y) + Robot.OrientationToVector(sourceDir));
         }
         public override string ToString()
         {
@@ -167,7 +167,7 @@ public abstract class GameEvent
         }
         public override void DisplayEvent(RobotController r)
         {
-            r.displayEvent("Move Arrow", destinationPos);
+            r.displayEvent("Move Up", destinationPos);
         }
         public override string ToString()
         {

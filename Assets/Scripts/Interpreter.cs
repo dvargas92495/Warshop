@@ -135,7 +135,7 @@ public class Interpreter {
     {
         RobotController r = GetRobot(rid);
         r.commands.RemoveAt(index);
-        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, rid));
+        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToString()), rid));
     }
 
     public static void PlayEvents(List<GameEvent> events, byte t)
@@ -146,7 +146,7 @@ public class Interpreter {
         {
             foreach (RobotController robot in robotControllers)
             {
-                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, robot.id));
+                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(robot.GetArrow(c.ToString()), robot.id));
                 uiController.ColorCommandsSubmitted(robot.id);
             }
         }
@@ -200,10 +200,9 @@ public class Interpreter {
     {
         foreach (RobotController robot in robotControllers)
         {
-            if (robot.isMenuShown)
+            if (robot.menu.activeInHierarchy)
             {
-                robot.isMenuShown = false;
-                robot.displayHideMenu(false);
+                robot.menu.SetActive(false);
                 break;
             }
         }
@@ -285,10 +284,10 @@ public class Interpreter {
                     r.currentEvents[j].transform.position = spos;
                     r.currentEvents[j].transform.rotation = srot;
                 }
-                string[] cmds = new string[(int)bf.Deserialize(ms)];
+                Sprite[] cmds = new Sprite[(int)bf.Deserialize(ms)];
                 for (int j = 0; j < cmds.Length; j++)
                 {
-                    cmds[j] = (string)bf.Deserialize(ms);
+                    cmds[j] = r.GetArrow((string)bf.Deserialize(ms));
                 }
                 uiController.setCommandText(cmds, r.id);
             }
@@ -306,7 +305,8 @@ public class Interpreter {
         foreach (RobotController r in robotControllers)
         {
             uiController.ClearCommands(r.id);
-            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, r.id));
+            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToString()), r.id));
+            r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
     }
 
@@ -381,7 +381,10 @@ public class Interpreter {
     {
         DeserializeState(History[turn][priority][command]);
         currentHistory = new byte[] { turn, priority, command };
-        Array.ForEach(robotControllers, (RobotController r) => uiController.ColorCommandsSubmitted(r.id));
+        Array.ForEach(robotControllers, (RobotController r) => {
+            uiController.ColorCommandsSubmitted(r.id);
+            r.canCommand = false;
+        });
         for (byte p = 0; p < GameConstants.MAX_PRIORITY; p++)
         {
             for (byte c = 0; c < 4; c++)

@@ -137,9 +137,9 @@ public class UIController : MonoBehaviour {
         for (int i = 3; i < panel.childCount; i++)
         {
             Transform child = panel.GetChild(i);
-            child.GetComponentInChildren<Text>().text = "";
             child.GetComponentInChildren<Button>(true).gameObject.SetActive(false);
             Image cmdPanel = child.GetComponent<Image>();
+            cmdPanel.sprite = null;
             if (cmdPanel.color.Equals(HIGHLIGHTED_COMMAND) || cmdPanel.color.Equals(SUBMITTED_COMMAND)) cmdPanel.color = OPEN_COMMAND;
         }
     }
@@ -157,8 +157,7 @@ public class UIController : MonoBehaviour {
             if (robotPanel.childCount - p < 0) continue;
             Transform panel = robotPanel.GetChild(robotPanel.childCount - p);
             Image cmdPanel = panel.GetComponent<Image>();
-            Text cmdText = panel.GetChild(0).GetComponent<Text>();
-            if (cmdText.text.StartsWith(t.ToString().Substring("Command.".Length).ToUpper()))
+            if (cmdPanel.sprite != null && cmdPanel.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
             {
                 cmdPanel.color = HIGHLIGHTED_COMMAND; ;
             }
@@ -179,15 +178,16 @@ public class UIController : MonoBehaviour {
         }
     }
 
-    public void addSubmittedCommand(Command cmd, short id)
+    public void addSubmittedCommand(Sprite cmd, short id)
     {
         Transform panel = robotIdToUserPanel[id].transform;
         for (int i = 3; i < panel.childCount; i++)
         {
             Transform child = panel.GetChild(i);
-            if (!child.GetComponent<Image>().color.Equals(NO_COMMAND) && child.GetComponentInChildren<Text>().text.Equals(""))
+            Image cmdPanel = child.GetComponent<Image>();
+            if (!cmdPanel.color.Equals(NO_COMMAND) && cmdPanel.sprite == null)
             {
-                child.GetComponentInChildren<Text>().text = cmd.ToString();
+                cmdPanel.sprite = cmd;
                 child.GetComponentInChildren<Button>(true).gameObject.SetActive(child.GetComponent<Image>().color.Equals(OPEN_COMMAND));
                 break;
             }
@@ -200,19 +200,19 @@ public class UIController : MonoBehaviour {
         string[] texts = new string[GameConstants.MAX_PRIORITY];
         for (int i = 3; i < panel.childCount; i++)
         {
-            texts[i-3] = panel.GetChild(i).GetComponentInChildren<Text>().text;
+            Sprite s = panel.GetChild(i).GetComponent<Image>().sprite;
+            texts[i-3] = (s == null ? "" : s.name);
         }
         return texts;
     }
 
-    public string[] setCommandText(string[] texts, short id)
+    public void setCommandText(Sprite[] texts, short id)
     {
         Transform panel = robotIdToUserPanel[id].transform;
         for (int i = 3; i < panel.childCount; i++)
         {
-            panel.GetChild(i).GetComponentInChildren<Text>().text = texts[i - 3];
+            panel.GetChild(i).GetComponent<Image>().sprite = texts[i - 3];
         }
-        return texts;
     }
 
     public void SetBattery(int a, int b)
