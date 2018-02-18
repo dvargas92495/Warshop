@@ -84,18 +84,26 @@ public class GameClient : MonoBehaviour {
             log.Info("Game Session - " + gameSession.GameSessionId);
             CreatePlayerSessionRequest playerSessionRequest = new CreatePlayerSessionRequest();
             playerSessionRequest.PlayerId = playerId;
-            CreatePlayerSessionResponse playerSessionResponse = amazonClient.CreatePlayerSession(playerSessionRequest);
-            playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId;
-            log.Info("Player Session - " + playerSessionResponse.PlayerSession.PlayerSessionId);
-            string ip = playerSessionResponse.PlayerSession.IpAddress;
-            int port = playerSessionResponse.PlayerSession.Port;
-            client = new NetworkClient();
-            foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
+            playerSessionRequest.GameSessionId = gameSession.GameSessionId;
+            try
             {
-                client.RegisterHandler(pair.Key, pair.Value);
+                CreatePlayerSessionResponse playerSessionResponse = amazonClient.CreatePlayerSession(playerSessionRequest);
+                playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId;
+                log.Info("Player Session - " + playerSessionResponse.PlayerSession.PlayerSessionId);
+                string ip = playerSessionResponse.PlayerSession.IpAddress;
+                int port = playerSessionResponse.PlayerSession.Port;
+                client = new NetworkClient();
+                foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
+                {
+                    client.RegisterHandler(pair.Key, pair.Value);
+                }
+                client.Connect(ip, port);
+                log.Info("Attempting to connect to " + ip + ":" + port);
+            } catch (Exception e)
+            {
+                log.Fatal(e);
+                Interpreter.ClientError("An unexpected error occurred! Please notify the developers.");
             }
-            client.Connect(ip, port);
-            log.Info("Attempting to connect to " + ip + ":" + port);
         } else
         {
             Messages.FakeConnectMessage msg = new Messages.FakeConnectMessage();

@@ -407,7 +407,7 @@ public abstract class GameEvent
         }
         public override void DisplayEvent(RobotController r)
         {
-            r.displayEvent("1 Damage", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y));
+            r.displayEvent("Damage", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y));
         }
         public override string ToString()
         {

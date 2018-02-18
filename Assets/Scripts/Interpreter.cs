@@ -243,9 +243,12 @@ public class Interpreter {
                     bf.Serialize(ms, s.transform.rotation.eulerAngles.z);
                     bf.Serialize(ms, s.sprite.name);
                 });
-                string[] cmds = uiController.getCommandText(r.id);
-                bf.Serialize(ms, cmds.Length);
-                Array.ForEach(cmds, (string s) => bf.Serialize(ms, s));
+                if (GameConstants.LOCAL_MODE || !r.isOpponent)
+                {
+                    string[] cmds = uiController.getCommandText(r.id);
+                    bf.Serialize(ms, cmds.Length);
+                    Array.ForEach(cmds, (string s) => bf.Serialize(ms, s));
+                }
             }
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
@@ -292,12 +295,15 @@ public class Interpreter {
                     r.currentEvents[j].transform.position = spos;
                     r.currentEvents[j].transform.rotation = srot;
                 }
-                Sprite[] cmds = new Sprite[(int)bf.Deserialize(ms)];
-                for (int j = 0; j < cmds.Length; j++)
+                if (GameConstants.LOCAL_MODE || !r.isOpponent)
                 {
-                    cmds[j] = r.GetArrow((string)bf.Deserialize(ms));
+                    Sprite[] cmds = new Sprite[(int)bf.Deserialize(ms)];
+                    for (int j = 0; j < cmds.Length; j++)
+                    {
+                        cmds[j] = r.GetArrow((string)bf.Deserialize(ms));
+                    }
+                    uiController.setCommandText(cmds, r.id);
                 }
-                uiController.setCommandText(cmds, r.id);
             }
             int userBattery = (int)bf.Deserialize(ms);
             int opponentBattery = (int)bf.Deserialize(ms);
