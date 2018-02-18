@@ -64,8 +64,9 @@ public class InitialController : MonoBehaviour {
         {
             GameConstants.LOCAL_MODE = true;
             GameConstants.USE_SERVER = false;
-            localModeToggle.gameObject.SetActive(false);
-            useServerToggle.gameObject.SetActive(false);
+            //localModeToggle.gameObject.SetActive(false);
+            //useServerToggle.gameObject.SetActive(false);
+            useServerToggle.interactable = false;
         }
         if (Application.isEditor && playtest != null)
         {

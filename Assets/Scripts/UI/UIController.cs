@@ -21,6 +21,7 @@ public class UIController : MonoBehaviour {
     internal TextMesh userScore;
     public GameObject UsersRobots;
     public GameObject userRobotPanel;
+    public GameObject priorityArrow;
 
     public Button SubmitCommands;
     public Button StepBackButton;
@@ -121,6 +122,30 @@ public class UIController : MonoBehaviour {
             SetOnClickClear(cmdDelete, r.id, i, minI);
         }
         return panel;
+    }
+
+    public void SetPriority(int priority)
+    {
+        if (priority == -1)
+        {
+            priorityArrow.SetActive(false);
+            return;
+        }
+        else if (priority == 0)
+        {
+            return;
+        }
+        int pos = 3 + 8 - priority;
+        Transform lastRobotPanal = UsersRobots.transform.GetChild(UsersRobots.transform.childCount - 1);
+        RectTransform anchor = lastRobotPanal.GetChild(pos).GetComponent<RectTransform>();
+        RectTransform arrowRect = priorityArrow.GetComponent<RectTransform>();
+        Debug.Log(arrowRect.rect.x);
+        Debug.Log(anchor.rect.width);
+        arrowRect.sizeDelta = new Vector2(anchor.rect.width, anchor.rect.height);
+        arrowRect.position = anchor.position;
+        Vector3 translation = new Vector3(anchor.rect.width, 0, 0);
+        arrowRect.Translate(translation);
+        priorityArrow.SetActive(true);
     }
 
     private void SetOnClickClear(Button b, short id, int i, int mI)

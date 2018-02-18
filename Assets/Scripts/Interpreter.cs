@@ -74,7 +74,7 @@ public class Interpreter {
     {
         uiController = ui;
         uiController.InitializeUICanvas(playerTurnObjectArray, isPrimary);
-        presentState = SerializeState();
+        presentState = SerializeState(-1);
     }
 
     public static void InitializeBoard(BoardController bc)
@@ -169,7 +169,8 @@ public class Interpreter {
                 GameEvent.Resolve r = (GameEvent.Resolve)e;
                 uiController.HighlightCommands(r.commandType, r.priority);
                 if (!priorityToState.ContainsKey(r.priority)) priorityToState[r.priority] = new Dictionary<byte, byte[]>();
-                priorityToState[r.priority][GameEvent.Resolve.GetByte(r.commandType)] = SerializeState();
+                priorityToState[r.priority][GameEvent.Resolve.GetByte(r.commandType)] = SerializeState((int)r.priority);
+                uiController.SetPriority((int)r.priority);
                 foreach (GameEvent evt in eventsThisPriority)
                 {
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
@@ -180,7 +181,8 @@ public class Interpreter {
             }
             else
             {
-                uiController.EventTitle.text = "T " + turnNumber + " - P " + e.priority;
+                uiController.EventTitle.text = "Turn: " + turnNumber;// + " - P " + e.priority;
+                uiController.SetPriority((int)e.priority);
                 e.DisplayEvent(GetRobot(e.primaryRobotId));
                 log.Info(e.ToString());
                 uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
@@ -188,9 +190,10 @@ public class Interpreter {
             }
             yield return new WaitForSeconds(eventDelay);
         }
+        uiController.priorityArrow.SetActive(false);
         History[turnNumber] = priorityToState;
         currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0};
-        uiController.EventTitle.text = "T " + turnNumber + " - P " + 0;
+        uiController.EventTitle.text = "Turn: " + (byte)(turnNumber + 1);// " - P " + 0;
         myturn = true;
         Array.ForEach(robotControllers, (RobotController r) => {
             r.canCommand = !r.isOpponent;
@@ -201,7 +204,7 @@ public class Interpreter {
         uiController.SetButtons(true);
         uiController.LightUpPanel(false, true);
         uiController.LightUpPanel(false, false);
-        presentState = SerializeState();
+        presentState = SerializeState(-1);
     }
 
     public static void DestroyCommandMenu()
@@ -216,7 +219,7 @@ public class Interpreter {
         }
     }
 
-    private static byte[] SerializeState()
+    private static byte[] SerializeState(int priority)
     {
         BinaryFormatter bf = new BinaryFormatter();
         using (MemoryStream ms = new MemoryStream())
@@ -253,6 +256,7 @@ public class Interpreter {
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
             bf.Serialize(ms, uiController.EventTitle.text);
+            bf.Serialize(ms, priority);
             return ms.ToArray();
         }
     }
@@ -309,6 +313,7 @@ public class Interpreter {
             int opponentBattery = (int)bf.Deserialize(ms);
             uiController.SetBattery(userBattery, opponentBattery);
             uiController.EventTitle.text = (string)bf.Deserialize(ms);
+            uiController.SetPriority((int)bf.Deserialize(ms));
         }
     }
 
