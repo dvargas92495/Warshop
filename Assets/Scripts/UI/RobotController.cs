@@ -109,7 +109,6 @@ public class RobotController : MonoBehaviour
     {
         commands.Add(cmd);
         Interpreter.uiController.addSubmittedCommand(GetArrow(cmd.ToString()), id);
-        toggleMenu();
     }
 
     private void toggleMenu()
@@ -160,13 +159,14 @@ public class RobotController : MonoBehaviour
         return short.Parse(AttackLabel.text);
     }
 
-    public void displayEvent(string eventName, Vector2Int targetLoc)
+    public void displayEvent(string eventName, Vector2Int targetLoc, bool avg = true)
     {
         Sprite eventType = GetArrow(eventName);
-        Vector3 loc = new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2);
+        Vector3 loc = avg ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
         Quaternion rot = Quaternion.LookRotation(Vector3.forward, loc - transform.position);
         SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
         addedEvent.sprite = eventType;
+        addedEvent.sortingOrder += currentEvents.Count;
         currentEvents.Add(addedEvent);
     }
 

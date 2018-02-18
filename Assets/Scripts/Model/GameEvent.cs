@@ -91,8 +91,6 @@ public abstract class GameEvent
         primaryBattery = secondaryBattery;
         secondaryBattery = battery;
     }
-    public virtual void Animate(RobotController r){}
-    public virtual void DisplayEvent(RobotController r) {}
     public class Empty : GameEvent
     {
         internal const byte EVENT_ID = 0;
@@ -123,14 +121,6 @@ public abstract class GameEvent
             rot.destinationDir = (Robot.Orientation)reader.ReadByte();
             return rot;
         }
-        public override void Animate(RobotController r)
-        {
-            r.displayRotate(Robot.OrientationToVector(destinationDir));
-        }
-        public override void DisplayEvent(RobotController r)
-        {
-            r.displayEvent("Rotate " + Command.Rotate.tostring[dir] + " Arrow", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y) + Robot.OrientationToVector(sourceDir));
-        }
         public override string ToString()
         {
             return ToString("rotated " + Command.Rotate.tostring[dir] + " from " + sourceDir + " to " + destinationDir);
@@ -160,14 +150,6 @@ public abstract class GameEvent
             evt.destinationPos.x = reader.ReadInt32();
             evt.destinationPos.y = reader.ReadInt32();
             return evt;
-        }
-        public override void Animate(RobotController r)
-        {
-            r.displayMove(destinationPos);
-        }
-        public override void DisplayEvent(RobotController r)
-        {
-            r.displayEvent("Move Up", destinationPos);
         }
         public override string ToString()
         {
@@ -201,10 +183,6 @@ public abstract class GameEvent
             }
             return evt;
         }
-        public override void DisplayEvent(RobotController r)
-        {
-            Array.ForEach(locs, (Vector2Int v) =>  r.displayEvent("Attack Arrow", v));
-        }
         public override string ToString()
         {
             return ToString("attacked");
@@ -232,10 +210,6 @@ public abstract class GameEvent
             evt.deniedPos.y = reader.ReadInt32();
             return evt;
         }
-        public override void DisplayEvent(RobotController r)
-        {
-            r.displayEvent("Collision", deniedPos);
-        }
         public override string ToString()
         {
             return ToString("was blocked by " + blockingObject);
@@ -246,15 +220,21 @@ public abstract class GameEvent
     {
         internal const byte EVENT_ID = 5;
         internal short victim;
+        internal Vector2Int direction;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
             writer.Write(victim);
+            writer.Write(direction.x);
+            writer.Write(direction.y);
         }
         public new static Push Deserialize(NetworkReader reader)
         {
             Push evt = new Push();
             evt.victim = reader.ReadInt16();
+            evt.direction = new Vector2Int();
+            evt.direction.x = reader.ReadInt32();
+            evt.direction.y = reader.ReadInt32();
             return evt;
         }
         public override string ToString()
@@ -266,13 +246,27 @@ public abstract class GameEvent
     public class Miss : GameEvent
     {
         internal const byte EVENT_ID = 6;
+        internal Vector2Int[] locs;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
+            writer.Write(locs.Length);
+            for (int i = 0; i < locs.Length; i++)
+            {
+                writer.Write(locs[i].x);
+                writer.Write(locs[i].y);
+            }
         }
         public new static Miss Deserialize(NetworkReader reader)
         {
             Miss evt = new Miss();
+            int length = reader.ReadInt32();
+            evt.locs = new Vector2Int[length];
+            for (int i = 0; i < length; i++)
+            {
+                evt.locs[i].x = reader.ReadInt32();
+                evt.locs[i].y = reader.ReadInt32();
+            }
             return evt;
         }
         public override string ToString()
@@ -285,23 +279,23 @@ public abstract class GameEvent
     {
         internal const byte EVENT_ID = 7;
         internal short damage;
-        internal bool opponentsBase;
+        internal bool isPrimary;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
             writer.Write(damage);
-            writer.Write(opponentsBase);
+            writer.Write(isPrimary);
         }
         public new static Battery Deserialize(NetworkReader reader)
         {
             Battery evt = new Battery();
             evt.damage = reader.ReadInt16();
-            evt.opponentsBase = reader.ReadBoolean();
+            evt.isPrimary = reader.ReadBoolean();
             return evt;
         }
         public override string ToString()
         {
-            return ToString("attacked " + (opponentsBase ? "opponent's":"its own") + " battery with " + damage + " damage");
+            return ToString("attacked " + (isPrimary ? "opponent's":"its own") + " battery with " + damage + " damage");
         }
     }
 
@@ -353,13 +347,6 @@ public abstract class GameEvent
             evt.returnHealth = reader.ReadInt16();
             return evt;
         }
-        public override void Animate(RobotController r)
-        {
-            r.displayMove(returnLocation);
-            r.displayRotate(Robot.OrientationToVector(returnDir));
-            r.displayHealth(returnHealth);
-            r.gameObject.SetActive(false);
-        }
         public override string ToString()
         {
             return ToString("dies and returns to queue");
@@ -400,14 +387,6 @@ public abstract class GameEvent
             evt.damage = reader.ReadInt16();
             evt.remainingHealth = reader.ReadInt16();
             return evt;
-        }
-        public override void Animate(RobotController r)
-        {
-            r.displayHealth(remainingHealth);
-        }
-        public override void DisplayEvent(RobotController r)
-        {
-            r.displayEvent("Damage", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y));
         }
         public override string ToString()
         {
