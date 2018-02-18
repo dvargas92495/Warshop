@@ -257,6 +257,10 @@ public abstract class GameEvent
             evt.victim = reader.ReadInt16();
             return evt;
         }
+        public override void DisplayEvent(RobotController r)
+        {
+            r.displayEvent("Push", new Vector2Int((int)r.transform.position.x, (int)r.transform.position.y));
+        }
         public override string ToString()
         {
             return ToString("pushed " + victim);
