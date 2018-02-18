@@ -353,6 +353,7 @@ public class Game
                 GameEvent.Push push = new GameEvent.Push();
                 push.primaryRobotId = g.primaryRobotId;
                 push.victim = occupant.id;
+                push.direction = diff;
                 events.Add(push);
                 GameEvent.Move move = new GameEvent.Move();
                 move.primaryRobotId = occupant.id;
@@ -401,7 +402,7 @@ public class Game
                 bool isPrimary = primary.team.Contains(attacker);
                 bool isPrimaryBase = board.IsPrimary(v);
                 GameEvent.Battery evt = new GameEvent.Battery();
-                evt.opponentsBase = (isPrimary && !isPrimaryBase) || (!isPrimary && isPrimaryBase);
+                evt.isPrimary = isPrimaryBase;
                 evt.primaryRobotId = g.primaryRobotId;
                 evt.damage = attacker.attack;
                 short drain = (short)(GameConstants.DEFAULT_BATTERY_MULTIPLIER * attacker.attack);
@@ -419,6 +420,7 @@ public class Game
         {
             GameEvent.Miss evt = new GameEvent.Miss();
             evt.primaryRobotId = g.primaryRobotId;
+            evt.locs = g.locs;
             events.Insert(index + 1, evt);
         }
         else if (victims.Length > 0)

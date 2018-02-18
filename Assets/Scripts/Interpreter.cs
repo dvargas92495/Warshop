@@ -173,7 +173,23 @@ public class Interpreter {
                 foreach (GameEvent evt in eventsThisPriority)
                 {
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
-                    evt.Animate(primaryRobot);
+                    if (evt is GameEvent.Rotate)
+                    {
+                        primaryRobot.displayRotate(Robot.OrientationToVector(((GameEvent.Rotate)evt).destinationDir));
+                    } else if (evt is GameEvent.Move)
+                    {
+                        primaryRobot.displayMove(((GameEvent.Move)evt).destinationPos);
+                    } else if (evt is GameEvent.Death)
+                    {
+                        GameEvent.Death d = (GameEvent.Death)evt;
+                        primaryRobot.displayMove(d.returnLocation);
+                        primaryRobot.displayRotate(Robot.OrientationToVector(d.returnDir));
+                        primaryRobot.displayHealth(d.returnHealth);
+                        primaryRobot.gameObject.SetActive(false);
+                    } else if (evt is GameEvent.Damage)
+                    {
+                        primaryRobot.displayHealth(((GameEvent.Damage)evt).remainingHealth);
+                    }
                     primaryRobot.clearEvents();
                 }
                 eventsThisPriority.Clear();
@@ -181,7 +197,40 @@ public class Interpreter {
             else
             {
                 uiController.EventTitle.text = "T " + turnNumber + " - P " + e.priority;
-                e.DisplayEvent(GetRobot(e.primaryRobotId));
+                RobotController primaryRobot = GetRobot(e.primaryRobotId);
+                if (e is GameEvent.Rotate)
+                {
+                    GameEvent.Rotate r = (GameEvent.Rotate)e;
+                    string label = "Rotate " + Command.Rotate.tostring[r.dir] + " Arrow";
+                    Vector2Int facing = new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y) + Robot.OrientationToVector(r.sourceDir);
+                    primaryRobot.displayEvent(label, facing);
+                }
+                else if (e is GameEvent.Move)
+                {
+                    primaryRobot.displayEvent("Move Up", ((GameEvent.Move)e).destinationPos);
+                }
+                else if (e is GameEvent.Attack)
+                {
+                    Array.ForEach(((GameEvent.Attack)e).locs, (Vector2Int v) => primaryRobot.displayEvent("Attack Arrow", v));
+                } else if (e is GameEvent.Block)
+                {
+                    primaryRobot.displayEvent("Collision", ((GameEvent.Block)e).deniedPos);
+                } else if (e is GameEvent.Push)
+                {
+                    primaryRobot.displayEvent("Push", new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y) + ((GameEvent.Push)e).direction);
+                } else if (e is GameEvent.Damage)
+                {
+                    primaryRobot.displayEvent("Damage", new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y));
+                }
+                else if (e is GameEvent.Miss)
+                {
+                    Array.ForEach(((GameEvent.Miss)e).locs, (Vector2Int v) => primaryRobot.displayEvent("Missed Attack", v, false));
+                }
+                else if (e is GameEvent.Battery)
+                {
+                    Vector3 pos = (((GameEvent.Battery)e).isPrimary ? boardController.primaryBatteryLocation : boardController.secondaryBatteryLocation).transform.position;
+                    primaryRobot.displayEvent("Damage", new Vector2Int((int)pos.x, (int)pos.y), false);
+                }
                 log.Info(e.ToString());
                 uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
                 eventsThisPriority.Add(e);

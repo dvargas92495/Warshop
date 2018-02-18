@@ -11,6 +11,8 @@ public class BoardController : MonoBehaviour {
     public TileController tile;
     public List< List<TileController>> allLocations = new List<List<TileController>>();
     public HashSet<TileController> allQueueLocations = new HashSet<TileController>();
+    public TileController primaryBatteryLocation;
+    public TileController secondaryBatteryLocation;
 
     internal const byte BLANK_TYPE = 0;
     internal const byte QUEUE_TYPE = 1;
@@ -35,6 +37,8 @@ public class BoardController : MonoBehaviour {
                 TileController currentCell = Instantiate(tile, new Vector2(x, y), Quaternion.identity, transform);
                 byte spaceType = currentCell.LoadTile(board, x, y);
                 if (spaceType == QUEUE_TYPE) allQueueLocations.Add(currentCell);
+                else if (spaceType == BATTERY_TYPE && primaryBatteryLocation == null) primaryBatteryLocation = currentCell;
+                else if (spaceType == BATTERY_TYPE && secondaryBatteryLocation == null) secondaryBatteryLocation = currentCell;
                 row.Add(currentCell);
             }
             allLocations.Add(row);
