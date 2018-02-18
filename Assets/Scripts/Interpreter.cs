@@ -463,6 +463,7 @@ public class Interpreter {
             }
         }
         uiController.SubmitCommands.interactable = false;
+        DestroyCommandMenu();
     }
 
     private static RobotController GetRobot(short id)

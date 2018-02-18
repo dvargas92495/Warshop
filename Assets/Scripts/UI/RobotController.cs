@@ -109,7 +109,6 @@ public class RobotController : MonoBehaviour
     {
         commands.Add(cmd);
         Interpreter.uiController.addSubmittedCommand(GetArrow(cmd.ToString()), id);
-        toggleMenu();
     }
 
     private void toggleMenu()
