@@ -243,6 +243,13 @@ public class UIController : MonoBehaviour {
     public void Flip()
     {
         boardCamera.transform.Rotate(new Vector3(0, 0, 180));
+        Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
+        {
+            t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
+            t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
+        });
+        userScore.transform.Rotate(Vector3.forward, 180);
+        opponentScore.transform.Rotate(Vector3.forward, 180);
         if (GameConstants.LOCAL_MODE)
         {
             SetButtons(true);

@@ -10,6 +10,12 @@ public class BoardController : MonoBehaviour {
     public int boardCellsHeight;
     public TileController tile;
     public List< List<TileController>> allLocations = new List<List<TileController>>();
+    public HashSet<TileController> allQueueLocations = new HashSet<TileController>();
+
+    internal const byte BLANK_TYPE = 0;
+    internal const byte QUEUE_TYPE = 1;
+    internal const byte BATTERY_TYPE = 2;
+    internal const byte VOID_TYPE = 3;
 
     // Use this for initialization
     void Awake()
@@ -27,7 +33,8 @@ public class BoardController : MonoBehaviour {
             for (int x = 0; x < boardCellsWide; x++)
             {
                 TileController currentCell = Instantiate(tile, new Vector2(x, y), Quaternion.identity, transform);
-                currentCell.LoadTile(board, x, y);
+                byte spaceType = currentCell.LoadTile(board, x, y);
+                if (spaceType == QUEUE_TYPE) allQueueLocations.Add(currentCell);
                 row.Add(currentCell);
             }
             allLocations.Add(row);
