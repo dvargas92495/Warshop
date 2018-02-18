@@ -3,6 +3,7 @@
 public class TileController : MonoBehaviour {
 
     public Sprite battery;
+    public Sprite[] queueSprites;
     public Sprite defaultSpace;
 
     public void OnMouseUp()
@@ -19,7 +20,7 @@ public class TileController : MonoBehaviour {
             sr.color = Color.black;
         } else if (b.IsQueue(v))
         {
-            sr.color = Color.yellow;
+            sr.sprite = queueSprites[b.GetQueueIndex(v)];
         } else if (b.IsBattery(v))
         {
             sr.sprite = battery;

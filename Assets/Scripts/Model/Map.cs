@@ -96,6 +96,17 @@ public class Map
         return s is Queue;
     }
 
+    public int GetQueueIndex(Vector2Int v)
+    {
+        if (IsQueue(v))
+        {
+            return ((Queue)VecToSpace(v)).index;
+        } else
+        {
+            return -1;
+        }
+    }
+
     public bool IsPrimary(Vector2Int v)
     {
         Space s = VecToSpace(v);

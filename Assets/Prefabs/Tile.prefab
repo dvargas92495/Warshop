@@ -96,6 +96,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   battery: {fileID: 21300000, guid: 4de0af8cbd49b5043a47ebc4825b5fe3, type: 3}
+  queueSprites:
+  - {fileID: 21300000, guid: 75d506403fd10e642a225488ebd5a359, type: 3}
+  - {fileID: 21300000, guid: 1b692350058bb664ea3b7c96935fd2c8, type: 3}
+  - {fileID: 21300000, guid: 755ab683371ba444786cebc155c30217, type: 3}
+  - {fileID: 21300000, guid: 886ebe62e4d3da24d8477b9c3e8453a2, type: 3}
   defaultSpace: {fileID: 21300000, guid: 549aa4fce42c65649bf0387375e508f0, type: 3}
 --- !u!212 &212209915872624478
 SpriteRenderer:
