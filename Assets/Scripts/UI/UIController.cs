@@ -270,8 +270,9 @@ public class UIController : MonoBehaviour {
     public void LightUpPanel(bool bright, bool isUser)
     {
         Image panel = (isUser ? UsersRobots : OpponentsRobots).transform.parent.GetComponent<Image>();
-        Color old = panel.color;
-        panel.color = new Color(old.r, old.g, old.b, (bright ? 1.0f : 0.5f));
+        Color regular = (isUser ? new Color(0, 0.5f, 1.0f, 1.0f) : new Color(1.0f, 0, 0, 1.0f));
+        float mult = (bright ? 1.0f : 0.5f);
+        panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
     }
 
 }
