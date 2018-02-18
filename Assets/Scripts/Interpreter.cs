@@ -195,7 +195,10 @@ public class Interpreter {
         Array.ForEach(robotControllers, (RobotController r) => {
             r.canCommand = !r.isOpponent;
             r.gameObject.SetActive(true);
-            uiController.ClearCommands(r.id);
+            if (GameConstants.LOCAL_MODE || !r.isOpponent)
+            {
+                uiController.ClearCommands(r.id);
+            }
             r.commands.Clear();
         });
         uiController.SetButtons(true);
