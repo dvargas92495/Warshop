@@ -262,7 +262,7 @@ public class UIController : MonoBehaviour {
         boardCamera.rect = new Rect(x, 0, 1 - x, 1);
         boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-20)/2;
         boardCamera.orthographicSize = Interpreter.boardController.boardCellsHeight / 2;
-        if (!isPrimary) Flip();
+        if (!isPrimary) Interpreter.Flip();
     }
 
     public void Flip()

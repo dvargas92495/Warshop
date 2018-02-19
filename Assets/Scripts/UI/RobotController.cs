@@ -16,6 +16,7 @@ public class RobotController : MonoBehaviour
     public SpriteRenderer eventArrow;
     public TextMesh HealthLabel;
     public TextMesh AttackLabel;
+    public SpriteRenderer Direction;
     public Sprite[] arrows;
 
     internal static RobotController robotBase;
@@ -136,7 +137,8 @@ public class RobotController : MonoBehaviour
 
     public void displayRotate(Vector2Int v)
     {
-        transform.rotation = Quaternion.LookRotation(Vector3.forward, new Vector3(v.x, v.y));
+        Direction.transform.localPosition = new Vector3(0.5f * v.x, 0.5f * v.y);
+        Direction.transform.rotation = Quaternion.LookRotation(Vector3.forward, new Vector3(-v.y, v.x));
     }
     
     public void displayHealth(short health)

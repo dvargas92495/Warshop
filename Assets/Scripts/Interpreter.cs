@@ -126,11 +126,20 @@ public class Interpreter {
         }
         if (GameConstants.LOCAL_MODE)
         {
-            uiController.Flip();
+            Flip();
             Array.ForEach(robotControllers, (RobotController r) => r.canCommand = r.isOpponent && myturn);
         }
         myturn = false;
         GameClient.SendSubmitCommands(commands, username);
+    }
+
+    public static void Flip()
+    {
+        Array.ForEach(robotControllers, (RobotController r) => {
+            r.Direction.transform.RotateAround(r.transform.position, Vector3.forward, 180);
+            r.transform.Rotate(Vector3.forward, 180);
+        });
+        uiController.Flip();
     }
 
     public static void DeleteCommand(short rid, int index)
