@@ -160,16 +160,29 @@ public class Interpreter {
 
     public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
+        int currentUserBattery;
+        int currentOpponentBattery;
+        int userBattery = uiController.GetUserBattery();
+        int opponentBattery = uiController.GetOpponentBattery();
         List<GameEvent> eventsThisPriority = new List<GameEvent>();
         Dictionary<byte, Dictionary<byte, byte[]>> priorityToState = new Dictionary<byte, Dictionary<byte, byte[]>>();
         foreach(GameEvent e in events)
         {
+            if (!eventsThisPriority.Any())
+            {
+                userBattery = uiController.GetUserBattery();
+                opponentBattery = uiController.GetOpponentBattery();
+            }
             if (e is GameEvent.Resolve)
             {
                 GameEvent.Resolve r = (GameEvent.Resolve)e;
                 uiController.HighlightCommands(r.commandType, r.priority);
                 if (!priorityToState.ContainsKey(r.priority)) priorityToState[r.priority] = new Dictionary<byte, byte[]>();
+                currentUserBattery = uiController.GetUserBattery();
+                currentOpponentBattery = uiController.GetOpponentBattery();
+                uiController.SetBattery(userBattery, opponentBattery);
                 priorityToState[r.priority][GameEvent.Resolve.GetByte(r.commandType)] = SerializeState((int)r.priority);
+                uiController.SetBattery(currentUserBattery, currentOpponentBattery);
                 uiController.SetPriority((int)r.priority);
                 foreach (GameEvent evt in eventsThisPriority)
                 {
