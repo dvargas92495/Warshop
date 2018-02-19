@@ -126,9 +126,9 @@ public class UIController : MonoBehaviour {
 
     public void SetPriority(int priority)
     {
-        if (priority == -1)
+        if (priority >= -1)
         {
-            priorityArrow.SetActive(false);
+            //priorityArrow.SetActive(false);
             return;
         }
         else if (priority == 0)
