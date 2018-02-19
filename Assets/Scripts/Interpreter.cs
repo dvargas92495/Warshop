@@ -157,7 +157,10 @@ public class Interpreter {
         {
             uiController.SetButtons(false);
             uiController.LightUpPanel(true, true);
-            foreach (RobotController robot in robotControllers)
+        }
+        foreach (RobotController robot in robotControllers)
+        {
+            if (GameConstants.LOCAL_MODE || !robot.isOpponent)
             {
                 robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(robot.GetArrow(c.ToString()), robot.id));
                 uiController.ColorCommandsSubmitted(robot.id);

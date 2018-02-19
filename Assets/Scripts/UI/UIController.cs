@@ -141,8 +141,8 @@ public class UIController : MonoBehaviour {
         RectTransform arrowRect = priorityArrow.GetComponent<RectTransform>();
         arrowRect.sizeDelta = new Vector2(anchor.rect.width, anchor.rect.height);
         arrowRect.position = anchor.position;
-        Vector3 translation = new Vector3(anchor.rect.width, 0, 0);
-        arrowRect.Translate(translation);
+        Vector2 translation = new Vector2(anchor.rect.width + 10, 0);
+        arrowRect.anchoredPosition += translation;
         priorityArrow.SetActive(true);
     }
 

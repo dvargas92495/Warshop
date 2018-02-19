@@ -137,7 +137,7 @@ public class RobotController : MonoBehaviour
 
     public void displayRotate(Vector2Int v)
     {
-        Direction.transform.localPosition = new Vector3(0.5f * v.x, 0.5f * v.y);
+        Direction.transform.position = new Vector3(0.3f * v.x, 0.3f * v.y) + transform.position;
         Direction.transform.rotation = Quaternion.LookRotation(Vector3.forward, new Vector3(-v.y, v.x));
     }
     
