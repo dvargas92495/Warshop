@@ -261,7 +261,7 @@ public class Interpreter {
             }
             yield return new WaitForSeconds(eventDelay);
         }
-        //uiController.priorityArrow.SetActive(false);
+        uiController.priorityArrow.SetActive(false);
         History[turnNumber] = priorityToState;
         currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0};
         uiController.EventTitle.text = "Turn: " + (byte)(turnNumber + 1);// " - P " + 0;

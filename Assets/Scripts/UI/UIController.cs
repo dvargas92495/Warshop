@@ -126,9 +126,9 @@ public class UIController : MonoBehaviour {
 
     public void SetPriority(int priority)
     {
-        if (priority >= -1)
+        if (priority == -1)
         {
-            //priorityArrow.SetActive(false);
+            priorityArrow.SetActive(false);
             return;
         }
         else if (priority == 0)
@@ -139,8 +139,6 @@ public class UIController : MonoBehaviour {
         Transform lastRobotPanal = UsersRobots.transform.GetChild(UsersRobots.transform.childCount - 1);
         RectTransform anchor = lastRobotPanal.GetChild(pos).GetComponent<RectTransform>();
         RectTransform arrowRect = priorityArrow.GetComponent<RectTransform>();
-        Debug.Log(arrowRect.rect.x);
-        Debug.Log(anchor.rect.width);
         arrowRect.sizeDelta = new Vector2(anchor.rect.width, anchor.rect.height);
         arrowRect.position = anchor.position;
         Vector3 translation = new Vector3(anchor.rect.width, 0, 0);
