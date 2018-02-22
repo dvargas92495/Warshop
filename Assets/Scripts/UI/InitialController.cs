@@ -48,8 +48,8 @@ public class InitialController : MonoBehaviour {
     private Dictionary<string, byte[]> robotDictionary = new Dictionary<string, byte[]>()
     {
         // Rating, attack, health
-        {"Bronze Grunt", new byte[] {1,3,2}},
-        {"Silver Grunt", new byte[] {2,8,3}},
+        {"Bronze Grunt", new byte[] {1,2,3}},
+        {"Silver Grunt", new byte[] {2,3,8}},
         {"Golden Grunt", new byte[] {3,5,10}},
         {"Platinum Grunt",new byte[] {4,6,15}},
     };
