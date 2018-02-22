@@ -24,68 +24,6 @@ public class GruntTest : TestBase
     }
 
     [Test]
-    public void TestRotateSimple()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        BeforeEachTest(new Dictionary<short, Vector2Int>() { { primaryBronze.id, Vector2Int.one } });
-        Robot.Orientation expected = Robot.Orientation.EAST;
-        List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.CLOCKWISE, primaryBronze.id)
-        );
-        Assert.AreEqual(2, events.Count);
-        Assert.IsInstanceOf<GameEvent.Rotate>(events[0]);
-        Assert.AreEqual(expected, primaryBronze.orientation);
-    }
-
-    [Test]
-    public void TestRotateFlip()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        BeforeEachTest(new Dictionary<short, Vector2Int>() { { primaryBronze.id, Vector2Int.one } });
-        Robot.Orientation expected = Robot.Orientation.SOUTH;
-        List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.FLIP, primaryBronze.id)
-        );
-        Assert.AreEqual(2, events.Count);
-        Assert.IsInstanceOf<GameEvent.Rotate>(events[0]);
-        Assert.AreEqual(expected, primaryBronze.orientation);
-    }
-
-    [Test]
-    public void TestRotateDouble()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        BeforeEachTest(new Dictionary<short, Vector2Int>() { { primaryBronze.id, Vector2Int.one } });
-        Robot.Orientation expected = Robot.Orientation.SOUTH;
-        List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.COUNTERCLOCKWISE, primaryBronze.id),
-            RotateCommand(Command.Rotate.COUNTERCLOCKWISE, primaryBronze.id)
-        );
-        Assert.AreEqual(4, events.Count);
-        Assert.IsInstanceOf<GameEvent.Rotate>(events[0]);
-        Assert.IsInstanceOf<GameEvent.Rotate>(events[2]);
-        Assert.AreEqual(expected, primaryBronze.orientation);
-    }
-
-    [Test]
-    public void TestRotateFail()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        BeforeEachTest(new Dictionary<short, Vector2Int>() { { primaryBronze.id, Vector2Int.one } });
-        Robot.Orientation expected = Robot.Orientation.WEST;
-        List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.FLIP, primaryBronze.id),
-            RotateCommand(Command.Rotate.CLOCKWISE, primaryBronze.id),
-            RotateCommand(Command.Rotate.CLOCKWISE, primaryBronze.id)
-        );
-        Assert.AreEqual(6, events.Count);
-        Assert.IsInstanceOf<GameEvent.Rotate>(events[0]);
-        Assert.IsInstanceOf<GameEvent.Rotate>(events[2]);
-        Assert.IsInstanceOf<GameEvent.Fail>(events[4]);
-        Assert.AreEqual(expected, primaryBronze.orientation);
-    }
-
-    [Test]
 	public void TestMoveSimpleMove() {
         Robot primaryBronze = testgame.primary.team[0];
         Robot secondaryBronze = testgame.secondary.team[0];
@@ -179,8 +117,7 @@ public class GruntTest : TestBase
             { primaryPlatinum.id, new Vector2Int(1,2) }
         });
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.CLOCKWISE, primaryPlatinum.id),
-            MoveCommand(Command.Move.UP, primaryBronze.id)
+            MoveCommand(Command.UP, primaryBronze.id)
         );
         Assert.AreEqual(6, events.Count);
         Assert.IsInstanceOf<GameEvent.Move>(events[2]);
@@ -201,8 +138,7 @@ public class GruntTest : TestBase
         });
         Vector2Int expected = primaryBronze.position;
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.FLIP, primaryPlatinum.id),
-            MoveCommand(Command.Move.UP, primaryBronze.id)
+            MoveCommand(Command.UP, primaryBronze.id)
         );
         Assert.AreEqual(4, events.Count);
         Assert.IsInstanceOf<GameEvent.Block>(events[2]);
@@ -239,10 +175,8 @@ public class GruntTest : TestBase
         Vector2Int primaryExpected = primaryBronze.position;
         Vector2Int secondaryExpected = secondaryBronze.position;
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.FLIP, secondaryBronze.id),
-            RotateCommand(Command.Rotate.FLIP, primaryBronze.id),
-            MoveCommand(Command.Move.RIGHT, primaryBronze.id),
-            MoveCommand(Command.Move.LEFT, secondaryBronze.id)
+            MoveCommand(Command.RIGHT, primaryBronze.id),
+            MoveCommand(Command.LEFT, secondaryBronze.id)
         );
         Assert.AreEqual(6, events.Count);
         Assert.IsInstanceOf<GameEvent.Block>(events[3]);
@@ -263,10 +197,8 @@ public class GruntTest : TestBase
         Vector2Int primaryExpected = primaryBronze.position;
         Vector2Int secondaryExpected = new Vector2Int(1,2);
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.CLOCKWISE, secondaryBronze.id),
-            RotateCommand(Command.Rotate.FLIP, primaryBronze.id),
-            MoveCommand(Command.Move.RIGHT, primaryBronze.id),
-            MoveCommand(Command.Move.LEFT, secondaryBronze.id)
+            MoveCommand(Command.RIGHT, primaryBronze.id),
+            MoveCommand(Command.LEFT, secondaryBronze.id)
         );
         Assert.AreEqual(6, events.Count);
         Assert.AreEqual(primaryExpected, primaryBronze.position);
@@ -287,10 +219,8 @@ public class GruntTest : TestBase
         Vector2Int primaryExpected = primaryBronze.position;
         Vector2Int secondaryExpected = secondaryBronze.position;
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.FLIP, secondaryBronze.id),
-            RotateCommand(Command.Rotate.CLOCKWISE, primaryBronze.id),
-            MoveCommand(Command.Move.RIGHT, primaryBronze.id),
-            MoveCommand(Command.Move.LEFT, secondaryBronze.id)
+            MoveCommand(Command.RIGHT, primaryBronze.id),
+            MoveCommand(Command.LEFT, secondaryBronze.id)
         );
         Assert.AreEqual(6, events.Count);
         Assert.IsInstanceOf<GameEvent.Block>(events[3]);
@@ -376,7 +306,6 @@ public class GruntTest : TestBase
         });
         Vector2Int primaryExpected = primaryBronze.position + Vector2Int.up;
         Vector2Int secondaryExpected = secondaryBronze.position + Vector2Int.up;
-        SimulateCommands(RotateCommand(Command.Rotate.FLIP, secondaryBronze.id));
         List<GameEvent> events = SimulateCommands(
             MoveCommand(Command.Move.UP, secondaryBronze.id),
             MoveCommand(Command.Move.UP, primaryBronze.id)
@@ -402,11 +331,8 @@ public class GruntTest : TestBase
         Vector2Int primaryExpected = secondaryBronze.position;
         Vector2Int secondaryExpected = secondaryBronze.position + Vector2Int.left;
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.FLIP, primaryPlatinum.id),
-            RotateCommand(Command.Rotate.FLIP, secondaryBronze.id),
-            RotateCommand(Command.Rotate.COUNTERCLOCKWISE, primaryBronze.id),
-            MoveCommand(Command.Move.UP, secondaryBronze.id),
-            MoveCommand(Command.Move.LEFT, primaryBronze.id)
+            MoveCommand(Command.UP, secondaryBronze.id),
+            MoveCommand(Command.LEFT, primaryBronze.id)
         );
         Assert.AreEqual(10, events.Count);
         Assert.That(events[5], Is.TypeOf<GameEvent.Block>().Or.TypeOf<GameEvent.Move>());
@@ -431,10 +357,8 @@ public class GruntTest : TestBase
         Vector2Int primaryExpected = primarySilver.position;
         Vector2Int secondaryExpected = secondaryBronze.position;
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.COUNTERCLOCKWISE, primaryPlatinum.id),
-            RotateCommand(Command.Rotate.COUNTERCLOCKWISE, primarySilver.id),
-            MoveCommand(Command.Move.DOWN, secondaryBronze.id),
-            MoveCommand(Command.Move.LEFT, primarySilver.id)
+            MoveCommand(Command.DOWN, secondaryBronze.id),
+            MoveCommand(Command.LEFT, primarySilver.id)
         );
         Assert.AreEqual(7, events.Count);
         Assert.IsInstanceOf<GameEvent.Block>(events[4]);
@@ -473,7 +397,6 @@ public class GruntTest : TestBase
             { secondaryBronze.id, new Vector2Int(1,2) }
         });
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.COUNTERCLOCKWISE, primaryBronze.id),
             AttackCommand(primaryBronze.id)
         );
         Assert.AreEqual(5, events.Count);
@@ -491,7 +414,6 @@ public class GruntTest : TestBase
         });
         float expected = testgame.secondary.battery - GameConstants.DEFAULT_BATTERY_MULTIPLIER * primaryBronze.attack;
         List<GameEvent> events = SimulateCommands(
-            RotateCommand(Command.Rotate.CLOCKWISE, primaryBronze.id),
             AttackCommand(primaryBronze.id)
         );
         Assert.AreEqual(5, events.Count);
@@ -518,7 +440,6 @@ public class GruntTest : TestBase
         Assert.IsInstanceOf<GameEvent.Death>(events[2]);
         Assert.AreEqual(primaryBronze.startingHealth, primaryBronze.health);
         Assert.AreEqual(Vector2Int.zero, primaryBronze.position);
-        Assert.AreEqual(Robot.Orientation.NORTH, primaryBronze.orientation);
     }
 
     [Test]
@@ -541,7 +462,6 @@ public class GruntTest : TestBase
         Assert.IsInstanceOf<GameEvent.Fail>(events[4]);
         Assert.AreEqual(primaryBronze.startingHealth, primaryBronze.health);
         Assert.AreEqual(Vector2Int.zero, primaryBronze.position);
-        Assert.AreEqual(Robot.Orientation.NORTH, primaryBronze.orientation);
     }
 
     [Test]

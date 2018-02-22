@@ -12,6 +12,7 @@ public class Game
     internal Map board;
     internal short nextRobotId;
     internal byte turn = 1;
+    private static readonly Logger log = new Logger(typeof(App));
 
     internal Game() {}
 
@@ -27,7 +28,6 @@ public class Game
             r.queueSpot = (byte)(i % 4);
             r.position = board.GetQueuePosition(r.queueSpot, isPrimary);
             board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-            r.orientation = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;
             robots[i] = r;
         }
         allRobots = new Robot[allRobots.Length + robots.Length];
@@ -101,21 +101,18 @@ public class Game
     {
         internal Dictionary<Type, byte> num = new Dictionary<Type, byte>()
         {
-            { typeof(Command.Rotate), 0 },
             { typeof(Command.Move), 0 },
             { typeof(Command.Attack), 0 },
             { typeof(Command.Special), 0 }
         };
         static internal Dictionary<Type, byte> limit = new Dictionary<Type, byte>()
         {
-            { typeof(Command.Rotate), GameConstants.DEFAULT_ROTATE_LIMIT },
             { typeof(Command.Move), GameConstants.DEFAULT_MOVE_LIMIT },
             { typeof(Command.Attack), GameConstants.DEFAULT_ATTACK_LIMIT },
             { typeof(Command.Special), GameConstants.DEFAULT_SPECIAL_LIMIT }
         };
         static internal Dictionary<Type, byte> power = new Dictionary<Type, byte>()
         {
-            { typeof(Command.Rotate), GameConstants.DEFAULT_ROTATE_POWER },
             { typeof(Command.Move), GameConstants.DEFAULT_MOVE_POWER },
             { typeof(Command.Attack), GameConstants.DEFAULT_ATTACK_POWER },
             { typeof(Command.Special), GameConstants.DEFAULT_SPECIAL_POWER }
@@ -161,7 +158,7 @@ public class Game
             HashSet<Command> currentCmds = priorityToCommands[(byte)p];
             List<GameEvent> priorityEvents = (p == 0 ? processEndOfTurn() : new List<GameEvent>());
 
-            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Rotate)));
+            //priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Rotate))); TODO: change to spawn
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Move)));
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Attack)));
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Special)));
@@ -200,10 +197,7 @@ public class Game
         {
             Robot primaryRobot = GetRobot(c.robotId);
             bool isPrimary = c.owner.Equals(primary.name);
-            if (c is Command.Rotate)
-            {
-                idsToWantedEvents[c.robotId] = primaryRobot.Rotate(((Command.Rotate)c).direction, isPrimary);
-            } else if (c is Command.Move)
+            if (c is Command.Move)
             {
                 board.RemoveObjectLocation(c.robotId);
                 idsToWantedEvents[c.robotId] = primaryRobot.Move(((Command.Move)c).direction, isPrimary);
@@ -215,8 +209,15 @@ public class Game
         });
 
         bool valid = false;
+        int loops = 0;
         while (!valid)
         {
+            loops++;
+            if (loops > 1000)
+            {
+                log.Error("INFINITE LOOP");
+                break;
+            } 
             valid = true;
             idsToWantedEvents.Keys.ToList().ForEach((short id) =>
             {
@@ -239,7 +240,6 @@ public class Game
                     GameEvent.Death death = new GameEvent.Death();
                     r.health = death.returnHealth = r.startingHealth;
                     r.position = death.returnLocation = v;
-                    r.orientation = death.returnDir = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;
                     death.primaryRobotId = r.id;
                     death.primaryBattery = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating : 0);
                     death.secondaryBattery = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
@@ -344,11 +344,7 @@ public class Game
         {
             Vector2Int diff = g.destinationPos - g.sourcePos;
             Robot occupant = GetRobot(board.GetIdOnSpace(g.destinationPos));
-            if (
-                g.primaryRobotId == events[0].primaryRobotId &&
-                GetRobot(g.primaryRobotId).IsFacing(diff) &&
-                !occupant.IsFacing(Util.Flip(diff))
-            )
+            if (g.primaryRobotId == events[0].primaryRobotId)
             {
                 GameEvent.Push push = new GameEvent.Push();
                 push.primaryRobotId = g.primaryRobotId;
@@ -495,21 +491,7 @@ public class Game
             if (idsWantSpace.Count > 1)
             {
                 valid = false;
-                List<short> facing = idsWantSpace.FindAll((short key) => {
-                    GameEvent.Move g = idsToWantedEvents[key].Find((GameEvent e) => e is GameEvent.Move && ((GameEvent.Move)e).destinationPos.Equals(space)) as GameEvent.Move;
-                    return g.primaryRobotId == key && GetRobot(key).IsFacing(g.destinationPos - g.sourcePos);
-                });
-                string blocker = "";
-                if (facing.Count == 1)
-                {
-                    Robot winner = GetRobot(facing[0]);
-                    idsWantSpace.Remove(winner.id);
-                    blocker = winner.name;
-                }
-                else
-                {
-                    blocker = "Each Other"; //TODO: Better label
-                }
+                string blocker = "Each Other"; //TODO: Better label
                 idsWantSpace.ForEach(generateBlockEvent(blocker, space));
             }
         });
@@ -529,7 +511,6 @@ public class Game
     private void Update(GameEvent g)
     {
         if (g is GameEvent.Move) Update((GameEvent.Move)g);
-        else if (g is GameEvent.Rotate) Update((GameEvent.Rotate)g);
         else if (g is GameEvent.Damage) Update((GameEvent.Damage)g);
         else if (g is GameEvent.Poison) Update((GameEvent.Poison)g);
     }
@@ -539,12 +520,6 @@ public class Game
         Robot r = GetRobot(g.primaryRobotId);
         r.position = g.destinationPos;
         board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
-    }
-
-    private void Update(GameEvent.Rotate g)
-    {
-        Robot r = GetRobot(g.primaryRobotId);
-        r.orientation = g.destinationDir;
     }
 
     private void Update(GameEvent.Damage g)

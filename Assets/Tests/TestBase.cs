@@ -39,19 +39,11 @@ public class TestBase
             {
                 r.health = r.startingHealth;
                 r.position = pos.ContainsKey(r.id) ? pos[r.id] : testgame.board.GetQueuePosition(r.queueSpot, isPrimary);
-                r.orientation = isPrimary ? Robot.Orientation.NORTH : Robot.Orientation.SOUTH;
                 testgame.board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
             });
         };
         reset(testgame.primary, true);
         reset(testgame.secondary, false);
-    }
-
-    internal static Command.Rotate RotateCommand(byte d, short r)
-    {
-        Command.Rotate c = new Command.Rotate(d);
-        c.robotId = r;
-        return c;
     }
 
     internal static Command.Move MoveCommand(byte d, short r)

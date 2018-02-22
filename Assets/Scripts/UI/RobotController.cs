@@ -16,7 +16,6 @@ public class RobotController : MonoBehaviour
     public SpriteRenderer eventArrow;
     public TextMesh HealthLabel;
     public TextMesh AttackLabel;
-    public SpriteRenderer Direction;
     public Sprite[] arrows;
 
     internal static RobotController robotBase;
@@ -31,7 +30,6 @@ public class RobotController : MonoBehaviour
         r.name = robot.name;
         r.id = robot.id;
         r.displayMove(robot.position);
-        r.displayRotate(Robot.OrientationToVector(robot.orientation));
         r.displayHealth(robot.health);
         r.displayAttack(robot.attack);
         r.HealthLabel.GetComponent<MeshRenderer>().sortingOrder = r.HealthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
@@ -52,15 +50,6 @@ public class RobotController : MonoBehaviour
                     break;
                 case "MoveRight":
                     menuitem.SetCallback(() => r.AddMoveCommand(Command.Move.RIGHT));
-                    break;
-                case "RotateClockwise":
-                    menuitem.SetCallback(() => r.AddRotateCommand(Command.Rotate.CLOCKWISE));
-                    break;
-                case "RotateCounterclockwise":
-                    menuitem.SetCallback(() => r.AddRotateCommand(Command.Rotate.COUNTERCLOCKWISE));
-                    break;
-                case "RotateFlip":
-                    menuitem.SetCallback(() => r.AddRotateCommand(Command.Rotate.FLIP));
                     break;
                 case "Attack":
                     menuitem.SetCallback(() => r.AddAttackCommand());
@@ -96,11 +85,6 @@ public class RobotController : MonoBehaviour
         addRobotCommand(new Command.Move(dir));
     }
 
-    public void AddRotateCommand(byte dir)
-    {
-        addRobotCommand(new Command.Rotate(dir));
-    }
-
     public void AddAttackCommand()
     {
         addRobotCommand(new Command.Attack());
@@ -133,12 +117,6 @@ public class RobotController : MonoBehaviour
     public void displayMove(Vector2Int v)
     {
         Interpreter.boardController.PlaceRobot(transform, v.x, v.y);
-    }
-
-    public void displayRotate(Vector2Int v)
-    {
-        Direction.transform.position = new Vector3(0.3f * v.x, 0.3f * v.y) + transform.position;
-        Direction.transform.rotation = Quaternion.LookRotation(Vector3.forward, new Vector3(-v.y, v.x));
     }
     
     public void displayHealth(short health)

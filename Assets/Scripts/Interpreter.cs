@@ -135,10 +135,7 @@ public class Interpreter {
 
     public static void Flip()
     {
-        Array.ForEach(robotControllers, (RobotController r) => {
-            r.Direction.transform.RotateAround(r.transform.position, Vector3.forward, 180);
-            r.transform.Rotate(Vector3.forward, 180);
-        });
+        Array.ForEach(robotControllers, (RobotController r) => r.transform.Rotate(Vector3.forward, 180));
         uiController.Flip();
     }
 
@@ -199,17 +196,13 @@ public class Interpreter {
                 foreach (GameEvent evt in eventsThisPriority)
                 {
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
-                    if (evt is GameEvent.Rotate)
-                    {
-                        primaryRobot.displayRotate(Robot.OrientationToVector(((GameEvent.Rotate)evt).destinationDir));
-                    } else if (evt is GameEvent.Move)
+                    if (evt is GameEvent.Move)
                     {
                         primaryRobot.displayMove(((GameEvent.Move)evt).destinationPos);
                     } else if (evt is GameEvent.Death)
                     {
                         GameEvent.Death d = (GameEvent.Death)evt;
                         primaryRobot.displayMove(d.returnLocation);
-                        primaryRobot.displayRotate(Robot.OrientationToVector(d.returnDir));
                         primaryRobot.displayHealth(d.returnHealth);
                         primaryRobot.gameObject.SetActive(false);
                     } else if (evt is GameEvent.Damage)
@@ -223,16 +216,9 @@ public class Interpreter {
             else
             {
                 uiController.EventTitle.text = "Turn: " + turnNumber;// + " - P " + e.priority;
-                uiController.SetPriority((int)e.priority);
+                uiController.SetPriority(e.priority);
                 RobotController primaryRobot = GetRobot(e.primaryRobotId);
-                if (e is GameEvent.Rotate)
-                {
-                    GameEvent.Rotate r = (GameEvent.Rotate)e;
-                    string label = "Rotate " + Command.Rotate.tostring[r.dir] + " Arrow";
-                    Vector2Int facing = new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y) + Robot.OrientationToVector(r.sourceDir);
-                    primaryRobot.displayEvent(label, facing);
-                }
-                else if (e is GameEvent.Move)
+                if (e is GameEvent.Move)
                 {
                     primaryRobot.displayEvent("Move Up", ((GameEvent.Move)e).destinationPos);
                 }

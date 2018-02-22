@@ -25,9 +25,6 @@ public abstract class GameEvent
         GameEvent evt;
         switch (eventId)
         {
-            case Rotate.EVENT_ID:
-                evt = Rotate.Deserialize(reader);
-                break;
             case Move.EVENT_ID:
                 evt = Move.Deserialize(reader);
                 break;
@@ -100,32 +97,7 @@ public abstract class GameEvent
         }
     }
 
-    public class Rotate : GameEvent
-    {
-        internal const byte EVENT_ID = 1;
-        internal byte dir;
-        internal Robot.Orientation sourceDir;
-        internal Robot.Orientation destinationDir;
-        public override void Serialize(NetworkWriter writer)
-        {
-            writer.Write(EVENT_ID);
-            writer.Write(dir);
-            writer.Write((byte)sourceDir);
-            writer.Write((byte)destinationDir);
-        }
-        public new static Rotate Deserialize(NetworkReader reader)
-        {
-            Rotate rot = new Rotate();
-            rot.dir = reader.ReadByte();
-            rot.sourceDir = (Robot.Orientation)reader.ReadByte();
-            rot.destinationDir = (Robot.Orientation)reader.ReadByte();
-            return rot;
-        }
-        public override string ToString()
-        {
-            return ToString("rotated " + Command.Rotate.tostring[dir] + " from " + sourceDir + " to " + destinationDir);
-        }
-    }
+    //TODO: Reserving Event ID 1 for Spawn
 
     public class Move : GameEvent
     {

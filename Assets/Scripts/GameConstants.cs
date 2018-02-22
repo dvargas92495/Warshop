@@ -1,11 +1,9 @@
 ﻿internal class GameConstants
 {
-    internal const byte DEFAULT_ROTATE_POWER = 1;
     internal const byte DEFAULT_MOVE_POWER = 1;
     internal const byte DEFAULT_ATTACK_POWER = 2;
     internal const byte DEFAULT_SPECIAL_POWER = 2;
 
-    internal const byte DEFAULT_ROTATE_LIMIT = 2;
     internal const byte DEFAULT_MOVE_LIMIT = 2;
     internal const byte DEFAULT_ATTACK_LIMIT = 1;
     internal const byte DEFAULT_SPECIAL_LIMIT = 1;

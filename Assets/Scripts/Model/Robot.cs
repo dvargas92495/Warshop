@@ -14,7 +14,6 @@ public class Robot
     internal Rating rating;
     internal short id;
     internal Vector2Int position;
-    internal Orientation orientation;
     internal byte queueSpot;
     internal Robot(string _name, string _description)
     {
@@ -30,7 +29,6 @@ public class Robot
         attack = _attack;
         rating = _rating;
         position = Vector2Int.zero;
-        orientation = Orientation.NORTH;
     }
     internal static Robot create(string robotName)
     {
@@ -69,7 +67,6 @@ public class Robot
         writer.Write(id);
         writer.Write(position.x);
         writer.Write(position.y);
-        writer.Write((byte)orientation);
         writer.Write(queueSpot);
     }
     public static Robot Deserialize(NetworkReader reader)
@@ -85,7 +82,6 @@ public class Robot
         robot.position = new Vector2Int();
         robot.position.x = reader.ReadInt32();
         robot.position.y = reader.ReadInt32();
-        robot.orientation = (Orientation)reader.ReadByte();
         robot.queueSpot = reader.ReadByte();
         return robot;
     }
@@ -119,26 +115,11 @@ public class Robot
         SILVER = 2,
         BRONZE = 1
     }
-    internal bool IsFacing(Vector2Int diff)
-    {
-        return diff.Equals(OrientationToVector(orientation));
-    }
     internal List<Vector2Int> GetVictimLocations()
     {
-        return new List<Vector2Int>() { position + OrientationToVector(orientation) };
+        return new List<Vector2Int>() { position + Vector2Int.up }; //TODO: Temp
     }
 
-    internal List<GameEvent> Rotate(byte dir, bool isPrimary)
-    {
-        GameEvent.Rotate evt = new GameEvent.Rotate();
-        evt.dir = dir;
-        evt.sourceDir = orientation;
-        evt.destinationDir = Command.Rotate.DirectionToOrientation(dir, orientation);
-        evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ROTATE_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ROTATE_POWER);
-        return new List<GameEvent>() { evt };
-    }
     internal virtual List<GameEvent> Move(byte dir, bool isPrimary)
     {
         GameEvent.Move evt = new GameEvent.Move();
@@ -203,7 +184,7 @@ public class Robot
         )
         {}
 
-        internal override List<GameEvent> Move(byte dir, bool isPrimary)
+        /*internal override List<GameEvent> Move(byte dir, bool isPrimary)
         {
             List<GameEvent> events = base.Move(dir, isPrimary);
             GameEvent.Move first = events[0] as GameEvent.Move;
@@ -217,7 +198,7 @@ public class Robot
                 events.Add(second);
             }
             return events;
-        }
+        }Oh shit what is Slinkbot's ability now?? lol*/
     }
 
     private class Pithon : Robot
@@ -269,7 +250,7 @@ public class Robot
 
         internal override List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto, bool isPrimary)
         {
-            if (c is Command.Rotate || c is Command.Special)
+            if (c is Command.Special)
             {
                 return base.CheckFail(c, rto, isPrimary);
             }
