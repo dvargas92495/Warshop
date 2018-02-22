@@ -9,7 +9,6 @@ public abstract class Command
     internal string owner { get; set; }
     internal static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
     {
-        {0, typeof(Rotate) },
         {1, typeof(Move) },
         {2, typeof(Attack) },
         {3, typeof(Special) }
