@@ -122,6 +122,7 @@ public class Interpreter {
                 c.robotId = robot.id;
                 commands.Add(c);
             }
+            robot.canCommand = false;
             uiController.ColorCommandsSubmitted(robot.id);
         }
         if (GameConstants.LOCAL_MODE)
@@ -192,7 +193,7 @@ public class Interpreter {
                 uiController.SetBattery(userBattery, opponentBattery);
                 priorityToState[r.priority][GameEvent.Resolve.GetByte(r.commandType)] = SerializeState((int)r.priority);
                 uiController.SetBattery(currentUserBattery, currentOpponentBattery);
-                uiController.SetPriority((int)r.priority);
+                uiController.SetPriority(r.priority);
                 foreach (GameEvent evt in eventsThisPriority)
                 {
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
