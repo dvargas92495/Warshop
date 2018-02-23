@@ -165,7 +165,7 @@ public class GameClient : MonoBehaviour {
 
     private static void OnOpponentWaiting(NetworkMessage netMsg)
     {
-        Interpreter.uiController.LightUpPanel(true, false);
+        Interpreter.uiController.LightUpPanel(!GameConstants.LOCAL_MODE, false);
     }
 
     public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String myname, String opponentname)

@@ -15,12 +15,11 @@ public class UIController : MonoBehaviour {
     public TMP_Text opponentNameText;
     internal TextMesh opponentScore;
     public GameObject OpponentsRobots;
-    public GameObject opponentRobotPanel;
 
     public TMP_Text userNameText;
     internal TextMesh userScore;
     public GameObject UsersRobots;
-    public GameObject userRobotPanel;
+    public GameObject RobotPanel;
     public GameObject CommandSlot;
     public GameObject priorityArrow;
 
@@ -37,8 +36,7 @@ public class UIController : MonoBehaviour {
     private static Color HIGHLIGHTED_COMMAND = new Color(0.5f, 0.5f, 0.5f);
     private static Color SUBMITTED_COMMAND = new Color(0.75f, 0.75f, 0.75f);
     private static Color OPEN_COMMAND = new Color(1, 1, 1);
-    private Dictionary<short, GameObject> robotIdToUserPanel = new Dictionary<short, GameObject>();
-    private Dictionary<short, GameObject> robotIdToOpponentPanel = new Dictionary<short, GameObject>();
+    private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
 
     void Start()
     {
@@ -59,14 +57,6 @@ public class UIController : MonoBehaviour {
     //Loads the UICanvas and it's child components
     public void InitializeUICanvas(Game.Player[] playerObjects, bool isPrimary)
     {
-        if (GameConstants.LOCAL_MODE)
-        {
-            SetOpponentPlayerPanel(playerObjects[0]);
-            SetUsersPlayerPanel(playerObjects[1]);
-            robotIdToUserPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(false));
-            robotIdToOpponentPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(false));
-        }
-
         SetOpponentPlayerPanel(playerObjects[1]);
         SetUsersPlayerPanel(playerObjects[0]);
 
@@ -85,48 +75,42 @@ public class UIController : MonoBehaviour {
 
     void SetOpponentPlayerPanel(Game.Player opponentPlayer)
     {
-        opponentNameText.SetText(opponentPlayer.name + "'s Robots:");
+        opponentNameText.SetText(opponentPlayer.name);
         for (int i = 0; i < opponentPlayer.team.Length; i++)
         {
-            robotIdToOpponentPanel[opponentPlayer.team[i].id] = SetRobotPanel(opponentPlayer.team[i], opponentRobotPanel, OpponentsRobots.transform);
+            SetRobotPanel(opponentPlayer.team[i], OpponentsRobots.transform);
         }
     }
 
     void SetUsersPlayerPanel(Game.Player userPlayer)
     {
-        userNameText.SetText(userPlayer.name + "'s Robots:");
+        userNameText.SetText(userPlayer.name);
         for (int i = 0; i < userPlayer.team.Length; i++)
         {
-            robotIdToUserPanel[userPlayer.team[i].id] = SetRobotPanel(userPlayer.team[i], userRobotPanel, UsersRobots.transform);
-            AddCommandSlots(robotIdToUserPanel[userPlayer.team[i].id].transform, userPlayer.team[i].id, userPlayer.team[i].priority);
+            robotIdToPanel[userPlayer.team[i].id] = SetRobotPanel(userPlayer.team[i], UsersRobots.transform);
         }
     }
 
-    public GameObject SetRobotPanel(Robot r, GameObject reference, Transform parent)
+    public GameObject SetRobotPanel(Robot r, Transform parent)
     {
-        GameObject panel = Instantiate(reference, parent);
+        GameObject panel = Instantiate(RobotPanel, parent);
         panel.name = "Robot" + r.id;
         Transform icon = panel.transform.GetChild(1);
-        icon.GetComponent<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
+        icon.GetComponentInChildren<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
         TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
         fields[0].SetText(r.name);
         fields[1].SetText(r.description);
+        AddCommandSlots(panel.transform.GetChild(3), r.id, r.priority);
+        robotIdToPanel[r.id] = panel;
         return panel;
     }
 
     private void AddCommandSlots(Transform panel, short id, byte p)
     {
         Rect outer = panel.GetComponent<RectTransform>().rect;
-        float startingY = 0.75f;
-        float div = (1.0f / GameConstants.MAX_PRIORITY);
-        float outerHeightPer = outer.height * startingY * div;
-        float outerWidthPer = outer.width;
-        float size = Mathf.Min(outerHeightPer, outerWidthPer);
         for (int i = GameConstants.MAX_PRIORITY; i > 0; i--)
         {
             RectTransform cmd = Instantiate(CommandSlot, panel).GetComponent<RectTransform>();
-            cmd.anchorMax = new Vector2(size/outerWidthPer, startingY * (i - 1 + size/outerHeightPer) * div);
-            cmd.anchorMin = new Vector2(1-size/outerWidthPer, startingY * (i - size/outerHeightPer) * div);
             if (i > p)
             {
                 cmd.GetComponentInChildren<Image>().color = NO_COMMAND;
@@ -157,9 +141,9 @@ public class UIController : MonoBehaviour {
         {
             return;
         }
-        int pos = 3 + 8 - priority;
+        int pos = GameConstants.MAX_PRIORITY - priority;
         Transform lastRobotPanal = UsersRobots.transform.GetChild(UsersRobots.transform.childCount - 1);
-        RectTransform anchor = lastRobotPanal.GetChild(pos).GetComponent<RectTransform>();
+        RectTransform anchor = lastRobotPanal.GetChild(3).GetChild(pos).GetComponent<RectTransform>();
         RectTransform arrowRect = priorityArrow.GetComponent<RectTransform>();
         arrowRect.sizeDelta = new Vector2(anchor.rect.width, anchor.rect.height);
         arrowRect.position = anchor.position;
@@ -170,7 +154,7 @@ public class UIController : MonoBehaviour {
 
     public void ClearCommands(Transform panel)
     {
-        for (int i = 3; i < panel.childCount; i++)
+        for (int i = 0; i < panel.childCount; i++)
         {
             Transform child = panel.GetChild(i);
             child.GetComponentInChildren<Button>(true).gameObject.SetActive(false);
@@ -186,16 +170,16 @@ public class UIController : MonoBehaviour {
 
     public void ClearCommands(short id)
     {
-        ClearCommands(robotIdToUserPanel[id].transform);
+        ClearCommands(robotIdToPanel[id].transform.GetChild(3));
     }
 
     public void HighlightCommands(Type t, byte p)
     {
-        foreach (short id in robotIdToUserPanel.Keys)
+        foreach (short id in robotIdToPanel.Keys)
         {
-            Transform robotPanel = robotIdToUserPanel[id].transform;
-            if (robotPanel.childCount - p < 0) continue;
-            Transform panel = robotPanel.GetChild(robotPanel.childCount - p);
+            Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
+            if (commandPanel.childCount - p < 0) continue;
+            Transform panel = commandPanel.GetChild(commandPanel.childCount - p);
             Image cmdPanel = panel.GetComponentInChildren<Image>();
             if (cmdPanel.sprite != null && cmdPanel.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
             {
@@ -206,8 +190,8 @@ public class UIController : MonoBehaviour {
 
     public void ColorCommandsSubmitted(short id)
     {
-        Transform panel = robotIdToUserPanel[id].transform;
-        for (int i = 3; i < panel.childCount; i++)
+        Transform panel = robotIdToPanel[id].transform.GetChild(3);
+        for (int i = 0; i < panel.childCount; i++)
         {
             Image cmdPanel = panel.GetChild(i).GetComponentInChildren<Image>();
             if (cmdPanel.color.Equals(OPEN_COMMAND) || cmdPanel.color.Equals(HIGHLIGHTED_COMMAND))
@@ -220,8 +204,8 @@ public class UIController : MonoBehaviour {
 
     public void addSubmittedCommand(Sprite cmd, byte d, short id)
     {
-        Transform panel = robotIdToUserPanel[id].transform;
-        for (int i = 3; i < panel.childCount; i++)
+        Transform panel = robotIdToPanel[id].transform.GetChild(3);
+        for (int i = 0; i < panel.childCount; i++)
         {
             Transform child = panel.GetChild(i);
             Image cmdPanel = child.GetComponentInChildren<Image>();
@@ -239,9 +223,9 @@ public class UIController : MonoBehaviour {
 
     public Tuple<string, byte>[] getCommandsSerialized(short id)
     {
-        Transform panel = robotIdToUserPanel[id].transform;
+        Transform panel = robotIdToPanel[id].transform.GetChild(3);
         List<Tuple<string, byte>> content = new List<Tuple<string, byte>>();
-        for (int i = 3; i < panel.childCount; i++)
+        for (int i = 0; i < panel.childCount; i++)
         {
             Image cmdPanel = panel.GetChild(i).GetComponentInChildren<Image>();
             if (cmdPanel.color.Equals(NO_COMMAND)) continue;
@@ -269,8 +253,9 @@ public class UIController : MonoBehaviour {
 
     public void PositionCamera(bool isPrimary)
     {
-        float x = BackgroundPanel.GetComponent<RectTransform>().anchorMax.x;
-        boardCamera.rect = new Rect(x, 0, 1 - x, 1);
+        float xMin = UsersRobots.transform.parent.GetComponent<RectTransform>().anchorMax.x;
+        float xMax = OpponentsRobots.transform.parent.GetComponent<RectTransform>().anchorMin.x;
+        boardCamera.rect = new Rect(xMin, 0, xMax - xMin, 1);
         boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-20)/2;
         boardCamera.orthographicSize = Interpreter.boardController.boardCellsHeight / 2;
         if (!isPrimary) Interpreter.Flip();
@@ -289,12 +274,6 @@ public class UIController : MonoBehaviour {
         if (GameConstants.LOCAL_MODE)
         {
             SetButtons(true);
-            LightUpPanel(false, true);
-            string u = userNameText.text;
-            userNameText.text = opponentNameText.text;
-            opponentNameText.text = u;
-            robotIdToUserPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(!g.activeInHierarchy));
-            robotIdToOpponentPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(!g.activeInHierarchy));
         }
     }
 
