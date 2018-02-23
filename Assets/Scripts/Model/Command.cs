@@ -6,10 +6,10 @@ using UnityEngine.Networking;
 public abstract class Command
 {
     internal const byte UP = 0;
-    internal const byte DOWN = 1;
-    internal const byte LEFT = 2;
+    internal const byte LEFT = 1;
+    internal const byte DOWN = 2;
     internal const byte RIGHT = 3;
-    internal static Dictionary<byte, string> tostring = new Dictionary<byte, string>()
+    internal static Dictionary<byte, string> byteToDirectionString = new Dictionary<byte, string>()
     {
         {UP, "Up" },
         {DOWN, "Down" },
@@ -38,11 +38,15 @@ public abstract class Command
     protected internal byte direction { get; protected set; }
     internal static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
     {
-        {1, typeof(Move) },
-        {2, typeof(Attack) },
-        {3, typeof(Special) }
+        {Move.COMMAND_ID, typeof(Move) },
+        {Attack.COMMAND_ID, typeof(Attack) },
+        {Special.COMMAND_ID, typeof(Special) }
     };
-    public Command(){}
+    public Command(){ }
+    public virtual string ToSpriteString()
+    {
+        return "NULL";
+    }
     public virtual void Serialize(NetworkWriter writer)
     {
         writer.Write(direction);
@@ -80,16 +84,20 @@ public abstract class Command
 
     internal class Move : Command
     {
-        internal const byte COMMAND_ID = 2;
+        internal const byte COMMAND_ID = 1;
         internal const string DISPLAY = "Move";
 
         public Move(byte dir)
         {
             direction = dir;
         }
+        public override string ToSpriteString()
+        {
+            return DISPLAY + " Arrow";
+        }
         public override string ToString()
         {
-            return DISPLAY + " " + tostring[direction];
+            return DISPLAY + " " + byteToDirectionString[direction];
         }
         public override void Serialize(NetworkWriter writer)
         {
@@ -100,33 +108,40 @@ public abstract class Command
 
     internal class Attack : Command
     {
-        internal const byte COMMAND_ID = 3;
+        internal const byte COMMAND_ID = 2;
         internal const string DISPLAY = "Attack";
 
         public Attack(byte dir)
         {
             direction = dir;
         }
-        public override string ToString()
+        public override string ToSpriteString()
         {
             return DISPLAY + " Arrow";
+        }
+        public override string ToString()
+        {
+            return DISPLAY + " " + byteToDirectionString[direction];
         }
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(COMMAND_ID);
-            writer.Write(robotId);
-            writer.Write(owner);
+            base.Serialize(writer);
         }
     }
 
     internal class Special : Command
     {
-        internal const byte COMMAND_ID = 4;
+        internal const byte COMMAND_ID = 3;
         internal const string DISPLAY = "SPECIAL";
 
         public Special(byte dir)
         {
             direction = dir;
+        }
+        public override string ToSpriteString()
+        {
+            return DISPLAY + " Arrow";
         }
         public override void Serialize(NetworkWriter writer)
         {

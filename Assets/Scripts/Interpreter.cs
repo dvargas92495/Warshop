@@ -143,7 +143,7 @@ public class Interpreter {
     {
         RobotController r = GetRobot(rid);
         r.commands.RemoveAt(index);
-        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToString()), rid));
+        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToSpriteString()), c.direction, rid));
     }
 
     public static void PlayEvents(List<GameEvent> events, byte t)
@@ -159,7 +159,7 @@ public class Interpreter {
         {
             if (GameConstants.LOCAL_MODE || !robot.isOpponent)
             {
-                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(robot.GetArrow(c.ToString()), robot.id));
+                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(robot.GetArrow(c.ToSpriteString()), c.direction, robot.id));
                 uiController.ColorCommandsSubmitted(robot.id);
             }
         }
@@ -220,7 +220,7 @@ public class Interpreter {
                 RobotController primaryRobot = GetRobot(e.primaryRobotId);
                 if (e is GameEvent.Move)
                 {
-                    primaryRobot.displayEvent("Move Up", ((GameEvent.Move)e).destinationPos);
+                    primaryRobot.displayEvent("Move Arrow", ((GameEvent.Move)e).destinationPos);
                 }
                 else if (e is GameEvent.Attack)
                 {
@@ -279,6 +279,11 @@ public class Interpreter {
                 robot.menu.SetActive(false);
                 break;
             }
+            if (robot.submenu.activeInHierarchy)
+            {
+                robot.submenu.SetActive(false);
+                break;
+            }
         }
     }
 
@@ -311,9 +316,12 @@ public class Interpreter {
                 });
                 if (GameConstants.LOCAL_MODE || !r.isOpponent)
                 {
-                    string[] cmds = uiController.getCommandText(r.id);
-                    bf.Serialize(ms, cmds.Length);
-                    Array.ForEach(cmds, (string s) => bf.Serialize(ms, s));
+                   Tuple<string,byte>[] cmds = uiController.getCommandsSerialized(r.id);
+                   bf.Serialize(ms, cmds.Length);
+                   Array.ForEach(cmds, (Tuple<string,byte> s) => {
+                       bf.Serialize(ms, s.Item1);
+                       bf.Serialize(ms, s.Item2);
+                   });
                 }
             }
             bf.Serialize(ms, uiController.GetUserBattery());
@@ -364,12 +372,14 @@ public class Interpreter {
                 }
                 if (GameConstants.LOCAL_MODE || !r.isOpponent)
                 {
-                    Sprite[] cmds = new Sprite[(int)bf.Deserialize(ms)];
-                    for (int j = 0; j < cmds.Length; j++)
+                    int cmds = (int)bf.Deserialize(ms);
+                    uiController.ClearCommands(r.id);
+                    for (int j = 0; j < cmds; j++)
                     {
-                        cmds[j] = r.GetArrow((string)bf.Deserialize(ms));
+                        Sprite s = r.GetArrow((string)bf.Deserialize(ms));
+                        byte b = (byte)bf.Deserialize(ms);
+                        uiController.addSubmittedCommand(s, b, r.id);
                     }
-                    uiController.setCommandText(cmds, r.id);
                 }
             }
             int userBattery = (int)bf.Deserialize(ms);
@@ -387,7 +397,7 @@ public class Interpreter {
         foreach (RobotController r in robotControllers)
         {
             uiController.ClearCommands(r.id);
-            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToString()), r.id));
+            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToSpriteString()), c.direction, r.id));
             r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
         uiController.SubmitCommands.interactable = true;
@@ -470,7 +480,7 @@ public class Interpreter {
         });
         for (byte p = 0; p < GameConstants.MAX_PRIORITY; p++)
         {
-            for (byte c = 0; c < 4; c++)
+            for (byte c = 1; c < 4; c++)
             {
                 if (p > priority || (p == priority && c <= command))
                 {

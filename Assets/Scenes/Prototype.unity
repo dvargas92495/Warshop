@@ -1372,6 +1372,8 @@ MonoBehaviour:
   UsersRobots: {fileID: 819566506}
   userRobotPanel: {fileID: 1300967514835442, guid: a4a92458a8797bc4cbc46c7f1b051f55,
     type: 2}
+  CommandSlot: {fileID: 1759932975882172, guid: 6d25ff3d7038a41429a0aa48a07418fa,
+    type: 2}
   priorityArrow: {fileID: 328350026}
   SubmitCommands: {fileID: 789261841}
   StepBackButton: {fileID: 1831618943}

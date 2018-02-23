@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,6 +14,7 @@ public class RobotController : MonoBehaviour
     internal List<Command> commands = new List<Command>();
 
     public GameObject menu;
+    public GameObject submenu;
     public SpriteRenderer eventArrow;
     public TextMesh HealthLabel;
     public TextMesh AttackLabel;
@@ -37,27 +39,7 @@ public class RobotController : MonoBehaviour
         for (int i = 0; i < r.menu.transform.childCount; i++)
         {
             MenuItemController menuitem = r.menu.transform.GetChild(i).GetComponent<MenuItemController>();
-            switch (menuitem.name)
-            {
-                case "MoveUp":
-                    menuitem.SetCallback(() => r.AddMoveCommand(Command.UP));
-                    break;
-                case "MoveDown":
-                    menuitem.SetCallback(() => r.AddMoveCommand(Command.DOWN));
-                    break;
-                case "MoveLeft":
-                    menuitem.SetCallback(() => r.AddMoveCommand(Command.LEFT));
-                    break;
-                case "MoveRight":
-                    menuitem.SetCallback(() => r.AddMoveCommand(Command.RIGHT));
-                    break;
-                case "Attack":
-                    menuitem.SetCallback(() => r.AddAttackCommand(Command.UP));
-                    break;
-                case "Special":
-                    menuitem.SetCallback(() => r.toggleMenu());
-                    break;
-            }
+            menuitem.SetCallback(() => r.toggleSubmenu(menuitem.name));
         }
         return r;
     }
@@ -80,20 +62,10 @@ public class RobotController : MonoBehaviour
      * Robot Model Before Turn Methods *
      ***********************************/
 
-    public void AddMoveCommand(byte dir)
-    {
-        addRobotCommand(new Command.Move(dir));
-    }
-
-    public void AddAttackCommand(byte dir)
-    {
-        addRobotCommand(new Command.Attack(dir));
-    }
-
     private void addRobotCommand(Command cmd)
     {
         commands.Add(cmd);
-        Interpreter.uiController.addSubmittedCommand(GetArrow(cmd.ToString()), id);
+        Interpreter.uiController.addSubmittedCommand(GetArrow(cmd.ToSpriteString()), cmd.direction, id);
     }
 
     private void toggleMenu()
@@ -106,7 +78,32 @@ public class RobotController : MonoBehaviour
         {
             Interpreter.DestroyCommandMenu();
             menu.SetActive(true);
-            menu.transform.rotation = Quaternion.LookRotation(Vector3.forward, Interpreter.uiController.boardCamera.transform.up);
+            //menu.transform.rotation = Quaternion.LookRotation(Vector3.forward, Interpreter.uiController.boardCamera.transform.up);
+        }
+    }
+
+    private void toggleSubmenu(string command)
+    {
+        if (!canCommand) return;
+        submenu.SetActive(true);
+        menu.SetActive(false);
+        for (int i = 0; i < submenu.transform.childCount; i++)
+        {
+            MenuItemController submenuitem = submenu.transform.GetChild(i).GetComponent<MenuItemController>();
+            submenuitem.GetComponent<SpriteRenderer>().sprite = GetArrow(command + " Arrow");
+            submenuitem.SetCallback(() =>
+            {
+                byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
+                if (command.Equals(Command.Move.DISPLAY))
+                {
+                    addRobotCommand(new Command.Move(dir));
+                } else if (command.Equals(Command.Attack.DISPLAY))
+                {
+                    addRobotCommand(new Command.Attack(dir));
+                }
+                submenu.SetActive(false);
+                menu.SetActive(true);
+            });
         }
     }
 
