@@ -108,6 +108,7 @@ public class UIController : MonoBehaviour {
     private void AddCommandSlots(Transform panel, short id, byte p)
     {
         Rect outer = panel.GetComponent<RectTransform>().rect;
+        int minI = 0;
         for (int i = GameConstants.MAX_PRIORITY; i > 0; i--)
         {
             RectTransform cmd = Instantiate(CommandSlot, panel).GetComponent<RectTransform>();
@@ -115,18 +116,19 @@ public class UIController : MonoBehaviour {
             {
                 cmd.GetComponentInChildren<Image>().color = NO_COMMAND;
             }
+            else if (minI == 0) minI = i;
             Button cmdDelete = cmd.GetComponentInChildren<Button>(true);
             cmdDelete.gameObject.SetActive(false);
-            SetOnClickClear(cmdDelete, id, i);
+            SetOnClickClear(cmdDelete, id, i, minI);
         }
     }
 
-    private void SetOnClickClear(Button b, short id, int i)
+    private void SetOnClickClear(Button b, short id, int i, int minI)
     {
         b.onClick.AddListener(() =>
         {
             ClearCommands(b.transform.parent.parent);
-            Interpreter.DeleteCommand(id, i);
+            Interpreter.DeleteCommand(id, minI - i);
         });
     }
 
