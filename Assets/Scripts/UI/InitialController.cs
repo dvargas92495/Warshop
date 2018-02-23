@@ -140,11 +140,15 @@ public class InitialController : MonoBehaviour {
                         myRosterStrings[i] = squadPanelRobotHolder.transform.GetChild(i).name.Trim();
                    }
 
-                    GameObject oppSquadPanelRobotHolder = GameObject.Find("SquadPanelsHolder/Opponent Squads/Squad Panel0/SquadPanelRobotHolder");
-                    string[] opponentRosterStrings = new string[oppSquadPanelRobotHolder.transform.childCount];
-                    for (int i = 0; i < opponentRosterStrings.Length; i++)
+                    string[] opponentRosterStrings = new string[0];
+                    if (GameConstants.LOCAL_MODE)
                     {
-                        opponentRosterStrings[i] = oppSquadPanelRobotHolder.transform.GetChild(i).name.Trim();
+                        GameObject oppSquadPanelRobotHolder = GameObject.Find("SquadPanelsHolder/Opponent Squads/Squad Panel0/SquadPanelRobotHolder");
+                        opponentRosterStrings = new string[oppSquadPanelRobotHolder.transform.childCount];
+                        for (int i = 0; i < opponentRosterStrings.Length; i++)
+                        {
+                            opponentRosterStrings[i] = oppSquadPanelRobotHolder.transform.GetChild(i).name.Trim();
+                        }
                     }
 
 
@@ -154,7 +158,7 @@ public class InitialController : MonoBehaviour {
                           (GameConstants.LOCAL_MODE && opponentRosterStrings.Length > 0 ? opponentRosterStrings : new string[0]),
                           myName.text,
                           (opponentName.IsActive() ? opponentName.text : "")
-                      );
+                    );
                 }
             }
         );

@@ -12,7 +12,6 @@ public class Game
     internal Map board;
     internal short nextRobotId;
     internal byte turn = 1;
-    private static readonly Logger log = new Logger(typeof(App));
 
     internal Game() {}
 
@@ -390,7 +389,6 @@ public class Game
         {
             if (board.IsBattery(v))
             {
-                bool isPrimary = primary.team.Contains(attacker);
                 bool isPrimaryBase = board.IsPrimary(v);
                 GameEvent.Battery evt = new GameEvent.Battery();
                 evt.isPrimary = isPrimaryBase;

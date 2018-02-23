@@ -139,7 +139,6 @@ public class GruntTest : TestBase
             { secondaryBronze.id, new Vector2Int(2,2) }
         });
         Vector2Int primaryExpected = primaryBronze.position;
-        Vector2Int platinumExpected = primaryPlatinum.position;
         Vector2Int secondaryExpected = secondaryBronze.position;
         List<GameEvent> events = SimulateCommands(
             MoveCommand(Command.RIGHT, primaryBronze.id)
