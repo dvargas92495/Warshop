@@ -206,9 +206,6 @@ public class Interpreter {
                         primaryRobot.displayMove(d.returnLocation);
                         primaryRobot.displayHealth(d.returnHealth);
                         primaryRobot.gameObject.SetActive(false);
-                    } else if (evt is GameEvent.Damage)
-                    {
-                        primaryRobot.displayHealth(((GameEvent.Damage)evt).remainingHealth);
                     }
                     primaryRobot.clearEvents();
                 }
@@ -235,6 +232,7 @@ public class Interpreter {
                 } else if (e is GameEvent.Damage)
                 {
                     primaryRobot.displayEvent("Damage", new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y));
+                    primaryRobot.displayHealth(((GameEvent.Damage)e).remainingHealth);
                 }
                 else if (e is GameEvent.Miss)
                 {
