@@ -115,25 +115,25 @@ public class Robot
         SILVER = 2,
         BRONZE = 1
     }
-    internal List<Vector2Int> GetVictimLocations()
+    internal List<Vector2Int> GetVictimLocations(byte dir)
     {
-        return new List<Vector2Int>() { position + Vector2Int.up }; //TODO: Temp
+        return new List<Vector2Int>() { position + Command.DirectionToVector(dir) };
     }
 
     internal virtual List<GameEvent> Move(byte dir, bool isPrimary)
     {
         GameEvent.Move evt = new GameEvent.Move();
         evt.sourcePos = position;
-        evt.destinationPos = position + Command.Move.DirectionToVector(dir);
+        evt.destinationPos = position + Command.DirectionToVector(dir);
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
         return new List<GameEvent>() { evt };
     }
-    internal virtual List<GameEvent> Attack(bool isPrimary)
+    internal virtual List<GameEvent> Attack(byte dir, bool isPrimary)
     {
         GameEvent.Attack evt = new GameEvent.Attack();
-        evt.locs = GetVictimLocations().ToArray();
+        evt.locs = GetVictimLocations(dir).ToArray();
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);

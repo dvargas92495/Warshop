@@ -200,24 +200,17 @@ public class Game
             if (c is Command.Move)
             {
                 board.RemoveObjectLocation(c.robotId);
-                idsToWantedEvents[c.robotId] = primaryRobot.Move(((Command.Move)c).direction, isPrimary);
+                idsToWantedEvents[c.robotId] = primaryRobot.Move(c.direction, isPrimary);
             } else if (c is Command.Attack)
             {
                 if (board.GetQueuePosition(primaryRobot.queueSpot, isPrimary).Equals(primaryRobot.position)) events.Add(primaryRobot.Fail(c, "it's in queue", isPrimary));
-                else idsToWantedEvents[c.robotId] = primaryRobot.Attack(isPrimary);
+                else idsToWantedEvents[c.robotId] = primaryRobot.Attack(c.direction, isPrimary);
             }
         });
 
         bool valid = false;
-        int loops = 0;
         while (!valid)
         {
-            loops++;
-            if (loops > 1000)
-            {
-                log.Error("INFINITE LOOP");
-                break;
-            } 
             valid = true;
             idsToWantedEvents.Keys.ToList().ForEach((short id) =>
             {
@@ -226,7 +219,9 @@ public class Game
             if (!valid) continue;
             valid = AreValidTogether(idsToWantedEvents);
         }
-        idsToWantedEvents.Values.ToList().ForEach(events.AddRange);
+        List<short> keys = idsToWantedEvents.Keys.ToList();
+        keys.Sort();
+        keys.ForEach((short k) => events.AddRange(idsToWantedEvents[k]));
         events.ForEach(Update);
 
         Func<Robot[], bool, List<GameEvent>> processPriorityFinish = (Robot[] team, bool isPrimary) =>
@@ -495,6 +490,37 @@ public class Game
                 idsWantSpace.ForEach(generateBlockEvent(blocker, space));
             }
         });
+
+        //Then do multiple damage on one robot check
+        Dictionary<short, List<GameEvent.Damage>> idsToDamages = new Dictionary<short, List<GameEvent.Damage>>();
+        idsToWantedEvents.Values.ToList().ForEach((List<GameEvent> evts) =>
+        {
+            evts.ForEach((GameEvent g) => {
+                if (g is GameEvent.Damage) {
+                    if (!idsToDamages.ContainsKey(g.primaryRobotId))
+                    {
+                        idsToDamages[g.primaryRobotId] = new List<GameEvent.Damage>() { (GameEvent.Damage)g };
+                    } else
+                    {
+                        idsToDamages[g.primaryRobotId].Add((GameEvent.Damage)g);
+                    }
+                }
+            });
+        });
+        idsToDamages.Values.ToList().ForEach((List<GameEvent.Damage> damages) =>
+        {
+            damages.Sort((GameEvent.Damage d1, GameEvent.Damage d2) =>
+            {
+                short k1 = idsToWantedEvents.Keys.ToList().Find((short k) => idsToWantedEvents[k].Contains(d1));
+                short k2 = idsToWantedEvents.Keys.ToList().Find((short k) => idsToWantedEvents[k].Contains(d2));
+                return k1 - k2;
+            });
+            for (int i = 1; i < damages.Count; i++)
+            {
+                damages[i].remainingHealth = (short)(damages[i - 1].remainingHealth - damages[i].damage);
+            }
+        });
+
         return valid;
     }
 

@@ -53,9 +53,9 @@ public class TestBase
         return m;
     }
 
-    internal static Command.Attack AttackCommand(short r)
+    internal static Command.Attack AttackCommand(byte d, short r)
     {
-        Command.Attack a = new Command.Attack();
+        Command.Attack a = new Command.Attack(d);
         a.robotId = r;
         return a;
     }

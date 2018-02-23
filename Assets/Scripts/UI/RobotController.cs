@@ -40,19 +40,19 @@ public class RobotController : MonoBehaviour
             switch (menuitem.name)
             {
                 case "MoveUp":
-                    menuitem.SetCallback(() => r.AddMoveCommand(Command.Move.UP));
+                    menuitem.SetCallback(() => r.AddMoveCommand(Command.UP));
                     break;
                 case "MoveDown":
-                    menuitem.SetCallback(() => r.AddMoveCommand(Command.Move.DOWN));
+                    menuitem.SetCallback(() => r.AddMoveCommand(Command.DOWN));
                     break;
                 case "MoveLeft":
-                    menuitem.SetCallback(() => r.AddMoveCommand(Command.Move.LEFT));
+                    menuitem.SetCallback(() => r.AddMoveCommand(Command.LEFT));
                     break;
                 case "MoveRight":
-                    menuitem.SetCallback(() => r.AddMoveCommand(Command.Move.RIGHT));
+                    menuitem.SetCallback(() => r.AddMoveCommand(Command.RIGHT));
                     break;
                 case "Attack":
-                    menuitem.SetCallback(() => r.AddAttackCommand());
+                    menuitem.SetCallback(() => r.AddAttackCommand(Command.UP));
                     break;
                 case "Special":
                     menuitem.SetCallback(() => r.toggleMenu());
@@ -85,9 +85,9 @@ public class RobotController : MonoBehaviour
         addRobotCommand(new Command.Move(dir));
     }
 
-    public void AddAttackCommand()
+    public void AddAttackCommand(byte dir)
     {
-        addRobotCommand(new Command.Attack());
+        addRobotCommand(new Command.Attack(dir));
     }
 
     private void addRobotCommand(Command cmd)

@@ -300,7 +300,7 @@ public class GruntTest : TestBase
             { secondaryBronze.id, new Vector2Int(1,2) }
         });
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(primaryBronze.id)
+            AttackCommand(Command.UP, primaryBronze.id)
         );
         Assert.AreEqual(3, events.Count);
         Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
@@ -319,11 +319,11 @@ public class GruntTest : TestBase
             { secondaryBronze.id, new Vector2Int(1,2) }
         });
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(primaryBronze.id)
+            AttackCommand(Command.LEFT, primaryBronze.id)
         );
-        Assert.AreEqual(5, events.Count);
-        Assert.IsInstanceOf<GameEvent.Attack>(events[2]);
-        Assert.IsInstanceOf<GameEvent.Miss>(events[3]);
+        Assert.AreEqual(3, events.Count);
+        Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
+        Assert.IsInstanceOf<GameEvent.Miss>(events[1]);
         Assert.AreEqual(expected, secondaryBronze.health);
     }
 
@@ -336,11 +336,11 @@ public class GruntTest : TestBase
         });
         float expected = testgame.secondary.battery - GameConstants.DEFAULT_BATTERY_MULTIPLIER * primaryBronze.attack;
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(primaryBronze.id)
+            AttackCommand(Command.RIGHT, primaryBronze.id)
         );
-        Assert.AreEqual(5, events.Count);
-        Assert.IsInstanceOf<GameEvent.Attack>(events[2]);
-        Assert.IsInstanceOf<GameEvent.Battery>(events[3]);
+        Assert.AreEqual(3, events.Count);
+        Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
+        Assert.IsInstanceOf<GameEvent.Battery>(events[1]);
         Assert.AreEqual(expected, testgame.secondary.battery);
     }
 
@@ -354,7 +354,7 @@ public class GruntTest : TestBase
             { secondarySilver.id, new Vector2Int(1,2) }
         });
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(secondarySilver.id)
+            AttackCommand(Command.DOWN, secondarySilver.id)
         );
         Assert.AreEqual(4, events.Count);
         Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
@@ -374,8 +374,8 @@ public class GruntTest : TestBase
             { secondarySilver.id, new Vector2Int(1,2) }
         });
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(secondarySilver.id),
-            MoveCommand(Command.Move.UP, primaryBronze.id)
+            AttackCommand(Command.DOWN, secondarySilver.id),
+            MoveCommand(Command.UP, primaryBronze.id)
         );
         Assert.AreEqual(6, events.Count);
         Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
@@ -394,8 +394,8 @@ public class GruntTest : TestBase
             { primaryBronze.id, new Vector2Int(1,1) }
         });
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(primaryBronze.id),
-            AttackCommand(primaryBronze.id)
+            AttackCommand(Command.UP, primaryBronze.id),
+            AttackCommand(Command.UP, primaryBronze.id)
         );
         Assert.AreEqual(5, events.Count);
         Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
@@ -414,11 +414,35 @@ public class GruntTest : TestBase
             { secondaryBronze.id, new Vector2Int(0,1) }
         });
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(primaryBronze.id)
+            AttackCommand(Command.UP, primaryBronze.id)
         );
         Assert.AreEqual(2, events.Count);
         Assert.IsInstanceOf<GameEvent.Fail>(events[0]);
         Assert.AreEqual(expected, secondaryBronze.health);
+    }
+
+    [Test]
+    public void TestAttackMultipleSamePriority()
+    {
+        Robot primaryBronze = testgame.primary.team[0];
+        Robot secondaryBronze = testgame.secondary.team[0];
+        Robot secondarySilver = testgame.secondary.team[1];
+        short expected = (short)(secondarySilver.startingHealth - primaryBronze.attack - secondaryBronze.attack);
+        BeforeEachTest(new Dictionary<short, Vector2Int> {
+            { primaryBronze.id, new Vector2Int(1,2) },
+            { secondarySilver.id, new Vector2Int(2,2) },
+            { secondaryBronze.id, new Vector2Int(3,2) }
+        });
+        List<GameEvent> events = SimulateCommands(
+            AttackCommand(Command.RIGHT, primaryBronze.id),
+            AttackCommand(Command.LEFT, secondaryBronze.id)
+        );
+        Assert.AreEqual(5, events.Count);
+        Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
+        Assert.IsInstanceOf<GameEvent.Damage>(events[1]);
+        Assert.IsInstanceOf<GameEvent.Attack>(events[2]);
+        Assert.IsInstanceOf<GameEvent.Damage>(events[3]);
+        Assert.AreEqual(expected, secondarySilver.health);
     }
 
     [Test]
@@ -432,7 +456,7 @@ public class GruntTest : TestBase
             { secondaryBronze.id, new Vector2Int(0,1) }
         });
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(secondaryBronze.id)
+            AttackCommand(Command.DOWN, secondaryBronze.id)
         );
         Assert.AreEqual(3, events.Count);
         Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
@@ -468,7 +492,7 @@ public class PithonTest : TestBase
         });
         short expected = (short)(secondarySilver.health - primaryPithon.attack - 1);
         List<GameEvent> events = SimulateCommands(
-            AttackCommand(primaryPithon.id)
+            AttackCommand(Command.UP, primaryPithon.id)
         );
         Assert.AreEqual(6, events.Count);
         Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
@@ -487,10 +511,7 @@ public class PithonTest : TestBase
             { primaryPithon.id, new Vector2Int(1,1) },
             { secondarySilver.id, new Vector2Int(1,2) }
         });
-        SimulateCommands(
-            MoveCommand(Command.Move.UP, primaryPithon.id),
-            AttackCommand(primaryPithon.id)
-        );
+        SimulateCommands(AttackCommand(Command.UP, primaryPithon.id));
         for (int i = 0; i < 5; i++) SimulateCommands();
         Assert.AreEqual(secondarySilver.startingHealth, secondarySilver.health);
         SimulateCommands();
@@ -538,10 +559,10 @@ public class JaguarTest : TestBase
         BeforeEachTest();
         Vector2Int expected = primaryJaguar.position + Vector2Int.up * 2;
         List<GameEvent> events = SimulateCommands(
-            MoveCommand(Command.Move.UP, primaryJaguar.id),
-            AttackCommand(primaryJaguar.id),
-            MoveCommand(Command.Move.UP, primaryJaguar.id),
-            MoveCommand(Command.Move.UP, primaryJaguar.id)
+            MoveCommand(Command.UP, primaryJaguar.id),
+            AttackCommand(Command.UP, primaryJaguar.id),
+            MoveCommand(Command.UP, primaryJaguar.id),
+            MoveCommand(Command.UP, primaryJaguar.id)
         );
         Assert.AreEqual(9, events.Count);
         Assert.IsInstanceOf<GameEvent.Fail>(events[7]);
@@ -555,10 +576,10 @@ public class JaguarTest : TestBase
         BeforeEachTest();
         Vector2Int expected = primaryJaguar.position + Vector2Int.up * 3;
         List<GameEvent> events = SimulateCommands(
-            MoveCommand(Command.Move.UP, primaryJaguar.id),
-            MoveCommand(Command.Move.UP, primaryJaguar.id),
-            MoveCommand(Command.Move.UP, primaryJaguar.id),
-            AttackCommand(primaryJaguar.id)
+            MoveCommand(Command.UP, primaryJaguar.id),
+            MoveCommand(Command.UP, primaryJaguar.id),
+            MoveCommand(Command.UP, primaryJaguar.id),
+            AttackCommand(Command.UP, primaryJaguar.id)
         );
         Assert.AreEqual(8, events.Count);
         Assert.IsInstanceOf<GameEvent.Fail>(events[6]);
