@@ -9,8 +9,7 @@ using System.Linq;
 
 public class UIController : MonoBehaviour {
 
-	public Image BackgroundPanel;
-    public TextMesh ScoreModel;
+	public TextMesh ScoreModel;
 
     public TMP_Text opponentNameText;
     internal TextMesh opponentScore;
@@ -20,7 +19,7 @@ public class UIController : MonoBehaviour {
     internal TextMesh userScore;
     public GameObject UsersRobots;
     public GameObject RobotPanel;
-    public GameObject CommandSlot;
+    public CommandSlotController CommandSlot;
     public GameObject priorityArrow;
 
     public Button OpponentSubmit;
@@ -112,19 +111,17 @@ public class UIController : MonoBehaviour {
 
     private void AddCommandSlots(Transform panel, short id, byte p)
     {
-        Rect outer = panel.GetComponent<RectTransform>().rect;
         int minI = 0;
         for (int i = GameConstants.MAX_PRIORITY; i > 0; i--)
         {
-            RectTransform cmd = Instantiate(CommandSlot, panel).GetComponent<RectTransform>();
+            CommandSlotController cmd = Instantiate(CommandSlot, panel);
             if (i > p)
             {
-                cmd.GetComponentInChildren<Image>().color = NO_COMMAND;
+                cmd.RobotImage.color = NO_COMMAND;
             }
             else if (minI == 0) minI = i;
-            Button cmdDelete = cmd.GetComponentInChildren<Button>(true);
-            cmdDelete.gameObject.SetActive(false);
-            SetOnClickClear(cmdDelete, id, i, minI);
+            cmd.deletable = false;
+            SetOnClickClear(cmd.Delete, id, i, minI);
         }
     }
 
@@ -163,14 +160,13 @@ public class UIController : MonoBehaviour {
     {
         for (int i = 0; i < panel.childCount; i++)
         {
-            Transform child = panel.GetChild(i);
-            child.GetComponentInChildren<Button>(true).gameObject.SetActive(false);
-            Image cmdPanel = child.GetComponentInChildren<Image>();
-            cmdPanel.sprite = null;
-            if (!cmdPanel.color.Equals(NO_COMMAND))
+            CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
+            child.deletable = false;
+            child.RobotImage.sprite = null;
+            if (!child.RobotImage.color.Equals(NO_COMMAND))
             {
-                cmdPanel.color = OPEN_COMMAND;
-                cmdPanel.rectTransform.rotation = Quaternion.Euler(Vector3.zero);
+                child.RobotImage.color = OPEN_COMMAND;
+                child.RobotImage.rectTransform.rotation = Quaternion.Euler(Vector3.zero);
             }
         }
     }
@@ -186,11 +182,10 @@ public class UIController : MonoBehaviour {
         {
             Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
             if (commandPanel.childCount - p < 0) continue;
-            Transform panel = commandPanel.GetChild(commandPanel.childCount - p);
-            Image cmdPanel = panel.GetComponentInChildren<Image>();
-            if (cmdPanel.sprite != null && cmdPanel.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
+            CommandSlotController cmd = commandPanel.GetChild(commandPanel.childCount - p).GetComponent<CommandSlotController>();
+            if (cmd.RobotImage.sprite != null && cmd.RobotImage.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
             {
-                cmdPanel.color = HIGHLIGHTED_COMMAND; ;
+                cmd.RobotImage.color = HIGHLIGHTED_COMMAND;
             }
         }
     }
@@ -200,11 +195,11 @@ public class UIController : MonoBehaviour {
         Transform panel = robotIdToPanel[id].transform.GetChild(3);
         for (int i = 0; i < panel.childCount; i++)
         {
-            Image cmdPanel = panel.GetChild(i).GetComponentInChildren<Image>();
-            if (cmdPanel.color.Equals(OPEN_COMMAND) || cmdPanel.color.Equals(HIGHLIGHTED_COMMAND))
+            CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
+            if (cmd.RobotImage.color.Equals(OPEN_COMMAND) || cmd.RobotImage.color.Equals(HIGHLIGHTED_COMMAND))
             {
-                cmdPanel.color = SUBMITTED_COMMAND;
-                panel.GetChild(i).GetComponentInChildren<Button>(true).gameObject.SetActive(false);
+                cmd.RobotImage.color = SUBMITTED_COMMAND;
+                cmd.deletable = false;
             }
         }
     }
@@ -214,15 +209,14 @@ public class UIController : MonoBehaviour {
         Transform panel = robotIdToPanel[id].transform.GetChild(3);
         for (int i = 0; i < panel.childCount; i++)
         {
-            Transform child = panel.GetChild(i);
-            Image cmdPanel = child.GetComponentInChildren<Image>();
-            if (!cmdPanel.color.Equals(NO_COMMAND) && cmdPanel.sprite == null)
+            CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
+            if (!child.RobotImage.color.Equals(NO_COMMAND) && child.RobotImage.sprite == null)
             {
-                cmdPanel.sprite = cmd;
-                Rect size = cmdPanel.rectTransform.rect;
-                cmdPanel.rectTransform.Rotate(Vector3.forward * d * 90);
-                if (d % 2 == 1) cmdPanel.rectTransform.rect.Set(size.x, size.y, size.height, size.width);
-                child.GetComponentInChildren<Button>(true).gameObject.SetActive(child.GetComponentInChildren<Image>().color.Equals(OPEN_COMMAND));
+                child.RobotImage.sprite = cmd;
+                Rect size = child.RobotImage.rectTransform.rect;
+                child.RobotImage.rectTransform.Rotate(Vector3.forward * d * 90);
+                if (d % 2 == 1) child.RobotImage.rectTransform.rect.Set(size.x, size.y, size.height, size.width);
+                child.deletable = child.RobotImage.color.Equals(OPEN_COMMAND);
                 break;
             }
         }
@@ -234,10 +228,10 @@ public class UIController : MonoBehaviour {
         List<Tuple<string, byte>> content = new List<Tuple<string, byte>>();
         for (int i = 0; i < panel.childCount; i++)
         {
-            Image cmdPanel = panel.GetChild(i).GetComponentInChildren<Image>();
-            if (cmdPanel.color.Equals(NO_COMMAND)) continue;
-            if (cmdPanel.sprite == null) break;
-            content.Add(new Tuple<string, byte>(cmdPanel.sprite.name, (byte)(cmdPanel.rectTransform.localRotation.eulerAngles.z / 90)));
+            CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
+            if (child.RobotImage.color.Equals(NO_COMMAND)) continue;
+            if (child.RobotImage.sprite == null) break;
+            content.Add(new Tuple<string, byte>(child.RobotImage.sprite.name, (byte)(child.RobotImage.rectTransform.localRotation.eulerAngles.z / 90)));
         }
         return content.ToArray();
     }

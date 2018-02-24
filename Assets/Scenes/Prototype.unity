@@ -680,7 +680,7 @@ MonoBehaviour:
   m_outlineColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 33.5
+  m_fontSize: 32.9
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1446,7 +1446,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aeac2647106b94b4ea09d4e7cdc7ff76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BackgroundPanel: {fileID: 0}
   ScoreModel: {fileID: 102877597928948098, guid: b3c359c2c68fe1644818134067bb2dda,
     type: 2}
   opponentNameText: {fileID: 2010978335}
@@ -1454,7 +1453,7 @@ MonoBehaviour:
   userNameText: {fileID: 684246128}
   UsersRobots: {fileID: 819566506}
   RobotPanel: {fileID: 1300967514835442, guid: a4a92458a8797bc4cbc46c7f1b051f55, type: 2}
-  CommandSlot: {fileID: 1759932975882172, guid: 6d25ff3d7038a41429a0aa48a07418fa,
+  CommandSlot: {fileID: 114345010557230512, guid: 6d25ff3d7038a41429a0aa48a07418fa,
     type: 2}
   priorityArrow: {fileID: 328350026}
   OpponentSubmit: {fileID: 1401313006}
@@ -1986,7 +1985,7 @@ MonoBehaviour:
   m_outlineColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 26.45
+  m_fontSize: 25.95
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
