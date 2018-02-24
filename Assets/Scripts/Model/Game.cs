@@ -104,18 +104,6 @@ public class Game
             { typeof(Command.Attack), 0 },
             { typeof(Command.Special), 0 }
         };
-        static internal Dictionary<Type, byte> limit = new Dictionary<Type, byte>()
-        {
-            { typeof(Command.Move), GameConstants.DEFAULT_MOVE_LIMIT },
-            { typeof(Command.Attack), GameConstants.DEFAULT_ATTACK_LIMIT },
-            { typeof(Command.Special), GameConstants.DEFAULT_SPECIAL_LIMIT }
-        };
-        static internal Dictionary<Type, byte> power = new Dictionary<Type, byte>()
-        {
-            { typeof(Command.Move), GameConstants.DEFAULT_MOVE_POWER },
-            { typeof(Command.Attack), GameConstants.DEFAULT_ATTACK_POWER },
-            { typeof(Command.Special), GameConstants.DEFAULT_SPECIAL_POWER }
-        };
         internal byte priority;
         internal bool isDead;
         internal RobotTurnObject(byte p)

@@ -100,7 +100,7 @@ public class UIController : MonoBehaviour {
         icon.GetComponentInChildren<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
         TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
         fields[0].SetText(r.name);
-        fields[1].SetText(r.description);
+        fields[1].SetText(0.ToString());
         for (int i = GameConstants.MAX_PRIORITY; i > 0; i--)
         {
             CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(3));
@@ -176,11 +176,13 @@ public class UIController : MonoBehaviour {
             CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
             if (!cmd.Closed()) cmd.Submit();
         }
+        panel.parent.GetComponentsInChildren<TMP_Text>()[1].SetText(0.ToString());
     }
 
     public void addSubmittedCommand(Command cmd, short id)
     {
         Transform panel = robotIdToPanel[id].transform.GetChild(3);
+        int powerConsumed = 0;
         for (int i = 0; i < panel.childCount; i++)
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
@@ -195,9 +197,15 @@ public class UIController : MonoBehaviour {
                 {
                     panel.GetChild(i + 1).GetComponent<CommandSlotController>().Clickable = true;
                 }
+                powerConsumed += Command.power[cmd.GetType()];
                 break;
+            } else if (child.Arrow.sprite != null)
+            {
+                if (child.Arrow.sprite.name.StartsWith(Command.Move.DISPLAY)) powerConsumed += Command.power[typeof(Command.Move)];
+                else if (child.Arrow.sprite.name.StartsWith(Command.Attack.DISPLAY)) powerConsumed += Command.power[typeof(Command.Attack)];
             }
         }
+        panel.parent.GetComponentsInChildren<TMP_Text>()[1].SetText(powerConsumed.ToString());
     }
 
     public Tuple<string, byte>[] getCommandsSerialized(short id)

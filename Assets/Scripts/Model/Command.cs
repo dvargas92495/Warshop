@@ -16,6 +16,24 @@ public abstract class Command
         {LEFT, "Left" },
         {RIGHT, "Right" }
     };
+    internal static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
+    {
+        {Move.COMMAND_ID, typeof(Move) },
+        {Attack.COMMAND_ID, typeof(Attack) },
+        {Special.COMMAND_ID, typeof(Special) }
+    };
+    static internal Dictionary<Type, byte> limit = new Dictionary<Type, byte>()
+    {
+        { typeof(Move), GameConstants.DEFAULT_MOVE_LIMIT },
+        { typeof(Attack), GameConstants.DEFAULT_ATTACK_LIMIT },
+        { typeof(Special), GameConstants.DEFAULT_SPECIAL_LIMIT }
+    };
+    static internal Dictionary<Type, byte> power = new Dictionary<Type, byte>()
+    {
+        { typeof(Move), GameConstants.DEFAULT_MOVE_POWER },
+        { typeof(Attack), GameConstants.DEFAULT_ATTACK_POWER },
+        { typeof(Special), GameConstants.DEFAULT_SPECIAL_POWER }
+    };
     internal static Vector2Int DirectionToVector(byte dir)
     {
         switch (dir)
@@ -36,12 +54,6 @@ public abstract class Command
     internal short robotId { get; set; }
     internal string owner { get; set; }
     protected internal byte direction { get; protected set; }
-    internal static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
-    {
-        {Move.COMMAND_ID, typeof(Move) },
-        {Attack.COMMAND_ID, typeof(Attack) },
-        {Special.COMMAND_ID, typeof(Special) }
-    };
     public Command(){ }
     public virtual string ToSpriteString()
     {

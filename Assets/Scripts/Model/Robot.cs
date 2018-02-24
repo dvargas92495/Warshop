@@ -150,7 +150,7 @@ public class Robot
     internal virtual List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto, bool isPrimary)
     {
         List<GameEvent> evts = new List<GameEvent>();
-        byte limit = Game.RobotTurnObject.limit[c.GetType()];
+        byte limit = Command.limit[c.GetType()];
         byte num = rto.num[c.GetType()];
         if (num < limit)
         {
@@ -168,7 +168,7 @@ public class Robot
         fail.failedCmd = c.GetType().ToString().Substring("Command.".Length);
         fail.reason = reason;
         fail.primaryRobotId = c.robotId;
-        fail.primaryBattery = (isPrimary ? Game.RobotTurnObject.power[c.GetType()] : (byte)0);
+        fail.primaryBattery = (isPrimary ? Command.power[c.GetType()] : (byte)0);
         return fail;
     }
 
@@ -256,11 +256,11 @@ public class Robot
             }
             else if (c is Command.Move)
             {
-                if (rto.num[typeof(Command.Attack)] == Game.RobotTurnObject.limit[typeof(Command.Attack)])
+                if (rto.num[typeof(Command.Attack)] == Command.limit[typeof(Command.Attack)])
                 {
                     return base.CheckFail(c, rto, isPrimary);
                 }
-                else if (rto.num[c.GetType()] < Game.RobotTurnObject.limit[c.GetType()] + 1)
+                else if (rto.num[c.GetType()] < Command.limit[c.GetType()] + 1)
                 {
                     rto.num[c.GetType()]++;
                     return new List<GameEvent>();
@@ -271,7 +271,7 @@ public class Robot
                 }
             } else
             {
-                if (rto.num[typeof(Command.Move)] <= Game.RobotTurnObject.limit[typeof(Command.Move)])
+                if (rto.num[typeof(Command.Move)] <= Command.limit[typeof(Command.Move)])
                 {
                     return base.CheckFail(c, rto, isPrimary);
                 }
