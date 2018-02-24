@@ -11,14 +11,29 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
     public Button Delete;
     public RectTransform Menu;
     public RectTransform Submenu;
-    internal bool clickable;
+    private bool clickable;
     internal bool deletable;
     internal bool isOpponent;
 
     private static Color NO_COMMAND = new Color(0.25f, 0.25f, 0.25f);
     private static Color HIGHLIGHTED_COMMAND = new Color(0.5f, 0.5f, 0.5f);
     private static Color SUBMITTED_COMMAND = new Color(0.75f, 0.75f, 0.75f);
+    private static Color NEXT_COMMAND = new Color(0.5f, 1, 0.5f);
     private static Color OPEN_COMMAND = new Color(1, 1, 1);
+
+    internal bool Clickable
+    {
+        get
+        {
+            return clickable;
+        }
+
+        set
+        {
+            clickable = value;
+            if (value) Arrow.color = NEXT_COMMAND;
+        }
+    }
 
     // Use this for initialization
     void Start () {
@@ -43,8 +58,8 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
     public void OnPointerClick(PointerEventData eventData)
     {
         Interpreter.DestroyCommandMenu();
-        Menu.gameObject.SetActive(clickable && !isOpponent);
-        Arrow.gameObject.SetActive(!clickable || isOpponent);
+        Menu.gameObject.SetActive(Clickable && !isOpponent);
+        Arrow.gameObject.SetActive(!Clickable || isOpponent);
     }
 
     internal void Initialize(short rid, int i, byte p)
@@ -53,7 +68,7 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
         {
             Arrow.color = NO_COMMAND;
         }
-        clickable = i == p;
+        Clickable = i == p;
         deletable = false;
         Delete.onClick.AddListener(() =>
         {
@@ -122,6 +137,6 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
     {
         Arrow.color = SUBMITTED_COMMAND;
         deletable = false;
-        clickable = false;
+        Clickable = false;
     }
 }

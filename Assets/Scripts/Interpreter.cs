@@ -483,7 +483,7 @@ public class Interpreter {
             uiController.ColorCommandsSubmitted(r.id);
             r.canCommand = false;
         });
-        for (byte p = 0; p < GameConstants.MAX_PRIORITY; p++)
+        for (byte p = GameConstants.MAX_PRIORITY; p > 0; p--)
         {
             for (byte c = 1; c < 4; c++)
             {

@@ -144,7 +144,7 @@ public class UIController : MonoBehaviour {
             if (!child.Closed())
             {
                 child.Open();
-                child.clickable = clickable;
+                child.Clickable = clickable;
                 clickable = false;
             }
         }
@@ -160,7 +160,6 @@ public class UIController : MonoBehaviour {
         foreach (short id in robotIdToPanel.Keys)
         {
             Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
-            if (commandPanel.childCount - p < 0) continue;
             CommandSlotController cmd = commandPanel.GetChild(commandPanel.childCount - p).GetComponent<CommandSlotController>();
             if (cmd.Arrow.sprite != null && cmd.Arrow.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
             {
@@ -175,7 +174,7 @@ public class UIController : MonoBehaviour {
         for (int i = 0; i < panel.childCount; i++)
         {
             CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
-            if (cmd.Opened() || cmd.Highlighted()) cmd.Submit();
+            if (!cmd.Closed()) cmd.Submit();
         }
     }
 
@@ -188,14 +187,13 @@ public class UIController : MonoBehaviour {
             if (!child.Closed() && child.Arrow.sprite == null)
             {
                 child.Arrow.sprite = GetArrow(cmd.ToSpriteString());
-                Rect size = child.Arrow.rectTransform.rect;
-                child.Arrow.rectTransform.Rotate(Vector3.forward * cmd.direction * 90);
-                if (cmd.direction % 2 == 1) child.Arrow.rectTransform.rect.Set(size.x, size.y, size.height, size.width);
+                if (!child.Closed()) child.Open();
+                child.Arrow.rectTransform.localRotation = Quaternion.Euler(Vector3.forward * cmd.direction * 90);
                 child.deletable = child.Opened();
-                child.clickable = false;
+                child.Clickable = false;
                 if (i + 1 < panel.childCount)
                 {
-                    panel.GetChild(i + 1).GetComponent<CommandSlotController>().clickable = true;
+                    panel.GetChild(i + 1).GetComponent<CommandSlotController>().Clickable = true;
                 }
                 break;
             }
