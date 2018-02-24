@@ -108,7 +108,6 @@ public class Interpreter {
         {
             return;
         }
-        uiController.SetButtons(false);
         uiController.LightUpPanel(true, true);
         List<Command> commands = new List<Command>();
         string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
@@ -118,7 +117,7 @@ public class Interpreter {
             foreach (Command cmd in robot.commands)
             {
                 Command c = cmd;
-                if (!isPrimary || !myturn) c = Util.Flip(c);
+                if (!isPrimary && myturn) c = Util.Flip(c);
                 c.robotId = robot.id;
                 commands.Add(c);
             }
@@ -127,8 +126,12 @@ public class Interpreter {
         }
         if (GameConstants.LOCAL_MODE)
         {
-            Flip();
             Array.ForEach(robotControllers, (RobotController r) => r.canCommand = r.isOpponent && myturn);
+            uiController.SubmitCommands.interactable = !uiController.SubmitCommands.interactable;
+            uiController.OpponentSubmit.interactable = !uiController.OpponentSubmit.interactable;
+        } else
+        {
+            uiController.SetButtons(false);
         }
         myturn = false;
         GameClient.SendSubmitCommands(commands, username);

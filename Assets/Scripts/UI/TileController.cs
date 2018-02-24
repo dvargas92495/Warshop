@@ -27,7 +27,6 @@ public class TileController : MonoBehaviour {
         } else if (b.IsBattery(v))
         {
             sr.sprite = battery;
-            sr.flipY = !b.IsPrimary(v);
             return BoardController.BATTERY_TYPE;
         } else
         {

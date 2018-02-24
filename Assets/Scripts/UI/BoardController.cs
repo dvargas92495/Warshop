@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -9,10 +9,12 @@ public class BoardController : MonoBehaviour {
     public int boardCellsWide;
     public int boardCellsHeight;
     public TileController tile;
-    public List< List<TileController>> allLocations = new List<List<TileController>>();
-    public HashSet<TileController> allQueueLocations = new HashSet<TileController>();
-    public TileController primaryBatteryLocation;
-    public TileController secondaryBatteryLocation;
+    private List< List<TileController>> allLocations = new List<List<TileController>>();
+    internal HashSet<TileController> allQueueLocations = new HashSet<TileController>();
+    internal TileController primaryBatteryLocation;
+    internal TileController secondaryBatteryLocation;
+    private TileController primaryVoidLocation;
+    private TileController secondaryVoidLocation;
 
     internal const byte BLANK_TYPE = 0;
     internal const byte QUEUE_TYPE = 1;
@@ -39,6 +41,8 @@ public class BoardController : MonoBehaviour {
                 if (spaceType == QUEUE_TYPE) allQueueLocations.Add(currentCell);
                 else if (spaceType == BATTERY_TYPE && primaryBatteryLocation == null) primaryBatteryLocation = currentCell;
                 else if (spaceType == BATTERY_TYPE && secondaryBatteryLocation == null) secondaryBatteryLocation = currentCell;
+                else if (spaceType == VOID_TYPE && primaryVoidLocation == null) primaryVoidLocation = currentCell;
+                else if (spaceType == VOID_TYPE && secondaryVoidLocation == null) secondaryVoidLocation = currentCell;
                 row.Add(currentCell);
             }
             allLocations.Add(row);
@@ -57,7 +61,7 @@ public class BoardController : MonoBehaviour {
 
     public TileController GetVoidTile(bool isUser)
     { //TODO - hacky
-        return allLocations[isUser ? 0 : 7][2];
+        return isUser ? primaryVoidLocation : secondaryVoidLocation;
     }
 
 }

@@ -23,6 +23,7 @@ public class UIController : MonoBehaviour {
     public GameObject CommandSlot;
     public GameObject priorityArrow;
 
+    public Button OpponentSubmit;
     public Button SubmitCommands;
     public Button StepBackButton;
     public Button StepForwardButton;
@@ -60,6 +61,10 @@ public class UIController : MonoBehaviour {
         SetOpponentPlayerPanel(playerObjects[1]);
         SetUsersPlayerPanel(playerObjects[0]);
 
+        if (GameConstants.LOCAL_MODE) {
+            OpponentSubmit.gameObject.SetActive(true);
+            OpponentSubmit.onClick.AddListener(Interpreter.SubmitActions);
+        }
         SubmitCommands.onClick.AddListener(Interpreter.SubmitActions);
         BackToPresent.onClick.AddListener(Interpreter.BackToPresent);
         StepBackButton.onClick.AddListener(Interpreter.StepBackward);
@@ -259,7 +264,15 @@ public class UIController : MonoBehaviour {
         float xMax = OpponentsRobots.transform.parent.GetComponent<RectTransform>().anchorMin.x;
         boardCamera.rect = new Rect(xMin, 0, xMax - xMin, 1);
         boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-20)/2;
-        boardCamera.orthographicSize = Interpreter.boardController.boardCellsHeight / 2;
+        int iterations = 0;
+        float diff;
+        while (iterations < 20)
+        {
+            diff = (boardCamera.ViewportToWorldPoint(Vector3.back * boardCamera.transform.position.z).x + 0.5f);
+            if (diff == 0) break;
+            boardCamera.transform.position -= Vector3.forward * diff;
+            iterations++;
+        }
         if (!isPrimary) Interpreter.Flip();
     }
 
@@ -273,10 +286,6 @@ public class UIController : MonoBehaviour {
         });
         userScore.transform.Rotate(Vector3.forward, 180);
         opponentScore.transform.Rotate(Vector3.forward, 180);
-        if (GameConstants.LOCAL_MODE)
-        {
-            SetButtons(true);
-        }
     }
 
     public void SetButtons(bool b)
