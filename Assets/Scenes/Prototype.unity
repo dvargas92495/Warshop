@@ -680,7 +680,7 @@ MonoBehaviour:
   m_outlineColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 32.9
+  m_fontSize: 32.4
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1493,6 +1493,13 @@ MonoBehaviour:
   - {fileID: 21300000, guid: b76715c336a06b64ca97ae8a523f5d88, type: 3}
   - {fileID: 21300000, guid: a58e8af10f0171f4193df9eff736276e, type: 3}
   - {fileID: 21300000, guid: 6a6a2e30242c8ca45ba6dfb19dd9e8ce, type: 3}
+  arrows:
+  - {fileID: 21300000, guid: 4d6bd784423b24c428c51f4aeaadfe10, type: 3}
+  - {fileID: 21300000, guid: ff8ea06dcad5eb348b9a7bfd2cc9dfc0, type: 3}
+  - {fileID: 21300000, guid: 0d4646ca1f4f9be4d82313515dc2fb59, type: 3}
+  - {fileID: 21300000, guid: f731ffad0899f54439579e52d98661fd, type: 3}
+  - {fileID: 21300000, guid: babc4ff7d525d8449b3cf6e6f3a80765, type: 3}
+  - {fileID: 21300000, guid: e0e4ec17e5e16a449a1346b5253953f2, type: 3}
   boardCamera: {fileID: 1948599136}
 --- !u!114 &1738882904
 MonoBehaviour:
@@ -1985,7 +1992,7 @@ MonoBehaviour:
   m_outlineColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 25.95
+  m_fontSize: 25.6
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1

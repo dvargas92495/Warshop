@@ -18,7 +18,6 @@ public class RobotController : MonoBehaviour
     public SpriteRenderer eventArrow;
     public TextMesh HealthLabel;
     public TextMesh AttackLabel;
-    public Sprite[] arrows;
 
     internal static RobotController robotBase;
     internal static Sprite[] robotDir;
@@ -62,10 +61,10 @@ public class RobotController : MonoBehaviour
      * Robot Model Before Turn Methods *
      ***********************************/
 
-    private void addRobotCommand(Command cmd)
+    internal void addRobotCommand(Command cmd)
     {
         commands.Add(cmd);
-        Interpreter.uiController.addSubmittedCommand(GetArrow(cmd.ToSpriteString()), cmd.direction, id);
+        Interpreter.uiController.addSubmittedCommand(cmd, id);
     }
 
     private void toggleMenu()
@@ -90,7 +89,7 @@ public class RobotController : MonoBehaviour
         for (int i = 0; i < submenu.transform.childCount; i++)
         {
             MenuItemController submenuitem = submenu.transform.GetChild(i).GetComponent<MenuItemController>();
-            submenuitem.GetComponent<SpriteRenderer>().sprite = GetArrow(command + " Arrow");
+            submenuitem.GetComponent<SpriteRenderer>().sprite = Interpreter.uiController.GetArrow(command + " Arrow");
             submenuitem.SetCallback(() =>
             {
                 byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
@@ -138,7 +137,7 @@ public class RobotController : MonoBehaviour
 
     public void displayEvent(string eventName, Vector2Int targetLoc, bool avg = true)
     {
-        Sprite eventType = GetArrow(eventName);
+        Sprite eventType = Interpreter.uiController.GetArrow(eventName);
         Vector3 loc = avg ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
         Quaternion rot = Quaternion.LookRotation(Vector3.forward, loc - transform.position);
         SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
@@ -151,10 +150,5 @@ public class RobotController : MonoBehaviour
     {
         currentEvents.ForEach((SpriteRenderer i) => Destroy(i.gameObject));
         currentEvents.Clear();
-    }
-
-    public Sprite GetArrow(string eventName)
-    {
-        return Array.Find(arrows, (Sprite s) => s.name.Equals(eventName));
     }
 }

@@ -30,12 +30,9 @@ public class UIController : MonoBehaviour {
     public Text EventTitle;
     
     public Sprite[] sprites;
+    public Sprite[] arrows;
     public Camera boardCamera;
 
-    private static Color NO_COMMAND = new Color(0.25f, 0.25f, 0.25f);
-    private static Color HIGHLIGHTED_COMMAND = new Color(0.5f, 0.5f, 0.5f);
-    private static Color SUBMITTED_COMMAND = new Color(0.75f, 0.75f, 0.75f);
-    private static Color OPEN_COMMAND = new Color(1, 1, 1);
     private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
 
     void Start()
@@ -82,7 +79,7 @@ public class UIController : MonoBehaviour {
         opponentNameText.SetText(opponentPlayer.name);
         for (int i = 0; i < opponentPlayer.team.Length; i++)
         {
-            SetRobotPanel(opponentPlayer.team[i], OpponentsRobots.transform);
+            SetRobotPanel(opponentPlayer.team[i], true);
         }
     }
 
@@ -91,47 +88,27 @@ public class UIController : MonoBehaviour {
         userNameText.SetText(userPlayer.name);
         for (int i = 0; i < userPlayer.team.Length; i++)
         {
-            robotIdToPanel[userPlayer.team[i].id] = SetRobotPanel(userPlayer.team[i], UsersRobots.transform);
+            robotIdToPanel[userPlayer.team[i].id] = SetRobotPanel(userPlayer.team[i], false);
         }
     }
 
-    public GameObject SetRobotPanel(Robot r, Transform parent)
+    public GameObject SetRobotPanel(Robot r, bool isOpponent)
     {
-        GameObject panel = Instantiate(RobotPanel, parent);
+        GameObject panel = Instantiate(RobotPanel, isOpponent ? OpponentsRobots.transform : UsersRobots.transform);
         panel.name = "Robot" + r.id;
         Transform icon = panel.transform.GetChild(1);
         icon.GetComponentInChildren<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
         TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
         fields[0].SetText(r.name);
         fields[1].SetText(r.description);
-        AddCommandSlots(panel.transform.GetChild(3), r.id, r.priority);
-        robotIdToPanel[r.id] = panel;
-        return panel;
-    }
-
-    private void AddCommandSlots(Transform panel, short id, byte p)
-    {
-        int minI = 0;
         for (int i = GameConstants.MAX_PRIORITY; i > 0; i--)
         {
-            CommandSlotController cmd = Instantiate(CommandSlot, panel);
-            if (i > p)
-            {
-                cmd.RobotImage.color = NO_COMMAND;
-            }
-            else if (minI == 0) minI = i;
-            cmd.deletable = false;
-            SetOnClickClear(cmd.Delete, id, i, minI);
+            CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(3));
+            cmd.Initialize(r.id, i, r.priority);
+            cmd.isOpponent = isOpponent;
         }
-    }
-
-    private void SetOnClickClear(Button b, short id, int i, int minI)
-    {
-        b.onClick.AddListener(() =>
-        {
-            ClearCommands(b.transform.parent.parent);
-            Interpreter.DeleteCommand(id, minI - i);
-        });
+        robotIdToPanel[r.id] = panel;
+        return panel;
     }
 
     public void SetPriority(int priority)
@@ -158,15 +135,17 @@ public class UIController : MonoBehaviour {
 
     public void ClearCommands(Transform panel)
     {
+        bool clickable = true;
         for (int i = 0; i < panel.childCount; i++)
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
             child.deletable = false;
-            child.RobotImage.sprite = null;
-            if (!child.RobotImage.color.Equals(NO_COMMAND))
+            child.Arrow.sprite = null;
+            if (!child.Closed())
             {
-                child.RobotImage.color = OPEN_COMMAND;
-                child.RobotImage.rectTransform.rotation = Quaternion.Euler(Vector3.zero);
+                child.Open();
+                child.clickable = clickable;
+                clickable = false;
             }
         }
     }
@@ -183,9 +162,9 @@ public class UIController : MonoBehaviour {
             Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
             if (commandPanel.childCount - p < 0) continue;
             CommandSlotController cmd = commandPanel.GetChild(commandPanel.childCount - p).GetComponent<CommandSlotController>();
-            if (cmd.RobotImage.sprite != null && cmd.RobotImage.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
+            if (cmd.Arrow.sprite != null && cmd.Arrow.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
             {
-                cmd.RobotImage.color = HIGHLIGHTED_COMMAND;
+                cmd.Highlight();
             }
         }
     }
@@ -196,27 +175,28 @@ public class UIController : MonoBehaviour {
         for (int i = 0; i < panel.childCount; i++)
         {
             CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
-            if (cmd.RobotImage.color.Equals(OPEN_COMMAND) || cmd.RobotImage.color.Equals(HIGHLIGHTED_COMMAND))
-            {
-                cmd.RobotImage.color = SUBMITTED_COMMAND;
-                cmd.deletable = false;
-            }
+            if (cmd.Opened() || cmd.Highlighted()) cmd.Submit();
         }
     }
 
-    public void addSubmittedCommand(Sprite cmd, byte d, short id)
+    public void addSubmittedCommand(Command cmd, short id)
     {
         Transform panel = robotIdToPanel[id].transform.GetChild(3);
         for (int i = 0; i < panel.childCount; i++)
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
-            if (!child.RobotImage.color.Equals(NO_COMMAND) && child.RobotImage.sprite == null)
+            if (!child.Closed() && child.Arrow.sprite == null)
             {
-                child.RobotImage.sprite = cmd;
-                Rect size = child.RobotImage.rectTransform.rect;
-                child.RobotImage.rectTransform.Rotate(Vector3.forward * d * 90);
-                if (d % 2 == 1) child.RobotImage.rectTransform.rect.Set(size.x, size.y, size.height, size.width);
-                child.deletable = child.RobotImage.color.Equals(OPEN_COMMAND);
+                child.Arrow.sprite = GetArrow(cmd.ToSpriteString());
+                Rect size = child.Arrow.rectTransform.rect;
+                child.Arrow.rectTransform.Rotate(Vector3.forward * cmd.direction * 90);
+                if (cmd.direction % 2 == 1) child.Arrow.rectTransform.rect.Set(size.x, size.y, size.height, size.width);
+                child.deletable = child.Opened();
+                child.clickable = false;
+                if (i + 1 < panel.childCount)
+                {
+                    panel.GetChild(i + 1).GetComponent<CommandSlotController>().clickable = true;
+                }
                 break;
             }
         }
@@ -229,11 +209,26 @@ public class UIController : MonoBehaviour {
         for (int i = 0; i < panel.childCount; i++)
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
-            if (child.RobotImage.color.Equals(NO_COMMAND)) continue;
-            if (child.RobotImage.sprite == null) break;
-            content.Add(new Tuple<string, byte>(child.RobotImage.sprite.name, (byte)(child.RobotImage.rectTransform.localRotation.eulerAngles.z / 90)));
+            if (child.Closed()) continue;
+            if (child.Arrow.sprite == null) break;
+            content.Add(new Tuple<string, byte>(child.Arrow.sprite.name, (byte)(child.Arrow.rectTransform.localRotation.eulerAngles.z / 90)));
         }
         return content.ToArray();
+    }
+
+    internal void DestroyCommandMenu()
+    {
+        foreach (short id in robotIdToPanel.Keys)
+        {
+            Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
+            for (int i = 0; i < commandPanel.childCount; i++)
+            {
+                CommandSlotController child = commandPanel.GetChild(i).GetComponent<CommandSlotController>();
+                child.Arrow.gameObject.SetActive(true);
+                child.Menu.gameObject.SetActive(false);
+                child.Submenu.gameObject.SetActive(false);
+            }
+        }
     }
 
     public void SetBattery(int a, int b)
@@ -295,4 +290,8 @@ public class UIController : MonoBehaviour {
         panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
     }
 
+    public Sprite GetArrow(string eventName)
+    {
+        return Array.Find(arrows, (Sprite s) => s.name.Equals(eventName));
+    }
 }

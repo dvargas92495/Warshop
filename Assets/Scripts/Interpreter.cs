@@ -145,9 +145,10 @@ public class Interpreter {
 
     public static void DeleteCommand(short rid, int index)
     {
+        uiController.ClearCommands(rid);
         RobotController r = GetRobot(rid);
         r.commands.RemoveAt(index);
-        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToSpriteString()), c.direction, rid));
+        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, rid));
     }
 
     public static void PlayEvents(List<GameEvent> events, byte t)
@@ -163,7 +164,7 @@ public class Interpreter {
         {
             if (GameConstants.LOCAL_MODE || !robot.isOpponent)
             {
-                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(robot.GetArrow(c.ToSpriteString()), c.direction, robot.id));
+                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, robot.id));
                 uiController.ColorCommandsSubmitted(robot.id);
             }
         }
@@ -287,6 +288,7 @@ public class Interpreter {
                 break;
             }
         }
+        uiController.DestroyCommandMenu();
     }
 
     private static byte[] SerializeState(int priority)
@@ -378,9 +380,10 @@ public class Interpreter {
                     uiController.ClearCommands(r.id);
                     for (int j = 0; j < cmds; j++)
                     {
-                        Sprite s = r.GetArrow((string)bf.Deserialize(ms));
-                        byte b = (byte)bf.Deserialize(ms);
-                        uiController.addSubmittedCommand(s, b, r.id);
+                        string s = (string)bf.Deserialize(ms);
+                        byte d = (byte)bf.Deserialize(ms);
+                        if (s.StartsWith(Command.Move.DISPLAY)) uiController.addSubmittedCommand(new Command.Move(d), r.id);
+                        if (s.StartsWith(Command.Attack.DISPLAY)) uiController.addSubmittedCommand(new Command.Attack(d), r.id);
                     }
                 }
             }
@@ -399,7 +402,7 @@ public class Interpreter {
         foreach (RobotController r in robotControllers)
         {
             uiController.ClearCommands(r.id);
-            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToSpriteString()), c.direction, r.id));
+            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, r.id));
             r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
         uiController.SubmitCommands.interactable = true;
