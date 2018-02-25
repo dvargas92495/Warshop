@@ -63,8 +63,30 @@ public class RobotController : MonoBehaviour
 
     internal void addRobotCommand(Command cmd)
     {
-        commands.Add(cmd);
-        Interpreter.uiController.addSubmittedCommand(cmd, id);
+        int num = GetNumCommandType(cmd.GetType());
+        if (num < Command.limit[cmd.GetType()])
+        {
+            commands.Add(cmd);
+            Interpreter.uiController.addSubmittedCommand(cmd, id);
+        }
+    }
+
+    private int GetNumCommandType(Type t)
+    {
+        return commands.FindAll((Command c) => t.Equals(c.GetType())).Count;
+    }
+
+    internal void ShowMenuOptions(GameObject m)
+    {
+        bool any = false;
+        Command.limit.Keys.ToList().ForEach((Type t) =>
+        {
+            int num = GetNumCommandType(t);
+            bool active = num < Command.limit[t];
+            any = any || active;
+            m.transform.Find(Command.GetDisplay(t)).gameObject.SetActive(active);
+        });
+        m.SetActive(any);
     }
 
     private void toggleMenu()
@@ -76,7 +98,7 @@ public class RobotController : MonoBehaviour
         } else
         {
             Interpreter.DestroyCommandMenu();
-            menu.SetActive(true);
+            ShowMenuOptions(menu);
             //menu.transform.rotation = Quaternion.LookRotation(Vector3.forward, Interpreter.uiController.boardCamera.transform.up);
         }
     }
@@ -101,7 +123,7 @@ public class RobotController : MonoBehaviour
                     addRobotCommand(new Command.Attack(dir));
                 }
                 submenu.SetActive(false);
-                menu.SetActive(true);
+                toggleMenu();
             });
         }
     }

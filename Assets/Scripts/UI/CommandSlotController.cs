@@ -15,6 +15,7 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
     internal bool deletable;
     internal bool isOpponent;
 
+    private Action myClick;
     private static Color NO_COMMAND = new Color(0.25f, 0.25f, 0.25f);
     private static Color HIGHLIGHTED_COMMAND = new Color(0.5f, 0.5f, 0.5f);
     private static Color SUBMITTED_COMMAND = new Color(0.75f, 0.75f, 0.75f);
@@ -57,9 +58,7 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Interpreter.DestroyCommandMenu();
-        Menu.gameObject.SetActive(Clickable && !isOpponent);
-        Arrow.gameObject.SetActive(!Clickable || isOpponent);
+        myClick();
     }
 
     internal void Initialize(short rid, int i, byte p)
@@ -70,9 +69,16 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
         }
         Clickable = i == p;
         deletable = false;
+        myClick = () =>
+        {
+            Interpreter.DestroyCommandMenu();
+            if (Clickable && !isOpponent) Interpreter.robotControllers[rid].ShowMenuOptions(Menu.gameObject);
+            Arrow.gameObject.SetActive(!Menu.gameObject.activeInHierarchy);
+        };
         Delete.onClick.AddListener(() =>
         {
             Interpreter.DeleteCommand(rid, p - i);
+            Interpreter.DestroyCommandMenu();
             Delete.gameObject.SetActive(Arrow.sprite != null);
         });
         for (int j = 0; j < Menu.childCount - 1; j++)

@@ -50,6 +50,10 @@ public abstract class Command
                 return Vector2Int.zero;
         }
     }
+    internal static string GetDisplay(Type t)
+    {
+        return t.ToString().Substring("Command.".Length);
+    }
 
     internal short robotId { get; set; }
     internal string owner { get; set; }

@@ -161,7 +161,7 @@ public class UIController : MonoBehaviour {
         {
             Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
             CommandSlotController cmd = commandPanel.GetChild(commandPanel.childCount - p).GetComponent<CommandSlotController>();
-            if (cmd.Arrow.sprite != null && cmd.Arrow.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
+            if (cmd.Arrow.sprite != null && cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(cmd.GetType())))
             {
                 cmd.Highlight();
             }
