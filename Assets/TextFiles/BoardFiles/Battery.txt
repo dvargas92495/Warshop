@@ -1,9 +1,6 @@
-﻿5 8 
-A B V C D
-W W P W W
-W W W W W
-W W W W W
-W W W W W
-W W W W W
-W W p W W
-a b V c d
+﻿8 5
+A W W W W W W a
+B W W W W W W b
+V P W W W W p V
+C W W W W W W c
+D W W W W W W d

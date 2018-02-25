@@ -108,7 +108,6 @@ public class Interpreter {
         {
             return;
         }
-        uiController.SetButtons(false);
         uiController.LightUpPanel(true, true);
         List<Command> commands = new List<Command>();
         string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
@@ -118,16 +117,21 @@ public class Interpreter {
             foreach (Command cmd in robot.commands)
             {
                 Command c = cmd;
-                if (!isPrimary || !myturn) c = Util.Flip(c);
+                if (!isPrimary && myturn) c = Util.Flip(c);
                 c.robotId = robot.id;
                 commands.Add(c);
             }
+            robot.canCommand = false;
             uiController.ColorCommandsSubmitted(robot.id);
         }
         if (GameConstants.LOCAL_MODE)
         {
-            Flip();
             Array.ForEach(robotControllers, (RobotController r) => r.canCommand = r.isOpponent && myturn);
+            uiController.SubmitCommands.interactable = !uiController.SubmitCommands.interactable;
+            uiController.OpponentSubmit.interactable = !uiController.OpponentSubmit.interactable;
+        } else
+        {
+            uiController.SetButtons(false);
         }
         myturn = false;
         GameClient.SendSubmitCommands(commands, username);
@@ -135,18 +139,16 @@ public class Interpreter {
 
     public static void Flip()
     {
-        Array.ForEach(robotControllers, (RobotController r) => {
-            r.Direction.transform.RotateAround(r.transform.position, Vector3.forward, 180);
-            r.transform.Rotate(Vector3.forward, 180);
-        });
+        Array.ForEach(robotControllers, (RobotController r) => r.transform.Rotate(Vector3.forward, 180));
         uiController.Flip();
     }
 
     public static void DeleteCommand(short rid, int index)
     {
+        uiController.ClearCommands(rid);
         RobotController r = GetRobot(rid);
         r.commands.RemoveAt(index);
-        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToString()), rid));
+        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, rid));
     }
 
     public static void PlayEvents(List<GameEvent> events, byte t)
@@ -162,7 +164,7 @@ public class Interpreter {
         {
             if (GameConstants.LOCAL_MODE || !robot.isOpponent)
             {
-                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(robot.GetArrow(c.ToString()), robot.id));
+                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, robot.id));
                 uiController.ColorCommandsSubmitted(robot.id);
             }
         }
@@ -195,26 +197,19 @@ public class Interpreter {
                 uiController.SetBattery(userBattery, opponentBattery);
                 priorityToState[r.priority][GameEvent.Resolve.GetByte(r.commandType)] = SerializeState((int)r.priority);
                 uiController.SetBattery(currentUserBattery, currentOpponentBattery);
-                uiController.SetPriority((int)r.priority);
+                uiController.SetPriority(r.priority);
                 foreach (GameEvent evt in eventsThisPriority)
                 {
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
-                    if (evt is GameEvent.Rotate)
-                    {
-                        primaryRobot.displayRotate(Robot.OrientationToVector(((GameEvent.Rotate)evt).destinationDir));
-                    } else if (evt is GameEvent.Move)
+                    if (evt is GameEvent.Move)
                     {
                         primaryRobot.displayMove(((GameEvent.Move)evt).destinationPos);
                     } else if (evt is GameEvent.Death)
                     {
                         GameEvent.Death d = (GameEvent.Death)evt;
                         primaryRobot.displayMove(d.returnLocation);
-                        primaryRobot.displayRotate(Robot.OrientationToVector(d.returnDir));
                         primaryRobot.displayHealth(d.returnHealth);
                         primaryRobot.gameObject.SetActive(false);
-                    } else if (evt is GameEvent.Damage)
-                    {
-                        primaryRobot.displayHealth(((GameEvent.Damage)evt).remainingHealth);
                     }
                     primaryRobot.clearEvents();
                 }
@@ -223,18 +218,11 @@ public class Interpreter {
             else
             {
                 uiController.EventTitle.text = "Turn: " + turnNumber;// + " - P " + e.priority;
-                uiController.SetPriority((int)e.priority);
+                uiController.SetPriority(e.priority);
                 RobotController primaryRobot = GetRobot(e.primaryRobotId);
-                if (e is GameEvent.Rotate)
+                if (e is GameEvent.Move)
                 {
-                    GameEvent.Rotate r = (GameEvent.Rotate)e;
-                    string label = "Rotate " + Command.Rotate.tostring[r.dir] + " Arrow";
-                    Vector2Int facing = new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y) + Robot.OrientationToVector(r.sourceDir);
-                    primaryRobot.displayEvent(label, facing);
-                }
-                else if (e is GameEvent.Move)
-                {
-                    primaryRobot.displayEvent("Move Up", ((GameEvent.Move)e).destinationPos);
+                    primaryRobot.displayEvent("Move Arrow", ((GameEvent.Move)e).destinationPos);
                 }
                 else if (e is GameEvent.Attack)
                 {
@@ -248,6 +236,7 @@ public class Interpreter {
                 } else if (e is GameEvent.Damage)
                 {
                     primaryRobot.displayEvent("Damage", new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y));
+                    primaryRobot.displayHealth(((GameEvent.Damage)e).remainingHealth);
                 }
                 else if (e is GameEvent.Miss)
                 {
@@ -293,7 +282,13 @@ public class Interpreter {
                 robot.menu.SetActive(false);
                 break;
             }
+            if (robot.submenu.activeInHierarchy)
+            {
+                robot.submenu.SetActive(false);
+                break;
+            }
         }
+        uiController.DestroyCommandMenu();
     }
 
     private static byte[] SerializeState(int priority)
@@ -325,9 +320,12 @@ public class Interpreter {
                 });
                 if (GameConstants.LOCAL_MODE || !r.isOpponent)
                 {
-                    string[] cmds = uiController.getCommandText(r.id);
-                    bf.Serialize(ms, cmds.Length);
-                    Array.ForEach(cmds, (string s) => bf.Serialize(ms, s));
+                   Tuple<string,byte>[] cmds = uiController.getCommandsSerialized(r.id);
+                   bf.Serialize(ms, cmds.Length);
+                   Array.ForEach(cmds, (Tuple<string,byte> s) => {
+                       bf.Serialize(ms, s.Item1);
+                       bf.Serialize(ms, s.Item2);
+                   });
                 }
             }
             bf.Serialize(ms, uiController.GetUserBattery());
@@ -378,12 +376,15 @@ public class Interpreter {
                 }
                 if (GameConstants.LOCAL_MODE || !r.isOpponent)
                 {
-                    Sprite[] cmds = new Sprite[(int)bf.Deserialize(ms)];
-                    for (int j = 0; j < cmds.Length; j++)
+                    int cmds = (int)bf.Deserialize(ms);
+                    uiController.ClearCommands(r.id);
+                    for (int j = 0; j < cmds; j++)
                     {
-                        cmds[j] = r.GetArrow((string)bf.Deserialize(ms));
+                        string s = (string)bf.Deserialize(ms);
+                        byte d = (byte)bf.Deserialize(ms);
+                        if (s.StartsWith(Command.Move.DISPLAY)) uiController.addSubmittedCommand(new Command.Move(d), r.id);
+                        if (s.StartsWith(Command.Attack.DISPLAY)) uiController.addSubmittedCommand(new Command.Attack(d), r.id);
                     }
-                    uiController.setCommandText(cmds, r.id);
                 }
             }
             int userBattery = (int)bf.Deserialize(ms);
@@ -401,7 +402,7 @@ public class Interpreter {
         foreach (RobotController r in robotControllers)
         {
             uiController.ClearCommands(r.id);
-            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(r.GetArrow(c.ToString()), r.id));
+            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, r.id));
             r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
         uiController.SubmitCommands.interactable = true;
@@ -482,9 +483,9 @@ public class Interpreter {
             uiController.ColorCommandsSubmitted(r.id);
             r.canCommand = false;
         });
-        for (byte p = 0; p < GameConstants.MAX_PRIORITY; p++)
+        for (byte p = GameConstants.MAX_PRIORITY; p > 0; p--)
         {
-            for (byte c = 0; c < 4; c++)
+            for (byte c = 1; c < 4; c++)
             {
                 if (p > priority || (p == priority && c <= command))
                 {

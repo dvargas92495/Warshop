@@ -14,8 +14,6 @@ public class Robot
     internal Rating rating;
     internal short id;
     internal Vector2Int position;
-    internal Orientation orientation;
-    internal byte queueSpot;
     internal Robot(string _name, string _description)
     {
         name = _name;
@@ -29,8 +27,6 @@ public class Robot
         startingHealth = health = _health;
         attack = _attack;
         rating = _rating;
-        position = Vector2Int.zero;
-        orientation = Orientation.NORTH;
     }
     internal static Robot create(string robotName)
     {
@@ -69,8 +65,6 @@ public class Robot
         writer.Write(id);
         writer.Write(position.x);
         writer.Write(position.y);
-        writer.Write((byte)orientation);
-        writer.Write(queueSpot);
     }
     public static Robot Deserialize(NetworkReader reader)
     {
@@ -85,8 +79,6 @@ public class Robot
         robot.position = new Vector2Int();
         robot.position.x = reader.ReadInt32();
         robot.position.y = reader.ReadInt32();
-        robot.orientation = (Orientation)reader.ReadByte();
-        robot.queueSpot = reader.ReadByte();
         return robot;
     }
     public static Vector2Int OrientationToVector (Orientation orientation)
@@ -119,40 +111,34 @@ public class Robot
         SILVER = 2,
         BRONZE = 1
     }
-    internal bool IsFacing(Vector2Int diff)
+    internal List<Vector2Int> GetVictimLocations(byte dir)
     {
-        return diff.Equals(OrientationToVector(orientation));
-    }
-    internal List<Vector2Int> GetVictimLocations()
-    {
-        return new List<Vector2Int>() { position + OrientationToVector(orientation) };
+        return new List<Vector2Int>() { position + Command.DirectionToVector(dir) };
     }
 
-    internal List<GameEvent> Rotate(byte dir, bool isPrimary)
+    internal List<GameEvent> Spawn(Vector2Int pos, bool isPrimary)
     {
-        GameEvent.Rotate evt = new GameEvent.Rotate();
-        evt.dir = dir;
-        evt.sourceDir = orientation;
-        evt.destinationDir = Command.Rotate.DirectionToOrientation(dir, orientation);
+        GameEvent.Spawn evt = new GameEvent.Spawn();
+        evt.destinationPos = pos;
         evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ROTATE_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ROTATE_POWER);
+        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_SPAWN_POWER : (short)0);
+        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_SPAWN_POWER);
         return new List<GameEvent>() { evt };
     }
     internal virtual List<GameEvent> Move(byte dir, bool isPrimary)
     {
         GameEvent.Move evt = new GameEvent.Move();
         evt.sourcePos = position;
-        evt.destinationPos = position + Command.Move.DirectionToVector(dir);
+        evt.destinationPos = position + Command.DirectionToVector(dir);
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
         return new List<GameEvent>() { evt };
     }
-    internal virtual List<GameEvent> Attack(bool isPrimary)
+    internal virtual List<GameEvent> Attack(byte dir, bool isPrimary)
     {
         GameEvent.Attack evt = new GameEvent.Attack();
-        evt.locs = GetVictimLocations().ToArray();
+        evt.locs = GetVictimLocations(dir).ToArray();
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
@@ -166,28 +152,13 @@ public class Robot
         evt.remainingHealth = (short)(victim.health - attack);
         return new List<GameEvent>() { evt };
     }
-    internal virtual List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto, bool isPrimary)
-    {
-        List<GameEvent> evts = new List<GameEvent>();
-        byte limit = Game.RobotTurnObject.limit[c.GetType()];
-        byte num = rto.num[c.GetType()];
-        if (num < limit)
-        {
-            rto.num[c.GetType()]++;
-        }
-        else
-        {
-            evts.Add(Fail(c, "of limit", isPrimary));
-        }
-        return evts;
-    }
     internal GameEvent Fail(Command c, string reason, bool isPrimary)
     {
         GameEvent.Fail fail = new GameEvent.Fail();
         fail.failedCmd = c.GetType().ToString().Substring("Command.".Length);
         fail.reason = reason;
         fail.primaryRobotId = c.robotId;
-        fail.primaryBattery = (isPrimary ? Game.RobotTurnObject.power[c.GetType()] : (byte)0);
+        fail.primaryBattery = (isPrimary ? Command.power[c.GetType()] : (byte)0);
         return fail;
     }
 
@@ -203,7 +174,7 @@ public class Robot
         )
         {}
 
-        internal override List<GameEvent> Move(byte dir, bool isPrimary)
+        /*internal override List<GameEvent> Move(byte dir, bool isPrimary)
         {
             List<GameEvent> events = base.Move(dir, isPrimary);
             GameEvent.Move first = events[0] as GameEvent.Move;
@@ -217,7 +188,7 @@ public class Robot
                 events.Add(second);
             }
             return events;
-        }
+        }Oh shit what is Slinkbot's ability now?? lol*/
     }
 
     private class Pithon : Robot
@@ -266,20 +237,20 @@ public class Robot
             Rating.SILVER
         )
         { }
-
+        /*
         internal override List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto, bool isPrimary)
         {
-            if (c is Command.Rotate || c is Command.Special)
+            if (c is Command.Special)
             {
                 return base.CheckFail(c, rto, isPrimary);
             }
             else if (c is Command.Move)
             {
-                if (rto.num[typeof(Command.Attack)] == Game.RobotTurnObject.limit[typeof(Command.Attack)])
+                if (rto.num[typeof(Command.Attack)] == Command.limit[typeof(Command.Attack)])
                 {
                     return base.CheckFail(c, rto, isPrimary);
                 }
-                else if (rto.num[c.GetType()] < Game.RobotTurnObject.limit[c.GetType()] + 1)
+                else if (rto.num[c.GetType()] < Command.limit[c.GetType()] + 1)
                 {
                     rto.num[c.GetType()]++;
                     return new List<GameEvent>();
@@ -290,7 +261,7 @@ public class Robot
                 }
             } else
             {
-                if (rto.num[typeof(Command.Move)] <= Game.RobotTurnObject.limit[typeof(Command.Move)])
+                if (rto.num[typeof(Command.Move)] <= Command.limit[typeof(Command.Move)])
                 {
                     return base.CheckFail(c, rto, isPrimary);
                 }
@@ -299,7 +270,7 @@ public class Robot
                     return new List<GameEvent>() { Fail(c, "of limit", isPrimary) };
                 }
             }
-        }
+        }*/
     }
 
     private class Flybot : Robot

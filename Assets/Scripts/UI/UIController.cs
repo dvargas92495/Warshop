@@ -9,20 +9,20 @@ using System.Linq;
 
 public class UIController : MonoBehaviour {
 
-	public Image BackgroundPanel;
-    public TextMesh ScoreModel;
+	public TextMesh ScoreModel;
 
     public TMP_Text opponentNameText;
     internal TextMesh opponentScore;
     public GameObject OpponentsRobots;
-    public GameObject opponentRobotPanel;
 
     public TMP_Text userNameText;
     internal TextMesh userScore;
     public GameObject UsersRobots;
-    public GameObject userRobotPanel;
+    public GameObject RobotPanel;
+    public CommandSlotController CommandSlot;
     public GameObject priorityArrow;
 
+    public Button OpponentSubmit;
     public Button SubmitCommands;
     public Button StepBackButton;
     public Button StepForwardButton;
@@ -30,14 +30,10 @@ public class UIController : MonoBehaviour {
     public Text EventTitle;
     
     public Sprite[] sprites;
+    public Sprite[] arrows;
     public Camera boardCamera;
 
-    private static Color NO_COMMAND = new Color(0.25f, 0.25f, 0.25f);
-    private static Color HIGHLIGHTED_COMMAND = new Color(0.5f, 0.5f, 0.5f);
-    private static Color SUBMITTED_COMMAND = new Color(0.75f, 0.75f, 0.75f);
-    private static Color OPEN_COMMAND = new Color(1, 1, 1);
-    private Dictionary<short, GameObject> robotIdToUserPanel = new Dictionary<short, GameObject>();
-    private Dictionary<short, GameObject> robotIdToOpponentPanel = new Dictionary<short, GameObject>();
+    private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
 
     void Start()
     {
@@ -58,17 +54,13 @@ public class UIController : MonoBehaviour {
     //Loads the UICanvas and it's child components
     public void InitializeUICanvas(Game.Player[] playerObjects, bool isPrimary)
     {
-        if (GameConstants.LOCAL_MODE)
-        {
-            SetOpponentPlayerPanel(playerObjects[0]);
-            SetUsersPlayerPanel(playerObjects[1]);
-            robotIdToUserPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(false));
-            robotIdToOpponentPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(false));
-        }
-
         SetOpponentPlayerPanel(playerObjects[1]);
         SetUsersPlayerPanel(playerObjects[0]);
 
+        if (GameConstants.LOCAL_MODE) {
+            OpponentSubmit.gameObject.SetActive(true);
+            OpponentSubmit.onClick.AddListener(Interpreter.SubmitActions);
+        }
         SubmitCommands.onClick.AddListener(Interpreter.SubmitActions);
         BackToPresent.onClick.AddListener(Interpreter.BackToPresent);
         StepBackButton.onClick.AddListener(Interpreter.StepBackward);
@@ -84,43 +76,38 @@ public class UIController : MonoBehaviour {
 
     void SetOpponentPlayerPanel(Game.Player opponentPlayer)
     {
-        opponentNameText.SetText(opponentPlayer.name + "'s Robots:");
+        opponentNameText.SetText(opponentPlayer.name);
         for (int i = 0; i < opponentPlayer.team.Length; i++)
         {
-            robotIdToOpponentPanel[opponentPlayer.team[i].id] = SetRobotPanel(opponentPlayer.team[i], opponentRobotPanel, OpponentsRobots.transform);
+            SetRobotPanel(opponentPlayer.team[i], true);
         }
     }
 
     void SetUsersPlayerPanel(Game.Player userPlayer)
     {
-        userNameText.SetText(userPlayer.name + "'s Robots:");
+        userNameText.SetText(userPlayer.name);
         for (int i = 0; i < userPlayer.team.Length; i++)
         {
-            robotIdToUserPanel[userPlayer.team[i].id] = SetRobotPanel(userPlayer.team[i], userRobotPanel, UsersRobots.transform);
+            robotIdToPanel[userPlayer.team[i].id] = SetRobotPanel(userPlayer.team[i], false);
         }
     }
 
-    public GameObject SetRobotPanel(Robot r, GameObject reference, Transform parent)
+    public GameObject SetRobotPanel(Robot r, bool isOpponent)
     {
-        GameObject panel = Instantiate(reference, parent);
+        GameObject panel = Instantiate(RobotPanel, isOpponent ? OpponentsRobots.transform : UsersRobots.transform);
         panel.name = "Robot" + r.id;
         Transform icon = panel.transform.GetChild(1);
-        icon.GetComponent<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
+        icon.GetComponentInChildren<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
         TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
         fields[0].SetText(r.name);
-        fields[1].SetText(r.description);
-        int minI = 0;
-        for (int i = 3; i < panel.transform.childCount; i++)
+        fields[1].SetText(0.ToString());
+        for (int i = GameConstants.MAX_PRIORITY; i > 0; i--)
         {
-            Transform cmd = panel.transform.GetChild(i);
-            if (panel.transform.childCount - i > r.priority)
-            {
-                cmd.GetComponent<Image>().color = NO_COMMAND;
-            } else if (minI == 0) minI = i;
-            Button cmdDelete = cmd.GetComponentInChildren<Button>(true);
-            cmdDelete.gameObject.SetActive(false);
-            SetOnClickClear(cmdDelete, r.id, i, minI);
+            CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(3));
+            cmd.Initialize(r.id, i, r.priority);
+            cmd.isOpponent = isOpponent;
         }
+        robotIdToPanel[r.id] = panel;
         return panel;
     }
 
@@ -135,9 +122,9 @@ public class UIController : MonoBehaviour {
         {
             return;
         }
-        int pos = 3 + 8 - priority;
+        int pos = GameConstants.MAX_PRIORITY - priority;
         Transform lastRobotPanal = UsersRobots.transform.GetChild(UsersRobots.transform.childCount - 1);
-        RectTransform anchor = lastRobotPanal.GetChild(pos).GetComponent<RectTransform>();
+        RectTransform anchor = lastRobotPanal.GetChild(3).GetChild(pos).GetComponent<RectTransform>();
         RectTransform arrowRect = priorityArrow.GetComponent<RectTransform>();
         arrowRect.sizeDelta = new Vector2(anchor.rect.width, anchor.rect.height);
         arrowRect.position = anchor.position;
@@ -146,95 +133,107 @@ public class UIController : MonoBehaviour {
         priorityArrow.SetActive(true);
     }
 
-    private void SetOnClickClear(Button b, short id, int i, int mI)
-    {
-        b.onClick.AddListener(() =>
-        {
-            ClearCommands(b.transform.parent.parent);
-            Interpreter.DeleteCommand(id, i - mI);
-        });
-    }
-
     public void ClearCommands(Transform panel)
     {
-        for (int i = 3; i < panel.childCount; i++)
+        bool clickable = true;
+        for (int i = 0; i < panel.childCount; i++)
         {
-            Transform child = panel.GetChild(i);
-            child.GetComponentInChildren<Button>(true).gameObject.SetActive(false);
-            Image cmdPanel = child.GetComponent<Image>();
-            cmdPanel.sprite = null;
-            if (cmdPanel.color.Equals(HIGHLIGHTED_COMMAND) || cmdPanel.color.Equals(SUBMITTED_COMMAND)) cmdPanel.color = OPEN_COMMAND;
+            CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
+            child.deletable = false;
+            child.Arrow.sprite = null;
+            if (!child.Closed())
+            {
+                child.Open();
+                child.Clickable = clickable;
+                clickable = false;
+            }
         }
     }
 
     public void ClearCommands(short id)
     {
-        ClearCommands(robotIdToUserPanel[id].transform);
+        ClearCommands(robotIdToPanel[id].transform.GetChild(3));
     }
 
     public void HighlightCommands(Type t, byte p)
     {
-        foreach (short id in robotIdToUserPanel.Keys)
+        foreach (short id in robotIdToPanel.Keys)
         {
-            Transform robotPanel = robotIdToUserPanel[id].transform;
-            if (robotPanel.childCount - p < 0) continue;
-            Transform panel = robotPanel.GetChild(robotPanel.childCount - p);
-            Image cmdPanel = panel.GetComponent<Image>();
-            if (cmdPanel.sprite != null && cmdPanel.sprite.name.StartsWith(t.ToString().Substring("Command.".Length)))
+            Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
+            CommandSlotController cmd = commandPanel.GetChild(commandPanel.childCount - p).GetComponent<CommandSlotController>();
+            if (cmd.Arrow.sprite != null && cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(cmd.GetType())))
             {
-                cmdPanel.color = HIGHLIGHTED_COMMAND; ;
+                cmd.Highlight();
             }
         }
     }
 
     public void ColorCommandsSubmitted(short id)
     {
-        Transform panel = robotIdToUserPanel[id].transform;
-        for (int i = 3; i < panel.childCount; i++)
+        Transform panel = robotIdToPanel[id].transform.GetChild(3);
+        for (int i = 0; i < panel.childCount; i++)
         {
-            Image cmdPanel = panel.GetChild(i).GetComponent<Image>();
-            if (cmdPanel.color.Equals(OPEN_COMMAND) || cmdPanel.color.Equals(HIGHLIGHTED_COMMAND))
-            {
-                cmdPanel.color = SUBMITTED_COMMAND;
-                panel.GetChild(i).GetComponentInChildren<Button>(true).gameObject.SetActive(false);
-            }
+            CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
+            if (!cmd.Closed()) cmd.Submit();
         }
+        panel.parent.GetComponentsInChildren<TMP_Text>()[1].SetText(0.ToString());
     }
 
-    public void addSubmittedCommand(Sprite cmd, short id)
+    public void addSubmittedCommand(Command cmd, short id)
     {
-        Transform panel = robotIdToUserPanel[id].transform;
-        for (int i = 3; i < panel.childCount; i++)
+        Transform panel = robotIdToPanel[id].transform.GetChild(3);
+        int powerConsumed = 0;
+        for (int i = 0; i < panel.childCount; i++)
         {
-            Transform child = panel.GetChild(i);
-            Image cmdPanel = child.GetComponent<Image>();
-            if (!cmdPanel.color.Equals(NO_COMMAND) && cmdPanel.sprite == null)
+            CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
+            if (!child.Closed() && child.Arrow.sprite == null)
             {
-                cmdPanel.sprite = cmd;
-                child.GetComponentInChildren<Button>(true).gameObject.SetActive(child.GetComponent<Image>().color.Equals(OPEN_COMMAND));
+                child.Arrow.sprite = GetArrow(cmd.ToSpriteString());
+                if (!child.Closed()) child.Open();
+                child.Arrow.rectTransform.localRotation = Quaternion.Euler(Vector3.forward * cmd.direction * 90);
+                child.deletable = child.Opened();
+                child.Clickable = false;
+                if (i + 1 < panel.childCount)
+                {
+                    panel.GetChild(i + 1).GetComponent<CommandSlotController>().Clickable = true;
+                }
+                powerConsumed += Command.power[cmd.GetType()];
                 break;
+            } else if (child.Arrow.sprite != null)
+            {
+                if (child.Arrow.sprite.name.StartsWith(Command.Move.DISPLAY)) powerConsumed += Command.power[typeof(Command.Move)];
+                else if (child.Arrow.sprite.name.StartsWith(Command.Attack.DISPLAY)) powerConsumed += Command.power[typeof(Command.Attack)];
             }
         }
+        panel.parent.GetComponentsInChildren<TMP_Text>()[1].SetText(powerConsumed.ToString());
     }
 
-    public string[] getCommandText(short id)
+    public Tuple<string, byte>[] getCommandsSerialized(short id)
     {
-        Transform panel = robotIdToUserPanel[id].transform;
-        string[] texts = new string[GameConstants.MAX_PRIORITY];
-        for (int i = 3; i < panel.childCount; i++)
+        Transform panel = robotIdToPanel[id].transform.GetChild(3);
+        List<Tuple<string, byte>> content = new List<Tuple<string, byte>>();
+        for (int i = 0; i < panel.childCount; i++)
         {
-            Sprite s = panel.GetChild(i).GetComponent<Image>().sprite;
-            texts[i-3] = (s == null ? "" : s.name);
+            CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
+            if (child.Closed()) continue;
+            if (child.Arrow.sprite == null) break;
+            content.Add(new Tuple<string, byte>(child.Arrow.sprite.name, (byte)(child.Arrow.rectTransform.localRotation.eulerAngles.z / 90)));
         }
-        return texts;
+        return content.ToArray();
     }
 
-    public void setCommandText(Sprite[] texts, short id)
+    internal void DestroyCommandMenu()
     {
-        Transform panel = robotIdToUserPanel[id].transform;
-        for (int i = 3; i < panel.childCount; i++)
+        foreach (short id in robotIdToPanel.Keys)
         {
-            panel.GetChild(i).GetComponent<Image>().sprite = texts[i - 3];
+            Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
+            for (int i = 0; i < commandPanel.childCount; i++)
+            {
+                CommandSlotController child = commandPanel.GetChild(i).GetComponent<CommandSlotController>();
+                child.Arrow.gameObject.SetActive(true);
+                child.Menu.gameObject.SetActive(false);
+                child.Submenu.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -256,10 +255,19 @@ public class UIController : MonoBehaviour {
 
     public void PositionCamera(bool isPrimary)
     {
-        float x = BackgroundPanel.GetComponent<RectTransform>().anchorMax.x;
-        boardCamera.rect = new Rect(x, 0, 1 - x, 1);
+        float xMin = UsersRobots.transform.parent.GetComponent<RectTransform>().anchorMax.x;
+        float xMax = OpponentsRobots.transform.parent.GetComponent<RectTransform>().anchorMin.x;
+        boardCamera.rect = new Rect(xMin, 0, xMax - xMin, 1);
         boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-20)/2;
-        boardCamera.orthographicSize = Interpreter.boardController.boardCellsHeight / 2;
+        int iterations = 0;
+        float diff;
+        while (iterations < 20)
+        {
+            diff = (boardCamera.ViewportToWorldPoint(Vector3.back * boardCamera.transform.position.z).x + 0.5f);
+            if (diff == 0) break;
+            boardCamera.transform.position -= Vector3.forward * diff;
+            iterations++;
+        }
         if (!isPrimary) Interpreter.Flip();
     }
 
@@ -273,16 +281,6 @@ public class UIController : MonoBehaviour {
         });
         userScore.transform.Rotate(Vector3.forward, 180);
         opponentScore.transform.Rotate(Vector3.forward, 180);
-        if (GameConstants.LOCAL_MODE)
-        {
-            SetButtons(true);
-            LightUpPanel(false, true);
-            string u = userNameText.text;
-            userNameText.text = opponentNameText.text;
-            opponentNameText.text = u;
-            robotIdToUserPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(!g.activeInHierarchy));
-            robotIdToOpponentPanel.Values.ToList().ForEach((GameObject g) => g.SetActive(!g.activeInHierarchy));
-        }
     }
 
     public void SetButtons(bool b)
@@ -298,4 +296,8 @@ public class UIController : MonoBehaviour {
         panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
     }
 
+    public Sprite GetArrow(string eventName)
+    {
+        return Array.Find(arrows, (Sprite s) => s.name.Equals(eventName));
+    }
 }

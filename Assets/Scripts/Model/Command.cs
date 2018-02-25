@@ -5,37 +5,94 @@ using UnityEngine.Networking;
 
 public abstract class Command
 {
-    internal short robotId { get; set; }
-    internal string owner { get; set; }
+    internal const byte UP = 0;
+    internal const byte LEFT = 1;
+    internal const byte DOWN = 2;
+    internal const byte RIGHT = 3;
+    internal static Dictionary<byte, string> byteToDirectionString = new Dictionary<byte, string>()
+    {
+        {UP, "Up" },
+        {DOWN, "Down" },
+        {LEFT, "Left" },
+        {RIGHT, "Right" }
+    };
     internal static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
     {
-        {0, typeof(Rotate) },
-        {1, typeof(Move) },
-        {2, typeof(Attack) },
-        {3, typeof(Special) }
+        {Spawn.COMMAND_ID, typeof(Spawn) },
+        {Move.COMMAND_ID, typeof(Move) },
+        {Attack.COMMAND_ID, typeof(Attack) },
+        {Special.COMMAND_ID, typeof(Special) }
     };
-    public Command(){}
-    public abstract void Serialize(NetworkWriter writer);
+    static internal Dictionary<Type, byte> limit = new Dictionary<Type, byte>()
+    {
+        { typeof(Spawn), GameConstants.DEFAULT_SPAWN_LIMIT },
+        { typeof(Move), GameConstants.DEFAULT_MOVE_LIMIT },
+        { typeof(Attack), GameConstants.DEFAULT_ATTACK_LIMIT },
+        { typeof(Special), GameConstants.DEFAULT_SPECIAL_LIMIT }
+    };
+    static internal Dictionary<Type, byte> power = new Dictionary<Type, byte>()
+    {
+        { typeof(Spawn), GameConstants.DEFAULT_SPAWN_POWER },
+        { typeof(Move), GameConstants.DEFAULT_MOVE_POWER },
+        { typeof(Attack), GameConstants.DEFAULT_ATTACK_POWER },
+        { typeof(Special), GameConstants.DEFAULT_SPECIAL_POWER }
+    };
+    internal static Vector2Int DirectionToVector(byte dir)
+    {
+        switch (dir)
+        {
+            case UP:
+                return Vector2Int.up;
+            case DOWN:
+                return Vector2Int.down;
+            case LEFT:
+                return Vector2Int.left;
+            case RIGHT:
+                return Vector2Int.right;
+            default:
+                return Vector2Int.zero;
+        }
+    }
+    internal static string GetDisplay(Type t)
+    {
+        return t.ToString().Substring("Command.".Length);
+    }
+
+    internal short robotId { get; set; }
+    internal string owner { get; set; }
+    protected internal byte direction { get; protected set; }
+    public Command(){ }
+    public virtual string ToSpriteString()
+    {
+        return "NULL";
+    }
+    public virtual void Serialize(NetworkWriter writer)
+    {
+        writer.Write(direction);
+        writer.Write(robotId);
+        writer.Write(owner);
+    }
     public static Command Deserialize(NetworkReader reader)
     {
         byte commandId = reader.ReadByte();
+        byte dir = reader.ReadByte();
         Command cmd;
         switch(commandId)
         {
-            case Rotate.COMMAND_ID:
-                cmd = Rotate.Deserialize(reader);
+            case Spawn.COMMAND_ID:
+                cmd = new Spawn(dir);
                 break;
             case Move.COMMAND_ID:
-                cmd = Move.Deserialize(reader);
+                cmd = new Move(dir);
                 break;
             case Attack.COMMAND_ID:
-                cmd = Attack.Deserialize(reader);
+                cmd = new Attack(dir);
                 break;
             case Special.COMMAND_ID:
-                cmd = Special.Deserialize(reader);
+                cmd = new Special(dir);
                 break;
             default:
-                return null; //TODO: Throw an error
+                throw new ZException("No Command To Deserialize of ID: " + commandId);
         }
         cmd.robotId = reader.ReadInt16();
         cmd.owner = reader.ReadString();
@@ -47,181 +104,95 @@ public abstract class Command
         return "Empty Command";
     }
 
-    internal class Rotate : Command
+    internal class Spawn : Command
     {
-        internal const byte COMMAND_ID = 1;
-        internal const byte CLOCKWISE = 0;
-        internal const byte COUNTERCLOCKWISE = 1;
-        internal const byte FLIP = 2;
-        internal static Dictionary<byte, string> tostring = new Dictionary<byte, string>()
-        {
-            {CLOCKWISE, "Clockwise" },
-            {COUNTERCLOCKWISE, "Counterclockwise" },
-            {FLIP, "Flip" }
-        };
-        internal const string DISPLAY = "Rotate";
-        internal byte direction { get; }
-        public Rotate(byte dir)
+        internal const byte COMMAND_ID = 0;
+        internal const string DISPLAY = "Spawn";
+
+        public Spawn(byte dir)
         {
             direction = dir;
         }
+        public override string ToSpriteString()
+        {
+            return DISPLAY + " Arrow";
+        }
         public override string ToString()
         {
-            return DISPLAY + " " + tostring[direction] + " Arrow";
+            return DISPLAY + " " + direction;
         }
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(COMMAND_ID);
-            writer.Write(direction);
-            writer.Write(robotId);
-            writer.Write(owner);
-        }
-        public new static Rotate Deserialize(NetworkReader reader)
-        {
-            return new Rotate(reader.ReadByte());
-        }
-
-        internal static Robot.Orientation DirectionToOrientation(byte dir, Robot.Orientation orientation)
-        {
-            switch (dir)
-            {
-                case CLOCKWISE:
-                    switch (orientation)
-                    {
-                        case Robot.Orientation.NORTH:
-                            return Robot.Orientation.EAST;
-                        case Robot.Orientation.EAST:
-                            return Robot.Orientation.SOUTH;
-                        case Robot.Orientation.SOUTH:
-                            return Robot.Orientation.WEST;
-                        case Robot.Orientation.WEST:
-                            return Robot.Orientation.NORTH;
-                        default:
-                            return orientation;
-                    }
-                case COUNTERCLOCKWISE:
-                    switch (orientation)
-                    {
-                        case Robot.Orientation.NORTH:
-                            return Robot.Orientation.WEST;
-                        case Robot.Orientation.EAST:
-                            return Robot.Orientation.NORTH;
-                        case Robot.Orientation.SOUTH:
-                            return Robot.Orientation.EAST;
-                        case Robot.Orientation.WEST:
-                            return Robot.Orientation.SOUTH;
-                        default:
-                            return orientation;
-                    }
-                case FLIP:
-                    switch (orientation)
-                    {
-                        case Robot.Orientation.NORTH:
-                            return Robot.Orientation.SOUTH;
-                        case Robot.Orientation.EAST:
-                            return Robot.Orientation.WEST;
-                        case Robot.Orientation.SOUTH:
-                            return Robot.Orientation.NORTH;
-                        case Robot.Orientation.WEST:
-                            return Robot.Orientation.EAST;
-                        default:
-                            return orientation;
-                    }
-                default:
-                    return orientation;
-            }
+            base.Serialize(writer);
         }
     }
 
     internal class Move : Command
     {
-        internal const byte COMMAND_ID = 2;
-        internal const byte UP = 0;
-        internal const byte DOWN = 1;
-        internal const byte LEFT = 2;
-        internal const byte RIGHT = 3;
-        internal static Dictionary<byte, string> tostring = new Dictionary<byte, string>()
-        {
-            {UP, "Up" },
-            {DOWN, "Down" },
-            {LEFT, "Left" },
-            {RIGHT, "Right" }
-        };
+        internal const byte COMMAND_ID = 1;
         internal const string DISPLAY = "Move";
-        internal byte direction { get; }
 
         public Move(byte dir)
         {
             direction = dir;
         }
+        public override string ToSpriteString()
+        {
+            return DISPLAY + " Arrow";
+        }
         public override string ToString()
         {
-            return DISPLAY + " " + tostring[direction];
+            return DISPLAY + " " + byteToDirectionString[direction];
         }
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(COMMAND_ID);
-            writer.Write(direction);
-            writer.Write(robotId);
-            writer.Write(owner);
-        }
-        public new static Move Deserialize(NetworkReader reader)
-        {
-            return new Move(reader.ReadByte());
-        }
-
-        internal static Vector2Int DirectionToVector(byte dir)
-        {
-            switch (dir)
-            {
-                case UP:
-                    return Vector2Int.up;
-                case DOWN:
-                    return Vector2Int.down;
-                case LEFT:
-                    return Vector2Int.left;
-                case RIGHT:
-                    return Vector2Int.right;
-                default:
-                    return Vector2Int.zero;
-            }
+            base.Serialize(writer);
         }
     }
 
     internal class Attack : Command
     {
-        internal const byte COMMAND_ID = 3;
+        internal const byte COMMAND_ID = 2;
         internal const string DISPLAY = "Attack";
 
+        public Attack(byte dir)
+        {
+            direction = dir;
+        }
+        public override string ToSpriteString()
+        {
+            return DISPLAY + " Arrow";
+        }
         public override string ToString()
+        {
+            return DISPLAY + " " + byteToDirectionString[direction];
+        }
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(COMMAND_ID);
+            base.Serialize(writer);
+        }
+    }
+
+    internal class Special : Command
+    {
+        internal const byte COMMAND_ID = 3;
+        internal const string DISPLAY = "SPECIAL";
+
+        public Special(byte dir)
+        {
+            direction = dir;
+        }
+        public override string ToSpriteString()
         {
             return DISPLAY + " Arrow";
         }
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(COMMAND_ID);
-            writer.Write(robotId);
-            writer.Write(owner);
-        }
-        public new static Attack Deserialize(NetworkReader reader)
-        {
-            return new Attack();
-        }
-    }
-
-    internal class Special : Command
-    {
-        internal const byte COMMAND_ID = 4;
-        internal const string DISPLAY = "SPECIAL";
-        public override void Serialize(NetworkWriter writer)
-        {
-            writer.Write(COMMAND_ID);
-            writer.Write(robotId);
-            writer.Write(owner);
-        }
-        public new static Special Deserialize(NetworkReader reader)
-        {
-            return new Special();
+            base.Serialize(writer);
         }
     }
 }
