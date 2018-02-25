@@ -42,6 +42,10 @@ public class InitialController : MonoBehaviour {
     public GameObject maximizedRosterRobotInfoPanel;
     public string robotSelection;
 
+    private Button mySquadsAddButton;
+    private Button opponentSquadsAddButton;
+
+
 
     //TEMP JUST FOR PLAYTEST: DELETE
     public Text starText;
@@ -177,12 +181,6 @@ public class InitialController : MonoBehaviour {
 
     }
 
-    void Update()
-    {
-       // if (Input.GetKeyUp(KeyCode.Space)) { myRoster.text = ""; starText.text = "0/8 STARS"; }
-    }
-
-
    public void maximizeSelection(string selection)
     {
         GameObject robotSelectionPanel = robotSelectedPanel;
@@ -192,7 +190,6 @@ public class InitialController : MonoBehaviour {
         }
         if (selection != "no selection")
         {
-           
             foreach (Sprite r in robotDir)
             {
                 if (selection == r.name)
@@ -225,6 +222,12 @@ public class InitialController : MonoBehaviour {
                     fields[3].SetText("Health: " + robotDictionary[robotSelection][2].ToString());
                     fields[4].SetText("Ability: " + abilityDictionary[robotSelection][0] + abilityDictionary[robotSelection][1]);
 
+                    mySquadsAddButton.interactable = true;
+                    if (GameConstants.LOCAL_MODE)
+                    {
+                        opponentSquadsAddButton.interactable = true;
+                    }
+                    
 
                 }
             }
@@ -232,6 +235,11 @@ public class InitialController : MonoBehaviour {
         else
         {
             robotSelection = "no selection";
+            mySquadsAddButton.interactable = false;
+            if (GameConstants.LOCAL_MODE)
+            {
+                opponentSquadsAddButton.interactable = false;
+            }
         }
 
 
@@ -242,11 +250,14 @@ public class InitialController : MonoBehaviour {
         GameObject squadPanelsHolder = squadPanelHolder;
         GameObject mySquads = Instantiate(squadBackgroundPanel, squadPanelsHolder.transform);
         mySquads.name = "My Squads";
+        mySquads.GetComponent<Image>().color = Color.blue;
         createIndividualSquads(mySquads.transform, mySquads.name);
         if (localMode)
         { 
             GameObject opponentSquads = Instantiate(squadBackgroundPanel, squadPanelsHolder.transform);
             opponentSquads.name = "Opponent Squads";
+            opponentSquads.GetComponent<Image>().color = Color.red;
+            opponentName.gameObject.SetActive(true);
             createIndividualSquads(opponentSquads.transform, opponentSquads.name);
         }
 
@@ -259,8 +270,21 @@ public class InitialController : MonoBehaviour {
             GameObject currentSquadPanel = Instantiate(squadPanel, squadBackground);
             currentSquadPanel.name = "Squad Panel" + i.ToString();
             Transform currentSquadButton = currentSquadPanel.transform.GetChild(0);
-            currentSquadButton.GetComponent<Button>().onClick.AddListener(() => RosterController.addToSquad(squadsOwner, currentSquadPanel.name));
-            currentSquadButton.GetComponent<Image>().sprite = squadSpriteDir[i];
+            if (squadsOwner == "My Squads")
+            {
+                mySquadsAddButton = currentSquadButton.GetComponent<Button>();
+                mySquadsAddButton.onClick.AddListener(() => RosterController.addToSquad(squadsOwner, currentSquadPanel.name));
+                mySquadsAddButton.GetComponent<Button>().interactable = false;
+                mySquadsAddButton.GetComponent<Image>().sprite = squadSpriteDir[i];
+            }
+            if (squadsOwner == "Opponent Squads")
+            {
+                opponentSquadsAddButton = currentSquadButton.GetComponent<Button>();
+                opponentSquadsAddButton.onClick.AddListener(() => RosterController.addToSquad(squadsOwner, currentSquadPanel.name));
+                opponentSquadsAddButton.GetComponent<Button>().interactable = false;
+                opponentSquadsAddButton.GetComponent<Image>().sprite = squadSpriteDir[i];
+            }
+            
         }
     }
 
@@ -292,7 +316,6 @@ public class InitialController : MonoBehaviour {
                     startGameButton.interactable = false;
                 }
             }
- 
             maximizeSelection("no selection");
         }
     }
