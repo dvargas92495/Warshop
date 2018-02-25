@@ -6,9 +6,12 @@ using UnityEngine.Networking;
 
 public class Map
 {
+    internal static Vector2Int NULL_VEC = Vector2Int.one * -1;
+
     internal int Width { get; set; }
     internal int Height { get; set; }
     internal Space[] spaces;
+    private Tuple<HashSet<short>, HashSet<short>> Dock = new Tuple<HashSet<short>, HashSet<short>>(new HashSet<short>(), new HashSet<short>());
     private Dictionary<short, Space> objectLocations;
 
     private Map(int width, int height)
@@ -153,9 +156,16 @@ public class Map
     internal void UpdateObjectLocation(int x, int y, short objectId) {
         objectLocations[objectId] = VecToSpace(x,y);
     }
+
     internal void RemoveObjectLocation(short objectId)
     {
         objectLocations.Remove(objectId);
+    }
+
+    internal void AddToDock(short robotId, bool isPrimary)
+    {
+        if (isPrimary) Dock.Item1.Add(robotId);
+        else Dock.Item2.Add(robotId);
     }
 
     public abstract class Space

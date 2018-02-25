@@ -97,7 +97,29 @@ public abstract class GameEvent
         }
     }
 
-    //TODO: Reserving Event ID 1 for Spawn
+    public class Spawn : GameEvent
+    {
+        internal const byte EVENT_ID = 1;
+        internal Vector2Int destinationPos;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(destinationPos.x);
+            writer.Write(destinationPos.y);
+        }
+        public new static Spawn Deserialize(NetworkReader reader)
+        {
+            Spawn evt = new Spawn();
+            evt.destinationPos = new Vector2Int();
+            evt.destinationPos.x = reader.ReadInt32();
+            evt.destinationPos.y = reader.ReadInt32();
+            return evt;
+        }
+        public override string ToString()
+        {
+            return ToString("moved");
+        }
+    }
 
     public class Move : GameEvent
     {

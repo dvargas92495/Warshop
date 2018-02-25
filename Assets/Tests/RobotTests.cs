@@ -24,10 +24,46 @@ public class GruntTest : TestBase
     }
 
     [Test]
+    public void TestSpawnSimple()
+    {
+        Robot primaryBronze = testgame.primary.team[0];
+        BeforeEachTest();
+        Vector2Int primaryExpected = Vector2Int.zero;
+        List<GameEvent> events = SimulateCommands(
+            SpawnCommand(0, primaryBronze.id)
+        );
+        Assert.AreEqual(2, events.Count);
+        Assert.IsInstanceOf<GameEvent.Spawn>(events[0]);
+        Assert.AreEqual(primaryExpected, primaryBronze.position);
+    }
+
+    [Test]
+    public void TestSpawnSimpleBlock()
+    {
+        Robot primaryBronze = testgame.primary.team[0];
+        Robot secondaryBronze = testgame.secondary.team[0];
+        BeforeEachTest(new Dictionary<short, Vector2Int> {
+            { secondaryBronze.id, new Vector2Int(0,0) }
+        });
+        Vector2Int primaryExpected = Map.NULL_VEC;
+        Vector2Int secondaryExpected = secondaryBronze.position;
+        List<GameEvent> events = SimulateCommands(
+            SpawnCommand(0, primaryBronze.id)
+        );
+        Assert.AreEqual(2, events.Count);
+        Assert.IsInstanceOf<GameEvent.Block>(events[0]);
+        Assert.AreEqual(primaryExpected, primaryBronze.position);
+        Assert.AreEqual(secondaryExpected, secondaryBronze.position);
+    }
+
+    [Test]
 	public void TestMoveSimpleMove() {
         Robot primaryBronze = testgame.primary.team[0];
         Robot secondaryBronze = testgame.secondary.team[0];
-        BeforeEachTest();
+        BeforeEachTest(new Dictionary<short, Vector2Int> {
+            { primaryBronze.id, new Vector2Int(0,0) },
+            { secondaryBronze.id, new Vector2Int(4,7) }
+        });
         Vector2Int primaryExpected = primaryBronze.position + Vector2Int.up * 2;
         Vector2Int secondaryExpected = secondaryBronze.position + Vector2Int.down * 2;
         List<GameEvent> events = SimulateCommands(
@@ -47,49 +83,18 @@ public class GruntTest : TestBase
     }
 
     [Test]
-    public void TestMoveSimpleMoveFail()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        BeforeEachTest();
-        Vector2Int primaryExpected = primaryBronze.position + Vector2Int.up * 2;
-        List<GameEvent> events = SimulateCommands(
-            MoveCommand(Command.UP, primaryBronze.id),
-            MoveCommand(Command.UP, primaryBronze.id),
-            MoveCommand(Command.UP, primaryBronze.id)
-        );
-        Assert.AreEqual(6, events.Count);
-        Assert.IsInstanceOf<GameEvent.Move>(events[0]);
-        Assert.IsInstanceOf<GameEvent.Move>(events[2]);
-        Assert.IsInstanceOf<GameEvent.Fail>(events[4]);
-        Assert.AreEqual(primaryExpected, primaryBronze.position);
-    }
-
-    [Test]
     public void TestMoveWallBlock()
     {
         Robot primaryBronze = testgame.primary.team[0];
-        BeforeEachTest();
+        BeforeEachTest(new Dictionary<short, Vector2Int> {
+            { primaryBronze.id, new Vector2Int(0,0) }
+        });
         Vector2Int expected = primaryBronze.position;
         List<GameEvent> events = SimulateCommands(
             MoveCommand(Command.RIGHT, primaryBronze.id)
         );
         Assert.AreEqual(2, events.Count);
         Assert.IsInstanceOf<GameEvent.Block>(events[0]);
-        Assert.AreEqual(expected, primaryBronze.position);
-    }
-
-    [Test]
-    public void TestMoveQueueBlock()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        BeforeEachTest();
-        Vector2Int expected = Vector2Int.up;
-        List<GameEvent> events = SimulateCommands(
-            MoveCommand(Command.UP, primaryBronze.id),
-            MoveCommand(Command.DOWN, primaryBronze.id)
-        );
-        Assert.AreEqual(4, events.Count);
-        Assert.IsInstanceOf<GameEvent.Block>(events[2]);
         Assert.AreEqual(expected, primaryBronze.position);
     }
 
@@ -245,9 +250,9 @@ public class GruntTest : TestBase
         Robot primaryPlatinum = testgame.primary.team[3];
         Robot secondaryBronze = testgame.secondary.team[0];
         BeforeEachTest(new Dictionary<short, Vector2Int> {
-            { primaryBronze.id, new Vector2Int(3,2) },
-            { primaryPlatinum.id, new Vector2Int(2,1) },
-            { secondaryBronze.id, new Vector2Int(2,2) }
+            { primaryBronze.id, new Vector2Int(3,3) },
+            { primaryPlatinum.id, new Vector2Int(2,2) },
+            { secondaryBronze.id, new Vector2Int(2,3) }
         });
         Vector2Int primaryExpected = secondaryBronze.position;
         Vector2Int secondaryExpected = secondaryBronze.position + Vector2Int.left;
@@ -360,7 +365,7 @@ public class GruntTest : TestBase
         Assert.IsInstanceOf<GameEvent.Damage>(events[1]);
         Assert.IsInstanceOf<GameEvent.Death>(events[2]);
         Assert.AreEqual(primaryBronze.startingHealth, primaryBronze.health);
-        Assert.AreEqual(Vector2Int.zero, primaryBronze.position);
+        Assert.AreEqual(Map.NULL_VEC, primaryBronze.position);
     }
 
     [Test]
@@ -382,42 +387,7 @@ public class GruntTest : TestBase
         Assert.IsInstanceOf<GameEvent.Death>(events[2]);
         Assert.IsInstanceOf<GameEvent.Fail>(events[4]);
         Assert.AreEqual(primaryBronze.startingHealth, primaryBronze.health);
-        Assert.AreEqual(Vector2Int.zero, primaryBronze.position);
-    }
-
-    [Test]
-    public void TestAttackFail()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        BeforeEachTest(new Dictionary<short, Vector2Int> {
-            { primaryBronze.id, new Vector2Int(1,1) }
-        });
-        List<GameEvent> events = SimulateCommands(
-            AttackCommand(Command.UP, primaryBronze.id),
-            AttackCommand(Command.UP, primaryBronze.id)
-        );
-        Assert.AreEqual(5, events.Count);
-        Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
-        Assert.IsInstanceOf<GameEvent.Miss>(events[1]);
-        Assert.IsInstanceOf<GameEvent.Fail>(events[3]);
-    }
-
-    [Test]
-    public void TestAttackFromQueueFail()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        Robot secondaryBronze = testgame.secondary.team[0];
-        float expected = secondaryBronze.startingHealth;
-        BeforeEachTest(new Dictionary<short, Vector2Int> {
-            { primaryBronze.id, new Vector2Int(0,0) },
-            { secondaryBronze.id, new Vector2Int(0,1) }
-        });
-        List<GameEvent> events = SimulateCommands(
-            AttackCommand(Command.UP, primaryBronze.id)
-        );
-        Assert.AreEqual(2, events.Count);
-        Assert.IsInstanceOf<GameEvent.Fail>(events[0]);
-        Assert.AreEqual(expected, secondaryBronze.health);
+        Assert.AreEqual(Map.NULL_VEC, primaryBronze.position);
     }
 
     [Test]
@@ -442,25 +412,6 @@ public class GruntTest : TestBase
         Assert.IsInstanceOf<GameEvent.Attack>(events[2]);
         Assert.IsInstanceOf<GameEvent.Damage>(events[3]);
         Assert.AreEqual(expected, secondarySilver.health);
-    }
-
-    [Test]
-    public void TestAttackToQueueMiss()
-    {
-        Robot primaryBronze = testgame.primary.team[0];
-        Robot secondaryBronze = testgame.secondary.team[0];
-        float expected = primaryBronze.startingHealth;
-        BeforeEachTest(new Dictionary<short, Vector2Int> {
-            { primaryBronze.id, new Vector2Int(0,0) },
-            { secondaryBronze.id, new Vector2Int(0,1) }
-        });
-        List<GameEvent> events = SimulateCommands(
-            AttackCommand(Command.DOWN, secondaryBronze.id)
-        );
-        Assert.AreEqual(3, events.Count);
-        Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
-        Assert.IsInstanceOf<GameEvent.Miss>(events[1]);
-        Assert.AreEqual(expected, primaryBronze.health);
     }
 }
 
@@ -531,58 +482,6 @@ public class JaguarTest : TestBase
         {
             "Jaguar"
         });
-    }
-
-    [Test]
-    public void TestThreeMoves()
-    {
-        Robot primaryJaguar = testgame.primary.team[0];
-        BeforeEachTest();
-        Vector2Int expected = primaryJaguar.position + Vector2Int.up * 3;
-        List<GameEvent> events = SimulateCommands(
-            MoveCommand(Command.Move.UP, primaryJaguar.id),
-            MoveCommand(Command.Move.UP, primaryJaguar.id),
-            MoveCommand(Command.Move.UP, primaryJaguar.id)
-        );
-        Assert.AreEqual(6, events.Count);
-        Assert.IsInstanceOf<GameEvent.Move>(events[0]);
-        Assert.IsInstanceOf<GameEvent.Move>(events[2]);
-        Assert.IsInstanceOf<GameEvent.Move>(events[4]);
-        Assert.AreEqual(expected, primaryJaguar.position);
-    }
-
-    [Test]
-    public void TestAttackThirdMoveFails()
-    {
-        Robot primaryJaguar = testgame.primary.team[0];
-        BeforeEachTest();
-        Vector2Int expected = primaryJaguar.position + Vector2Int.up * 2;
-        List<GameEvent> events = SimulateCommands(
-            MoveCommand(Command.UP, primaryJaguar.id),
-            AttackCommand(Command.UP, primaryJaguar.id),
-            MoveCommand(Command.UP, primaryJaguar.id),
-            MoveCommand(Command.UP, primaryJaguar.id)
-        );
-        Assert.AreEqual(9, events.Count);
-        Assert.IsInstanceOf<GameEvent.Fail>(events[7]);
-        Assert.AreEqual(expected, primaryJaguar.position);
-    }
-
-    [Test]
-    public void TestAttackFailsAfterThirdMove()
-    {
-        Robot primaryJaguar = testgame.primary.team[0];
-        BeforeEachTest();
-        Vector2Int expected = primaryJaguar.position + Vector2Int.up * 3;
-        List<GameEvent> events = SimulateCommands(
-            MoveCommand(Command.UP, primaryJaguar.id),
-            MoveCommand(Command.UP, primaryJaguar.id),
-            MoveCommand(Command.UP, primaryJaguar.id),
-            AttackCommand(Command.UP, primaryJaguar.id)
-        );
-        Assert.AreEqual(8, events.Count);
-        Assert.IsInstanceOf<GameEvent.Fail>(events[6]);
-        Assert.AreEqual(expected, primaryJaguar.position);
     }
 }
 

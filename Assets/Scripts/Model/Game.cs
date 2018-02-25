@@ -24,9 +24,8 @@ public class Game
             Robot r = Robot.create(t[i]);
             r.id = nextRobotId;
             nextRobotId++;
-            r.queueSpot = (byte)(i % 4);
-            r.position = board.GetQueuePosition(r.queueSpot, isPrimary);
-            board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
+            r.position = Map.NULL_VEC;
+            board.AddToDock(r.id, isPrimary);
             robots[i] = r;
         }
         allRobots = new Robot[allRobots.Length + robots.Length];
@@ -105,7 +104,7 @@ public class Game
             { typeof(Command.Special), 0 }
         };
         internal byte priority;
-        internal bool isDead;
+        internal bool isActive;
         internal RobotTurnObject(byte p)
         {
             priority = p;
@@ -126,7 +125,11 @@ public class Game
         commands.AddRange(secondary.FetchCommands());
         Dictionary<byte, HashSet<Command>> priorityToCommands = new Dictionary<byte, HashSet<Command>>();
         Dictionary<short, RobotTurnObject> robotIdToTurnObject = new Dictionary<short, RobotTurnObject>();
-        Array.ForEach(allRobots, (Robot r) => robotIdToTurnObject[r.id] = new RobotTurnObject(r.priority));
+        Array.ForEach(allRobots, (Robot r) => {
+            RobotTurnObject rto = new RobotTurnObject(r.priority);
+            rto.isActive = board.IsSpaceOccupied(r.position);
+            robotIdToTurnObject[r.id] = rto;
+        });
         for (int p = GameConstants.MAX_PRIORITY; p >= 0; p--)
         {
             priorityToCommands[(byte)p] = new HashSet<Command>();
@@ -145,7 +148,7 @@ public class Game
             HashSet<Command> currentCmds = priorityToCommands[(byte)p];
             List<GameEvent> priorityEvents = (p == 0 ? processEndOfTurn() : new List<GameEvent>());
 
-            //priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Rotate))); TODO: change to spawn
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Spawn)));
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Move)));
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Attack)));
             priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Special)));
@@ -162,19 +165,13 @@ public class Game
         HashSet<Command> commands = new HashSet<Command>(allCommands.Where((Command c) => c.GetType().Equals(t)));
         commands.ToList().ForEach((Command c) =>
         {
-            List<GameEvent> evts = new List<GameEvent>();
             bool isPrimary = c.owner.Equals(primary.name);
             Robot primaryRobot = GetRobot(c.robotId);
-            if (robotIdToTurnObject[c.robotId].isDead)
+            if (!robotIdToTurnObject[c.robotId].isActive && !(c is Command.Spawn))
             {
-                GameEvent f = primaryRobot.Fail(c, "it's dead", isPrimary);
+                GameEvent f = primaryRobot.Fail(c, "it's inactive", isPrimary);
                 f.primaryBattery = f.secondaryBattery = 0;
-                evts.Add(f);
-            }
-            if (evts.Count == 0) evts.AddRange(primaryRobot.CheckFail(c, robotIdToTurnObject[c.robotId], c.owner.Equals(primary.name)));
-            if (evts.Count > 0)
-            {
-                events.AddRange(evts);
+                events.Add(f);
                 commands.Remove(c);
             }
         });
@@ -184,14 +181,16 @@ public class Game
         {
             Robot primaryRobot = GetRobot(c.robotId);
             bool isPrimary = c.owner.Equals(primary.name);
-            if (c is Command.Move)
+            if (c is Command.Spawn)
+            {
+                idsToWantedEvents[c.robotId] = primaryRobot.Spawn(board.GetQueuePosition(c.direction, isPrimary), isPrimary);
+            } else if (c is Command.Move)
             {
                 board.RemoveObjectLocation(c.robotId);
                 idsToWantedEvents[c.robotId] = primaryRobot.Move(c.direction, isPrimary);
             } else if (c is Command.Attack)
             {
-                if (board.GetQueuePosition(primaryRobot.queueSpot, isPrimary).Equals(primaryRobot.position)) events.Add(primaryRobot.Fail(c, "it's in queue", isPrimary));
-                else idsToWantedEvents[c.robotId] = primaryRobot.Attack(c.direction, isPrimary);
+                idsToWantedEvents[c.robotId] = primaryRobot.Attack(c.direction, isPrimary);
             }
         });
 
@@ -218,17 +217,17 @@ public class Game
             {
                 if (r.health <= 0)
                 {
-                    Vector2Int v = board.GetQueuePosition(r.queueSpot, isPrimary);
+                    board.AddToDock(r.id, isPrimary);
+                    board.RemoveObjectLocation(r.id);
                     GameEvent.Death death = new GameEvent.Death();
                     r.health = death.returnHealth = r.startingHealth;
-                    r.position = death.returnLocation = v;
+                    r.position = Map.NULL_VEC;
                     death.primaryRobotId = r.id;
                     death.primaryBattery = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating : 0);
                     death.secondaryBattery = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
-                    board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
                     endOfTurnEvents.RemoveAll((GameEvent e) => e.primaryRobotId == r.id);
                     evts.Add(death);
-                    robotIdToTurnObject[r.id].isDead = true;
+                    robotIdToTurnObject[r.id].isActive = false;
                 }
             });
             return evts;
@@ -236,6 +235,7 @@ public class Game
 
         events.AddRange(processPriorityFinish(primary.team, true));
         events.AddRange(processPriorityFinish(secondary.team, false));
+        robotIdToTurnObject.Keys.ToList().ForEach((short k) => robotIdToTurnObject[k].isActive = board.IsSpaceOccupied(GetRobot(k).position));
         if (events.Count > 0)
         {
             GameEvent.Resolve resolve = new GameEvent.Resolve();
@@ -292,6 +292,7 @@ public class Game
         if (g is GameEvent.Move) return Validate(events, (GameEvent.Move)g);
         else if (g is GameEvent.Push) return Validate(events, (GameEvent.Push)g);
         else if (g is GameEvent.Attack) return Validate(events, (GameEvent.Attack)g);
+        else if (g is GameEvent.Spawn) return Validate(events, (GameEvent.Spawn)g);
         return true;
     }
 
@@ -411,6 +412,22 @@ public class Game
         return true;
     }
 
+    private bool Validate(List<GameEvent> events, GameEvent.Spawn g)
+    {
+        int index = events.IndexOf(g);
+        if (board.IsSpaceOccupied(g.destinationPos))
+        {
+            GameEvent.Block evt = new GameEvent.Block();
+            evt.deniedPos = g.destinationPos;
+            evt.Transfer(g);
+            evt.blockingObject = GetRobot(board.GetIdOnSpace(g.destinationPos)).name;
+            events.RemoveAt(index);
+            events.Insert(index, evt);
+            return false;
+        }
+        return true;
+    }
+
     private bool AreValidTogether(Dictionary<short, List<GameEvent>> idsToWantedEvents)
     {
         bool valid = true;
@@ -458,9 +475,16 @@ public class Game
         {
             idsToWantedEvents[key].ForEach((GameEvent e) =>
             {
+                Vector2Int newspace = Map.NULL_VEC;
                 if (e is GameEvent.Move)
                 {
-                    Vector2Int newspace = ((GameEvent.Move)e).destinationPos;
+                    newspace = ((GameEvent.Move)e).destinationPos;
+                } else if (e is GameEvent.Spawn)
+                {
+                    newspace = ((GameEvent.Spawn)e).destinationPos;
+                }
+                if (!newspace.Equals(Map.NULL_VEC))
+                {
                     if (spaceToIds.ContainsKey(newspace)) spaceToIds[newspace].Add(key);
                     else spaceToIds[newspace] = new List<short>() { key };
                 }
@@ -525,6 +549,7 @@ public class Game
         if (g is GameEvent.Move) Update((GameEvent.Move)g);
         else if (g is GameEvent.Damage) Update((GameEvent.Damage)g);
         else if (g is GameEvent.Poison) Update((GameEvent.Poison)g);
+        else if (g is GameEvent.Spawn) Update((GameEvent.Spawn)g);
     }
 
     private void Update(GameEvent.Move g)
@@ -548,6 +573,13 @@ public class Game
         evt.damage = 1;
         evt.remainingHealth = (short)(r.health - 1);
         endOfTurnEvents.Add(evt);
+    }
+
+    private void Update(GameEvent.Spawn g)
+    {
+        Robot r = GetRobot(g.primaryRobotId);
+        r.position = g.destinationPos;
+        board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
     }
 
     private Robot GetRobot(short id)

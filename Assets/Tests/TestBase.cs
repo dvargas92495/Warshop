@@ -38,12 +38,20 @@ public class TestBase
             Array.ForEach(p.team, (Robot r) =>
             {
                 r.health = r.startingHealth;
-                r.position = pos.ContainsKey(r.id) ? pos[r.id] : testgame.board.GetQueuePosition(r.queueSpot, isPrimary);
-                testgame.board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
+                r.position = pos.ContainsKey(r.id) ? pos[r.id] : Map.NULL_VEC;
+                if (pos.ContainsKey(r.id)) testgame.board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
+                else testgame.board.RemoveObjectLocation(r.id);
             });
         };
         reset(testgame.primary, true);
         reset(testgame.secondary, false);
+    }
+
+    internal static Command.Spawn SpawnCommand(byte d, short r)
+    {
+        Command.Spawn s = new Command.Spawn(d);
+        s.robotId = r;
+        return s;
     }
 
     internal static Command.Move MoveCommand(byte d, short r)

@@ -18,18 +18,21 @@ public abstract class Command
     };
     internal static Dictionary<byte, Type> byteToCmd = new Dictionary<byte, Type>()
     {
+        {Spawn.COMMAND_ID, typeof(Spawn) },
         {Move.COMMAND_ID, typeof(Move) },
         {Attack.COMMAND_ID, typeof(Attack) },
         {Special.COMMAND_ID, typeof(Special) }
     };
     static internal Dictionary<Type, byte> limit = new Dictionary<Type, byte>()
     {
+        { typeof(Spawn), GameConstants.DEFAULT_SPAWN_LIMIT },
         { typeof(Move), GameConstants.DEFAULT_MOVE_LIMIT },
         { typeof(Attack), GameConstants.DEFAULT_ATTACK_LIMIT },
         { typeof(Special), GameConstants.DEFAULT_SPECIAL_LIMIT }
     };
     static internal Dictionary<Type, byte> power = new Dictionary<Type, byte>()
     {
+        { typeof(Spawn), GameConstants.DEFAULT_SPAWN_POWER },
         { typeof(Move), GameConstants.DEFAULT_MOVE_POWER },
         { typeof(Attack), GameConstants.DEFAULT_ATTACK_POWER },
         { typeof(Special), GameConstants.DEFAULT_SPECIAL_POWER }
@@ -76,6 +79,9 @@ public abstract class Command
         Command cmd;
         switch(commandId)
         {
+            case Spawn.COMMAND_ID:
+                cmd = new Spawn(dir);
+                break;
             case Move.COMMAND_ID:
                 cmd = new Move(dir);
                 break;
@@ -86,7 +92,7 @@ public abstract class Command
                 cmd = new Special(dir);
                 break;
             default:
-                return null; //TODO: Throw an error
+                throw new ZException("No Command To Deserialize of ID: " + commandId);
         }
         cmd.robotId = reader.ReadInt16();
         cmd.owner = reader.ReadString();
@@ -96,6 +102,30 @@ public abstract class Command
     public override string ToString()
     {
         return "Empty Command";
+    }
+
+    internal class Spawn : Command
+    {
+        internal const byte COMMAND_ID = 0;
+        internal const string DISPLAY = "Spawn";
+
+        public Spawn(byte dir)
+        {
+            direction = dir;
+        }
+        public override string ToSpriteString()
+        {
+            return DISPLAY + " Arrow";
+        }
+        public override string ToString()
+        {
+            return DISPLAY + " " + direction;
+        }
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(COMMAND_ID);
+            base.Serialize(writer);
+        }
     }
 
     internal class Move : Command
