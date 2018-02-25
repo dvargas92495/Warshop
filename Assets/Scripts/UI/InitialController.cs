@@ -16,12 +16,6 @@ public class InitialController : MonoBehaviour {
     public Button startGameButton;
     public InputField myName;
     public InputField opponentName;
-    public Button myAdd;
-    public Button opponentAdd;
-    public Dropdown mySelect;
-    public Dropdown opponentSelect;
-    public Text myRoster;
-    public Text opponentRoster;
     public Text statusText;
     public TextAsset keys;
     public Toggle localModeToggle;
@@ -44,6 +38,8 @@ public class InitialController : MonoBehaviour {
 
     private Button mySquadsAddButton;
     private Button opponentSquadsAddButton;
+    private Transform mySquadPanelRobotHolder;
+    private Transform opponentSquadPanelRobotHolder;
 
 
 
@@ -107,26 +103,21 @@ public class InitialController : MonoBehaviour {
                 lines[4].Trim()
             );
             return;
+
+
         }
-        UnityAction<bool> opponentToggle = (bool val) =>
-        {
-            GameConstants.LOCAL_MODE = val;
-            opponentName.gameObject.SetActive(val);
-            opponentAdd.gameObject.SetActive(val);
-            opponentSelect.gameObject.SetActive(val);
-            opponentRoster.gameObject.SetActive(val);
-        };
+
         UnityAction<bool> awsToggle = (bool val) =>
         {
             GameConstants.USE_SERVER = val;
         };
         if (Application.isEditor)
         {
-            localModeToggle.onValueChanged.AddListener(opponentToggle);
+            //localModeToggle.onValueChanged.AddListener(opponentToggle);
             useServerToggle.onValueChanged.AddListener(awsToggle);
         } else
         {
-            opponentToggle(false);
+            //opponentToggle(false);
             awsToggle(true);
             localModeToggle.gameObject.SetActive(false);
             useServerToggle.gameObject.SetActive(false);
@@ -137,21 +128,19 @@ public class InitialController : MonoBehaviour {
             {                           
                 if (myStarCount == 8)
                 {
-                   GameObject squadPanelRobotHolder = GameObject.Find("SquadPanelsHolder/My Squads/Squad Panel0/SquadPanelRobotHolder");
-                   string[] myRosterStrings = new string[squadPanelRobotHolder.transform.childCount];
+                   string[] myRosterStrings = new string[mySquadPanelRobotHolder.transform.childCount];
                    for(int i = 0; i < myRosterStrings.Length; i++)
                    {
-                        myRosterStrings[i] = squadPanelRobotHolder.transform.GetChild(i).name.Trim();
+                        myRosterStrings[i] = mySquadPanelRobotHolder.transform.GetChild(i).name.Trim();
                    }
 
                     string[] opponentRosterStrings = new string[0];
                     if (GameConstants.LOCAL_MODE)
                     {
-                        GameObject oppSquadPanelRobotHolder = GameObject.Find("SquadPanelsHolder/Opponent Squads/Squad Panel0/SquadPanelRobotHolder");
-                        opponentRosterStrings = new string[oppSquadPanelRobotHolder.transform.childCount];
+                        opponentRosterStrings = new string[opponentSquadPanelRobotHolder.transform.childCount];
                         for (int i = 0; i < opponentRosterStrings.Length; i++)
                         {
-                            opponentRosterStrings[i] = oppSquadPanelRobotHolder.transform.GetChild(i).name.Trim();
+                            opponentRosterStrings[i] = opponentSquadPanelRobotHolder.transform.GetChild(i).name.Trim();
                         }
                     }
 
@@ -251,14 +240,13 @@ public class InitialController : MonoBehaviour {
 
     public void squadPanelsCreate(bool localMode)
     {
-        GameObject squadPanelsHolder = squadPanelHolder;
-        GameObject mySquads = Instantiate(squadBackgroundPanel, squadPanelsHolder.transform);
+        GameObject mySquads = Instantiate(squadBackgroundPanel, squadPanelHolder.transform);
         mySquads.name = "My Squads";
         mySquads.GetComponent<Image>().color = Color.blue;
         createIndividualSquads(mySquads.transform, mySquads.name);
         if (localMode)
         { 
-            GameObject opponentSquads = Instantiate(squadBackgroundPanel, squadPanelsHolder.transform);
+            GameObject opponentSquads = Instantiate(squadBackgroundPanel, squadPanelHolder.transform);
             opponentSquads.name = "Opponent Squads";
             opponentSquads.GetComponent<Image>().color = Color.red;
             opponentName.gameObject.SetActive(true);
@@ -276,6 +264,7 @@ public class InitialController : MonoBehaviour {
             Transform currentSquadButton = currentSquadPanel.transform.GetChild(0);
             if (squadsOwner == "My Squads")
             {
+                mySquadPanelRobotHolder = currentSquadPanel.transform.GetChild(1);
                 mySquadsAddButton = currentSquadButton.GetComponent<Button>();
                 mySquadsAddButton.onClick.AddListener(() => RosterController.addToSquad(squadsOwner, currentSquadPanel.name));
                 mySquadsAddButton.GetComponent<Button>().interactable = false;
@@ -283,6 +272,7 @@ public class InitialController : MonoBehaviour {
             }
             if (squadsOwner == "Opponent Squads")
             {
+                opponentSquadPanelRobotHolder = currentSquadPanel.transform.GetChild(1);
                 opponentSquadsAddButton = currentSquadButton.GetComponent<Button>();
                 opponentSquadsAddButton.onClick.AddListener(() => RosterController.addToSquad(squadsOwner, currentSquadPanel.name));
                 opponentSquadsAddButton.GetComponent<Button>().interactable = false;
@@ -296,8 +286,15 @@ public class InitialController : MonoBehaviour {
     {
         if (robotSelection != "no selection")
         {
-            GameObject squadPanelRobotHolder = GameObject.Find(squadOwner + "/" + squadName + "/SquadPanelRobotHolder");
-            GameObject addedRobot = Instantiate(robotSquadImage, squadPanelRobotHolder.transform);
+            GameObject addedRobot;
+            if (squadOwner == "My Squads")
+            {
+                addedRobot = Instantiate(robotSquadImage, mySquadPanelRobotHolder.transform);
+            }
+            else
+            {
+                 addedRobot = Instantiate(robotSquadImage, opponentSquadPanelRobotHolder.transform);
+            }
             addedRobot.name = robotSelection;
             addedRobot.GetComponent<Button>().onClick.AddListener(() => RosterController.removeFromSquad(squadOwner, squadName, addedRobot));
             foreach (Sprite r in robotDir)
