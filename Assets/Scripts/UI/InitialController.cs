@@ -70,7 +70,6 @@ public class InitialController : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
-        RosterController.InitializeInitial(this);
         Logger.Setup(isServer);
         App.LinkAssets(boardfiles);
         if (isServer)
@@ -103,8 +102,6 @@ public class InitialController : MonoBehaviour {
                 lines[4].Trim()
             );
             return;
-
-
         }
 
         UnityAction<bool> awsToggle = (bool val) =>
@@ -118,10 +115,14 @@ public class InitialController : MonoBehaviour {
         } else
         {
             //opponentToggle(false);
+            GameConstants.LOCAL_MODE = false;
+            GameConstants.USE_SERVER = true;
             awsToggle(true);
             localModeToggle.gameObject.SetActive(false);
             useServerToggle.gameObject.SetActive(false);
         }
+        Interpreter.initialController = this;
+        RosterController.InitializeInitial(this);
 
 
         startGameButton.onClick.AddListener(() =>
@@ -346,7 +347,6 @@ public class InitialController : MonoBehaviour {
         RobotController.robotDir = robotDir;
         Interpreter.myRobotNames = mybots;
         Interpreter.opponentRobotNames = opbots;
-        Interpreter.initialController = this;
         statusText.color = Color.black;
         statusText.text = "Loading...";
         Interpreter.ConnectToServer(myname, opponentname, b);

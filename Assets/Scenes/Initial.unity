@@ -1584,10 +1584,10 @@ MonoBehaviour:
   robotBase: {fileID: 114303540073418012, guid: 80728159308e23b4d9f9bfbb0e53167d,
     type: 2}
   robotDir:
-  - {fileID: 21300000, guid: 8b53ad2badfdffe43bc3c044f51e6ed5, type: 3}
-  - {fileID: 21300000, guid: 02dc1b41115ea9041951cc350a91a15f, type: 3}
-  - {fileID: 21300000, guid: 8f0eda1c1090d27429770128c69165e5, type: 3}
-  - {fileID: 21300000, guid: f48f027a5c8ff6845ab264a559af8b05, type: 3}
+  - {fileID: 21300000, guid: 7f20f5c2b58071b47bf87a6fe1716edd, type: 3}
+  - {fileID: 21300000, guid: b25a17f80171e3b49b550b03174ced2b, type: 3}
+  - {fileID: 21300000, guid: bad6eedbb54872c47ba0ab382d02d154, type: 3}
+  - {fileID: 21300000, guid: 49a8a19bd71fe1e48aff1717e81191b2, type: 3}
   squadSpriteDir:
   - {fileID: 21300000, guid: 65564f395fb3d144997376c355f8677c, type: 3}
   robotRosterImage: {fileID: 1868175128539910, guid: 336b0c199b6dc2749a334ca809674e2b,

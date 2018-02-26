@@ -43,17 +43,16 @@ public class UIController : MonoBehaviour {
 
     void Update()
     {
-        if (Application.isEditor)
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.B))
         {
-            if (Input.GetKeyDown(KeyCode.B))
-            {
-                SceneManager.LoadScene("Initial");
-            }
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                UnityEditor.EditorApplication.isPlaying = false;
-            }
+            BackToInitial();
         }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            UnityEditor.EditorApplication.isPlaying = false;
+        }
+#endif
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
@@ -86,6 +85,11 @@ public class UIController : MonoBehaviour {
         {
             Interpreter.SubmitActions();
         }
+    }
+
+    public void BackToInitial()
+    {
+        SceneManager.LoadScene("Initial");
     }
 
     //Loads the UICanvas and it's child components
@@ -125,7 +129,7 @@ public class UIController : MonoBehaviour {
         userNameText.SetText(userPlayer.name);
         for (int i = 0; i < userPlayer.team.Length; i++)
         {
-            robotIdToPanel[userPlayer.team[i].id] = SetRobotPanel(userPlayer.team[i], false);
+            SetRobotPanel(userPlayer.team[i], false);
         }
     }
 
@@ -322,13 +326,19 @@ public class UIController : MonoBehaviour {
         Interpreter.boardController.secondaryDock.transform.localScale -= Vector3.up * minusHeight;
         Interpreter.boardController.primaryDock.transform.position += Vector3.up * (minusHeight / 2);
         Interpreter.boardController.secondaryDock.transform.position += Vector3.down * (minusHeight / 2);
-        Array.ForEach(Interpreter.robotControllers, (RobotController r) =>
+        Array.ForEach(Interpreter.robotControllers.Values.ToArray(), (RobotController r) =>
         {
             Vector3 oldScale = r.transform.localScale;
             oldScale.x = ((1 - minusHeight) * oldScale.y) / r.transform.parent.localScale.x;
             r.transform.localScale = oldScale;
         });
-        if (!isPrimary) Interpreter.Flip();
+        if (!isPrimary)
+        {
+            Color tmp = Interpreter.boardController.primaryDock.color;
+            Interpreter.boardController.primaryDock.color = Interpreter.boardController.secondaryDock.color;
+            Interpreter.boardController.secondaryDock.color = tmp;
+            Interpreter.Flip();
+        }
     }
 
     public void Flip()
@@ -339,6 +349,10 @@ public class UIController : MonoBehaviour {
             t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
             t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
         });
+        Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipX = !Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipX;
+        Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipY = !Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipY;
+        Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipX = !Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipX;
+        Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipY = !Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipY;
         userScore.transform.Rotate(Vector3.forward, 180);
         opponentScore.transform.Rotate(Vector3.forward, 180);
     }

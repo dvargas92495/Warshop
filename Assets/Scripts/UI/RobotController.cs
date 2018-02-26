@@ -112,7 +112,6 @@ public class RobotController : MonoBehaviour
         {
             Interpreter.DestroyCommandMenu();
             ShowMenuOptions(menu);
-            //menu.transform.rotation = Quaternion.LookRotation(Vector3.forward, Interpreter.uiController.boardCamera.transform.up);
         }
     }
 

@@ -9,6 +9,7 @@ public class Messages {
     public const short SUBMIT_COMMANDS = MsgType.Highest + 4;
     public const short TURN_EVENTS = MsgType.Highest + 5;
     public const short WAITING_COMMANDS = MsgType.Highest + 6;
+    public const short SERVER_ERROR = MsgType.Highest + 7;
     public class EmptyMessage : MessageBase { }
     public static EmptyMessage EMPTY = new EmptyMessage();
     public class FakeConnectMessage : MessageBase
@@ -108,4 +109,10 @@ public class Messages {
         }
     }
     public class OpponentWaitingMessage : MessageBase { }
+    public class ServerErrorMessage : MessageBase
+    {
+        public string serverMessage;
+        public string exceptionType;
+        public string exceptionMessage;
+    }
 }

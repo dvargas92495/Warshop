@@ -19,7 +19,8 @@ public class GameClient : MonoBehaviour {
         { MsgType.Connect, OnConnect },
         { Messages.GAME_READY, OnGameReady },
         { Messages.TURN_EVENTS, OnTurnEvents },
-        { Messages.WAITING_COMMANDS, OnOpponentWaiting }
+        { Messages.WAITING_COMMANDS, OnOpponentWaiting },
+        { Messages.SERVER_ERROR, OnServerError }
     };
 
     public static void Initialize(string playerId, string boardFile) {
@@ -166,6 +167,14 @@ public class GameClient : MonoBehaviour {
     private static void OnOpponentWaiting(NetworkMessage netMsg)
     {
         Interpreter.uiController.LightUpPanel(!GameConstants.LOCAL_MODE, false);
+    }
+
+    private static void OnServerError(NetworkMessage netMsg)
+    {
+        Messages.ServerErrorMessage msg = netMsg.ReadMessage<Messages.ServerErrorMessage>();
+        log.Fatal(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
+        Interpreter.uiController.BackToInitial();
+        Interpreter.ClientError(msg.serverMessage);
     }
 
     public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String myname, String opponentname)
