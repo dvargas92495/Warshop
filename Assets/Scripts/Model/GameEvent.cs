@@ -61,6 +61,9 @@ public abstract class GameEvent
             case Resolve.EVENT_ID:
                 evt = Resolve.Deserialize(reader);
                 break;
+            case End.EVENT_ID:
+                evt = End.Deserialize(reader);
+                break;
             default:
                 throw new ZException("Unknown Event Id to deserialize: " + eventId);
         }
@@ -400,6 +403,27 @@ public abstract class GameEvent
         public static byte GetByte(Type t)
         {
             return Command.byteToCmd.Keys.ToList().Find((byte b) => Command.byteToCmd[b].Equals(t));
+        }
+    }
+
+    public class End : GameEvent
+    {
+        internal const byte EVENT_ID = 13;
+        internal bool primaryLost;
+        internal bool secondaryLost;
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(primaryLost);
+            writer.Write(secondaryLost);
+        }
+        public new static End Deserialize(NetworkReader reader)
+        {
+            End evt = new End();
+            evt.primaryLost = reader.ReadBoolean();
+            evt.secondaryLost = reader.ReadBoolean();
+            return evt;
         }
     }
 }

@@ -233,6 +233,10 @@ public class Interpreter {
                 }
                 eventsThisPriority.Clear();
             }
+            else if (e is GameEvent.End)
+            {
+                log.Info("primary lost - " + ((GameEvent.End)e).primaryLost + ", secondary lost - " + ((GameEvent.End)e).secondaryLost);
+            }
             else
             {
                 uiController.EventTitle.text = "Turn: " + turnNumber;// + " - P " + e.priority;

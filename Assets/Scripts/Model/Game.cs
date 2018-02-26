@@ -155,6 +155,14 @@ public class Game
 
             processBatteryLoss(priorityEvents, (byte)p);
             events.AddRange(priorityEvents);
+            if (primary.battery <= 0 || secondary.battery <= 0)
+            {
+                GameEvent.End e = new GameEvent.End();
+                e.primaryLost = primary.battery <= 0;
+                e.secondaryLost = secondary.battery <= 0;
+                events.Add(e);
+                break;
+            }
         }
         return events;
     }
