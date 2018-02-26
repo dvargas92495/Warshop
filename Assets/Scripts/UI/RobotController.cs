@@ -102,7 +102,7 @@ public class RobotController : MonoBehaviour
         m.SetActive(any);
     }
 
-    private void toggleMenu()
+    internal void toggleMenu()
     {
         if (!canCommand) return;
         if (menu.activeInHierarchy)
@@ -116,7 +116,7 @@ public class RobotController : MonoBehaviour
         }
     }
 
-    private void toggleSubmenu(string command)
+    internal void toggleSubmenu(string command)
     {
         if (!canCommand) return;
         submenu.SetActive(true);
@@ -130,22 +130,28 @@ public class RobotController : MonoBehaviour
             byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
             submenuitem.SetCallback(() =>
             {
-                if (command.Equals(Command.Spawn.DISPLAY))
-                {
-                    addRobotCommand(new Command.Spawn(dir));
-                }
-                else if (command.Equals(Command.Move.DISPLAY))
-                {
-                    addRobotCommand(new Command.Move(dir));
-                } else if (command.Equals(Command.Attack.DISPLAY))
-                {
-                    addRobotCommand(new Command.Attack(dir));
-                }
-                submenu.SetActive(false);
-                toggleMenu();
+                addRobotCommand(command, dir);
             });
             submenuitem.transform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * 90);
         }
+    }
+
+    internal void addRobotCommand(string name, byte dir)
+    {
+        if (name.Equals(Command.Spawn.DISPLAY))
+        {
+            addRobotCommand(new Command.Spawn(dir));
+        }
+        else if (name.Equals(Command.Move.DISPLAY))
+        {
+            addRobotCommand(new Command.Move(dir));
+        }
+        else if (name.Equals(Command.Attack.DISPLAY))
+        {
+            addRobotCommand(new Command.Attack(dir));
+        }
+        submenu.SetActive(false);
+        toggleMenu();
     }
 
     /********************************

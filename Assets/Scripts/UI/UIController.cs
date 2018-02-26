@@ -48,6 +48,42 @@ public class UIController : MonoBehaviour {
             {
                 SceneManager.LoadScene("Initial");
             }
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                UnityEditor.EditorApplication.isPlaying = false;
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+        for (KeyCode i = KeyCode.Alpha1;i < KeyCode.Alpha9; i++)
+        {
+            if (Input.GetKeyDown(i)) Interpreter.SelectRobot(i - KeyCode.Alpha0);
+        }
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Interpreter.ClickMenuItem(Command.Spawn.DISPLAY);
+        } else if (Input.GetKeyDown(KeyCode.M))
+        {
+            Interpreter.ClickMenuItem(Command.Move.DISPLAY);
+        }
+        else if (Input.GetKeyDown(KeyCode.A))
+        {
+            Interpreter.ClickMenuItem(Command.Attack.DISPLAY);
+        }
+        if (Input.GetKeyDown(KeyCode.UpArrow)){
+            Interpreter.ClickSubmenuItem(Command.UP);
+        } else if (Input.GetKeyDown(KeyCode.DownArrow)){
+            Interpreter.ClickSubmenuItem(Command.DOWN);
+        } else if(Input.GetKeyDown(KeyCode.LeftArrow)){
+            Interpreter.ClickSubmenuItem(Command.LEFT);
+        } else if (Input.GetKeyDown(KeyCode.RightArrow)){
+            Interpreter.ClickSubmenuItem(Command.RIGHT);
+        }
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            Interpreter.SubmitActions();
         }
     }
 

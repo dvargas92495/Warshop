@@ -524,22 +524,47 @@ public class Interpreter {
         return Array.Find(robotControllers, (RobotController r) => r.id == id);
     }
 
-    /* Saving this method in case we ever want to format events again
-    private static string FormatEvent(string s)
+    // begin hot key methods
+
+    internal static void SelectRobot(int index)
     {
-        string[] parts = s.Split(' ');
-        for (int i = 0; i < parts.Length; i++)
+        int count = 0;
+        foreach (RobotController robot in robotControllers)
         {
-            if (parts[i].Equals("Robot"))
+            if (robot.canCommand) count++;
+            if (count == index)
             {
-                short id = short.Parse(parts[i + 1]);
-                RobotController r = GetRobot(id);
-                parts[i] = (!r.isOpponent ? "Your" : "Opponent's");
-                parts[i + 1] = r.name;
+                robot.toggleMenu();
+                break;
             }
         }
-        return string.Join(" ", parts);
     }
-    */
+
+    internal static void ClickMenuItem(string name)
+    {
+        foreach (RobotController robot in robotControllers)
+        {
+            if (robot.menu.activeInHierarchy && robot.menu.transform.Find(name).gameObject.activeInHierarchy)
+            {
+                robot.toggleSubmenu(name);
+                break;
+            }
+        }
+    }
+
+    internal static void ClickSubmenuItem(byte dir)
+    {
+        foreach (RobotController robot in robotControllers)
+        {
+            if (robot.submenu.activeInHierarchy)
+            {
+                string name = robot.submenu.GetComponentInChildren<SpriteRenderer>().sprite.name.Split(' ')[0];
+                robot.addRobotCommand(name, dir);
+                break;
+            }
+        }
+    }
+
+    // end hot key methods
 }
 
