@@ -81,29 +81,6 @@ public class Robot
         robot.position.y = reader.ReadInt32();
         return robot;
     }
-    public static Vector2Int OrientationToVector (Orientation orientation)
-    {
-        switch (orientation)
-        {
-            case Orientation.NORTH:
-                return Vector2Int.up;
-            case Orientation.SOUTH:
-                return Vector2Int.down;
-            case Orientation.WEST:
-                return Vector2Int.left;
-            case Orientation.EAST:
-                return Vector2Int.right;
-            default:
-                return Vector2Int.zero;
-        }
-    }
-    public enum Orientation
-    {
-        NORTH,
-        SOUTH,
-        WEST,
-        EAST
-    }
     internal enum Rating
     {
         PLATINUM = 4,

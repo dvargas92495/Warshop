@@ -25,6 +25,9 @@ public abstract class GameEvent
         GameEvent evt;
         switch (eventId)
         {
+            case Spawn.EVENT_ID:
+                evt = Spawn.Deserialize(reader);
+                break;
             case Move.EVENT_ID:
                 evt = Move.Deserialize(reader);
                 break;
@@ -59,8 +62,7 @@ public abstract class GameEvent
                 evt = Resolve.Deserialize(reader);
                 break;
             default:
-                evt = new Empty();
-                break;
+                throw new ZException("Unknown Event Id to deserialize: " + eventId);
         }
         evt.primaryRobotId = reader.ReadInt16();
         evt.priority = reader.ReadByte();
@@ -320,24 +322,15 @@ public abstract class GameEvent
     public class Death: GameEvent
     {
         internal const byte EVENT_ID = 9;
-        internal Vector2Int returnLocation;
-        internal Robot.Orientation returnDir;
         internal short returnHealth;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(returnLocation.x);
-            writer.Write(returnLocation.y);
-            writer.Write((byte)returnDir);
             writer.Write(returnHealth);
         }
         public new static Death Deserialize(NetworkReader reader)
         {
             Death evt = new Death();
-            evt.returnLocation = new Vector2Int();
-            evt.returnLocation.x = reader.ReadInt32();
-            evt.returnLocation.y = reader.ReadInt32();
-            evt.returnDir = (Robot.Orientation)reader.ReadByte();
             evt.returnHealth = reader.ReadInt16();
             return evt;
         }

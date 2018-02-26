@@ -227,7 +227,6 @@ public class Game
                     death.secondaryBattery = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
                     endOfTurnEvents.RemoveAll((GameEvent e) => e.primaryRobotId == r.id);
                     evts.Add(death);
-                    robotIdToTurnObject[r.id].isActive = false;
                 }
             });
             return evts;
@@ -319,10 +318,6 @@ public class Game
         {
             return generateBlockEvent("Battery");
         }
-        if (board.IsQueue(g.destinationPos))
-        {
-            return generateBlockEvent("Queue");
-        }
         if (board.IsSpaceOccupied(g.destinationPos))
         {
             Vector2Int diff = g.destinationPos - g.sourcePos;
@@ -388,9 +383,6 @@ public class Game
                 evt.secondaryBattery += isPrimaryBase ? (short)0: drain;
                 events.Insert(index + 1, evt);
                 hitABattery = true;
-            } else if (board.IsQueue(v))
-            {
-                g.locs = g.locs.Where((Vector2Int vv) => !vv.Equals(v)).ToArray();
             }
         });
         Robot[] victims = Array.FindAll(allRobots, (robot) => g.locs.Contains(robot.position));

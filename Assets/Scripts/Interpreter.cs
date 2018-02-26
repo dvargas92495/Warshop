@@ -86,17 +86,24 @@ public class Interpreter {
 
     private static void InitializeRobots(Game.Player[] playerTurns)
     {
+        boardController.primaryDock.transform.localScale += Vector3.right * (playerTurns[0].team.Length - 1);
+        boardController.secondaryDock.transform.localScale += Vector3.right * (playerTurns[1].team.Length - 1);
+        boardController.primaryDock.transform.position += Vector3.right * (playerTurns[0].team.Length - 1) / 2;
+        boardController.secondaryDock.transform.position += Vector3.left * (playerTurns[1].team.Length - 1) / 2;
+        Transform[] docks = new Transform[] { boardController.primaryDock.transform, boardController.secondaryDock.transform };
         robotControllers = new RobotController[playerTurns[0].team.Length + playerTurns[1].team.Length];
         for (int p = 0; p < playerTurns.Length;p++)
         {
             Game.Player player = playerTurns[p];
+            Transform dock = docks[p];
             for (int i = 0; i < player.team.Length; i++)
             {
-                RobotController r = RobotController.Load(player.team[i]);
+                RobotController r = RobotController.Load(player.team[i], dock);
                 r.isOpponent = p == 1;
                 r.canCommand = !r.isOpponent;
                 r.transform.GetChild(0).GetComponent<SpriteRenderer>().color = (r.isOpponent ? Color.red : Color.blue);
                 robotControllers[playerTurns[0].team.Length * p + i] = r;
+                r.transform.position = dock.position + Vector3.right * (i - dock.localScale.x / 2 + 0.5f);
             }
         }
     }
@@ -147,8 +154,15 @@ public class Interpreter {
     {
         uiController.ClearCommands(rid);
         RobotController r = GetRobot(rid);
-        r.commands.RemoveAt(index);
-        r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, rid));
+        if (r.commands[index] is Command.Spawn)
+        {
+            r.commands.Clear();
+        }
+        else
+        {
+            r.commands.RemoveAt(index);
+            r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, rid));
+        }
     }
 
     public static void PlayEvents(List<GameEvent> events, byte t)
@@ -207,9 +221,13 @@ public class Interpreter {
                     } else if (evt is GameEvent.Death)
                     {
                         GameEvent.Death d = (GameEvent.Death)evt;
-                        primaryRobot.displayMove(d.returnLocation);
                         primaryRobot.displayHealth(d.returnHealth);
                         primaryRobot.gameObject.SetActive(false);
+                    } else if (evt is GameEvent.Spawn)
+                    {
+                        primaryRobot.transform.parent = boardController.transform;
+                        primaryRobot.transform.localScale = new Vector3(0.6f, 0.6f, 1);
+                        primaryRobot.displayMove(((GameEvent.Spawn)evt).destinationPos);
                     }
                     primaryRobot.clearEvents();
                 }
@@ -246,6 +264,9 @@ public class Interpreter {
                 {
                     Vector3 pos = (((GameEvent.Battery)e).isPrimary ? boardController.primaryBatteryLocation : boardController.secondaryBatteryLocation).transform.position;
                     primaryRobot.displayEvent("Damage", new Vector2Int((int)pos.x, (int)pos.y), false);
+                } else if (e is GameEvent.Spawn)
+                {
+                    primaryRobot.displayEvent("", new Vector2Int(((GameEvent.Spawn)e).destinationPos.x, ((GameEvent.Spawn)e).destinationPos.y), false);
                 }
                 log.Info(e.ToString());
                 uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
@@ -382,6 +403,7 @@ public class Interpreter {
                     {
                         string s = (string)bf.Deserialize(ms);
                         byte d = (byte)bf.Deserialize(ms);
+                        if (s.StartsWith(Command.Spawn.DISPLAY)) uiController.addSubmittedCommand(new Command.Spawn(d), r.id);
                         if (s.StartsWith(Command.Move.DISPLAY)) uiController.addSubmittedCommand(new Command.Move(d), r.id);
                         if (s.StartsWith(Command.Attack.DISPLAY)) uiController.addSubmittedCommand(new Command.Attack(d), r.id);
                     }

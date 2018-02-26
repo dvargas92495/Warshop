@@ -9,6 +9,8 @@ public class BoardController : MonoBehaviour {
     public int boardCellsWide;
     public int boardCellsHeight;
     public TileController tile;
+    public SpriteRenderer primaryDock;
+    public SpriteRenderer secondaryDock;
     private List< List<TileController>> allLocations = new List<List<TileController>>();
     internal HashSet<TileController> allQueueLocations = new HashSet<TileController>();
     internal TileController primaryBatteryLocation;
@@ -46,6 +48,8 @@ public class BoardController : MonoBehaviour {
                 row.Add(currentCell);
             }
             allLocations.Add(row);
+            primaryDock.transform.position = new Vector3(0, -1);
+            secondaryDock.transform.position = new Vector3(boardCellsWide - 1, boardCellsHeight);
         }
     }
 		

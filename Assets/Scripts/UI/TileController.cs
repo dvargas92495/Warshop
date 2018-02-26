@@ -21,8 +21,7 @@ public class TileController : MonoBehaviour {
             return BoardController.VOID_TYPE;
         } else if (b.IsQueue(v))
         {
-            //sr.sprite = queueSprites[b.GetQueueIndex(v)];
-            sr.color = Color.yellow;
+            sr.sprite = queueSprites[b.GetQueueIndex(v)];
             return BoardController.QUEUE_TYPE;
         } else if (b.IsBattery(v))
         {

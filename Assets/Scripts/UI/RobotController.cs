@@ -9,7 +9,6 @@ public class RobotController : MonoBehaviour
     public short id { get; protected set; }
     internal bool isOpponent;
     internal bool canCommand;
-    internal bool inTurn;
     internal List<SpriteRenderer> currentEvents = new List<SpriteRenderer>();
     internal List<Command> commands = new List<Command>();
 
@@ -23,9 +22,9 @@ public class RobotController : MonoBehaviour
     internal static Sprite[] robotDir;
 
 
-    public static RobotController Load(Robot robot)
+    public static RobotController Load(Robot robot, Transform dock)
     {
-        RobotController r = Instantiate(robotBase, Interpreter.boardController.transform);
+        RobotController r = Instantiate(robotBase, dock);
         SpriteRenderer sprite = r.GetComponent<SpriteRenderer>();
         sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
         r.name = robot.name;
@@ -79,13 +78,27 @@ public class RobotController : MonoBehaviour
     internal void ShowMenuOptions(GameObject m)
     {
         bool any = false;
-        Command.limit.Keys.ToList().ForEach((Type t) =>
+        if (
+            (transform.parent.Equals(Interpreter.boardController.primaryDock.transform) ||
+            transform.parent.Equals(Interpreter.boardController.secondaryDock.transform)) &&
+            commands.Count == 0
+        )
         {
-            int num = GetNumCommandType(t);
-            bool active = num < Command.limit[t];
-            any = any || active;
-            m.transform.Find(Command.GetDisplay(t)).gameObject.SetActive(active);
-        });
+            for (int i = 1; i < m.transform.childCount; i++) m.transform.GetChild(i).gameObject.SetActive(false);
+            m.transform.Find(Command.Spawn.DISPLAY).gameObject.SetActive(true);
+            any = true;
+        }
+        else
+        {
+            Command.limit.Keys.Where((Type t) => !t.Equals(typeof(Command.Spawn))).ToList().ForEach((Type t) =>
+            {
+                int num = GetNumCommandType(t);
+                bool active = num < Command.limit[t];
+                any = any || active;
+                m.transform.Find(Command.GetDisplay(t)).gameObject.SetActive(active);
+            });
+            m.transform.Find(Command.Spawn.DISPLAY).gameObject.SetActive(false);
+        }
         m.SetActive(any);
     }
 
@@ -111,11 +124,16 @@ public class RobotController : MonoBehaviour
         for (int i = 0; i < submenu.transform.childCount; i++)
         {
             MenuItemController submenuitem = submenu.transform.GetChild(i).GetComponent<MenuItemController>();
-            submenuitem.GetComponent<SpriteRenderer>().sprite = Interpreter.uiController.GetArrow(command + " Arrow");
+            submenuitem.GetComponent<SpriteRenderer>().sprite = command.Equals(Command.Spawn.DISPLAY) ?
+                Interpreter.boardController.tile.queueSprites[i] : Interpreter.uiController.GetArrow(command + " Arrow");
             submenuitem.SetCallback(() =>
             {
                 byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
-                if (command.Equals(Command.Move.DISPLAY))
+                if (command.Equals(Command.Spawn.DISPLAY))
+                {
+                    addRobotCommand(new Command.Spawn(dir));
+                }
+                else if (command.Equals(Command.Move.DISPLAY))
                 {
                     addRobotCommand(new Command.Move(dir));
                 } else if (command.Equals(Command.Attack.DISPLAY))
@@ -157,11 +175,11 @@ public class RobotController : MonoBehaviour
         return short.Parse(AttackLabel.text);
     }
 
-    public void displayEvent(string eventName, Vector2Int targetLoc, bool avg = true)
+    public void displayEvent(string eventName, Vector2Int targetLoc, bool relative = true)
     {
-        Sprite eventType = Interpreter.uiController.GetArrow(eventName);
-        Vector3 loc = avg ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
-        Quaternion rot = Quaternion.LookRotation(Vector3.forward, loc - transform.position);
+        Sprite eventType = eventName.Length == 0 ? GetComponent<SpriteRenderer>().sprite : Interpreter.uiController.GetArrow(eventName);
+        Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
+        Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;
         SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
         addedEvent.sprite = eventType;
         addedEvent.sortingOrder += currentEvents.Count;

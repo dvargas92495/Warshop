@@ -188,9 +188,15 @@ public class UIController : MonoBehaviour {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
             if (!child.Closed() && child.Arrow.sprite == null)
             {
-                child.Arrow.sprite = GetArrow(cmd.ToSpriteString());
                 if (!child.Closed()) child.Open();
-                child.Arrow.rectTransform.localRotation = Quaternion.Euler(Vector3.forward * cmd.direction * 90);
+                if (cmd is Command.Spawn)
+                {
+                    child.Arrow.sprite = Interpreter.boardController.tile.queueSprites[cmd.direction];
+                } else
+                {
+                    child.Arrow.sprite = GetArrow(cmd.ToSpriteString());
+                    child.Arrow.rectTransform.localRotation = Quaternion.Euler(Vector3.forward * cmd.direction * 90);
+                }
                 child.deletable = child.Opened();
                 child.Clickable = false;
                 if (i + 1 < panel.childCount)
@@ -201,7 +207,8 @@ public class UIController : MonoBehaviour {
                 break;
             } else if (child.Arrow.sprite != null)
             {
-                if (child.Arrow.sprite.name.StartsWith(Command.Move.DISPLAY)) powerConsumed += Command.power[typeof(Command.Move)];
+                if (child.Arrow.sprite.name.StartsWith(Command.Spawn.DISPLAY)) powerConsumed += Command.power[typeof(Command.Spawn)];
+                else if (child.Arrow.sprite.name.StartsWith(Command.Move.DISPLAY)) powerConsumed += Command.power[typeof(Command.Move)];
                 else if (child.Arrow.sprite.name.StartsWith(Command.Attack.DISPLAY)) powerConsumed += Command.power[typeof(Command.Attack)];
             }
         }
@@ -217,7 +224,11 @@ public class UIController : MonoBehaviour {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
             if (child.Closed()) continue;
             if (child.Arrow.sprite == null) break;
-            content.Add(new Tuple<string, byte>(child.Arrow.sprite.name, (byte)(child.Arrow.rectTransform.localRotation.eulerAngles.z / 90)));
+            string name = child.Arrow.sprite.name;
+            byte d = name.StartsWith(Command.Spawn.DISPLAY) ? 
+                (byte)Interpreter.boardController.tile.queueSprites.ToList().IndexOf(child.Arrow.sprite) : 
+                (byte)(child.Arrow.rectTransform.localRotation.eulerAngles.z / 90);
+            content.Add(new Tuple<string, byte>(child.Arrow.sprite.name, d));
         }
         return content.ToArray();
     }
@@ -268,6 +279,18 @@ public class UIController : MonoBehaviour {
             boardCamera.transform.position -= Vector3.forward * diff;
             iterations++;
         }
+        float yspace = boardCamera.ViewportToWorldPoint(new Vector3(0, 1, -boardCamera.transform.position.z)).y - boardCamera.ViewportToWorldPoint(Vector3.back * boardCamera.transform.position.z).y;
+        float minusHeight = 1 - (yspace - Interpreter.boardController.boardCellsHeight) / 2;
+        Interpreter.boardController.primaryDock.transform.localScale -= Vector3.up*minusHeight;
+        Interpreter.boardController.secondaryDock.transform.localScale -= Vector3.up * minusHeight;
+        Interpreter.boardController.primaryDock.transform.position += Vector3.up * (minusHeight / 2);
+        Interpreter.boardController.secondaryDock.transform.position += Vector3.down * (minusHeight / 2);
+        Array.ForEach(Interpreter.robotControllers, (RobotController r) =>
+        {
+            Vector3 oldScale = r.transform.localScale;
+            oldScale.x = ((1 - minusHeight) * oldScale.y) / r.transform.parent.localScale.x;
+            r.transform.localScale = oldScale;
+        });
         if (!isPrimary) Interpreter.Flip();
     }
 
