@@ -428,10 +428,14 @@ public class Game
             List<GameEvent> wanted = idsToWantedEvents[key];
             GameEvent.Block block = new GameEvent.Block();
             block.blockingObject = blocker;
-            GameEvent.Move original = wanted.Find((GameEvent e) => e is GameEvent.Move && ((GameEvent.Move)e).destinationPos.Equals(space)) as GameEvent.Move;
-            block.deniedPos = original.destinationPos;
+            GameEvent original = wanted.Find((GameEvent e) => 
+                (e is GameEvent.Move && ((GameEvent.Move)e).destinationPos.Equals(space)) ||
+                (e is GameEvent.Spawn && ((GameEvent.Spawn)e).destinationPos.Equals(space))
+            );
+            block.deniedPos = original is GameEvent.Move ? ((GameEvent.Move)original).destinationPos : ((GameEvent.Spawn)original).destinationPos;
             block.Transfer(original);
-            board.UpdateObjectLocation(original.sourcePos.x, original.sourcePos.y, original.primaryRobotId);
+            if (original is GameEvent.Move) board.UpdateObjectLocation(((GameEvent.Move)original).sourcePos.x, ((GameEvent.Move)original).sourcePos.y, original.primaryRobotId);
+            else board.RemoveObjectLocation(original.primaryRobotId);
             int index = wanted.IndexOf(original);
             int size = wanted.Count - index;
             wanted.GetRange(index, size).ForEach(Invalidate);

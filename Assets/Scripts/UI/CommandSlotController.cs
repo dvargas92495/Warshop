@@ -88,15 +88,22 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
             {
                 Submenu.gameObject.SetActive(true);
                 Menu.gameObject.SetActive(false);
+                bool isSpawn = menuItem.name.Equals(Command.Spawn.DISPLAY);
                 for (int k = 0; k < Submenu.transform.childCount; k++)
                 {
                     MenuItemController submenuitem = Submenu.GetChild(k).GetComponentInChildren<MenuItemController>();
                     Image image = submenuitem.GetComponent<Image>();
-                    image.sprite = Interpreter.uiController.GetArrow(menuItem.name + " Arrow");
+                    image.sprite = isSpawn ? 
+                        Interpreter.boardController.tile.queueSprites[k] : 
+                        Interpreter.uiController.GetArrow(menuItem.name + " Arrow");
                     byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
                     submenuitem.SetCallback(() =>
                     {
-                        if (menuItem.name.Equals(Command.Move.DISPLAY))
+                        if (menuItem.name.Equals(Command.Spawn.DISPLAY))
+                        {
+                            Interpreter.robotControllers[rid].addRobotCommand(new Command.Spawn(dir));
+                        }
+                        else if (menuItem.name.Equals(Command.Move.DISPLAY))
                         {
                             Interpreter.robotControllers[rid].addRobotCommand(new Command.Move(dir));
                         }
@@ -107,7 +114,7 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
                         Submenu.gameObject.SetActive(false);
                         Arrow.gameObject.SetActive(true);
                     });
-                    image.rectTransform.localRotation = Quaternion.Euler(Vector3.forward * dir * 90);
+                    image.rectTransform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * 90);
                 }
             });
         }

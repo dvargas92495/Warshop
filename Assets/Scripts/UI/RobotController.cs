@@ -121,14 +121,15 @@ public class RobotController : MonoBehaviour
         if (!canCommand) return;
         submenu.SetActive(true);
         menu.SetActive(false);
+        bool isSpawn = command.Equals(Command.Spawn.DISPLAY);
         for (int i = 0; i < submenu.transform.childCount; i++)
         {
             MenuItemController submenuitem = submenu.transform.GetChild(i).GetComponent<MenuItemController>();
             submenuitem.GetComponent<SpriteRenderer>().sprite = command.Equals(Command.Spawn.DISPLAY) ?
                 Interpreter.boardController.tile.queueSprites[i] : Interpreter.uiController.GetArrow(command + " Arrow");
+            byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
             submenuitem.SetCallback(() =>
             {
-                byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
                 if (command.Equals(Command.Spawn.DISPLAY))
                 {
                     addRobotCommand(new Command.Spawn(dir));
@@ -143,6 +144,7 @@ public class RobotController : MonoBehaviour
                 submenu.SetActive(false);
                 toggleMenu();
             });
+            submenuitem.transform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * 90);
         }
     }
 
