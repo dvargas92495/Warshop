@@ -235,7 +235,20 @@ public class Interpreter {
             }
             else if (e is GameEvent.End)
             {
-                log.Info("primary lost - " + ((GameEvent.End)e).primaryLost + ", secondary lost - " + ((GameEvent.End)e).secondaryLost);
+                GameEvent.End evt = (GameEvent.End)e;
+                if (evt.primaryLost) boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().sprite = uiController.GetArrow("Damage");
+                if (evt.secondaryLost) boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().sprite = uiController.GetArrow("Damage");
+                if ((isPrimary && evt.primaryLost) || (!isPrimary && evt.secondaryLost))
+                {
+                    uiController.SplashScreen.GetComponentInChildren<Text>().text = "YOU LOSE!";
+                } else
+                {
+                    uiController.SplashScreen.GetComponentInChildren<Text>().text = "YOU WIN!";
+                }
+                uiController.SplashScreen.gameObject.SetActive(true);
+                uiController.SetButtons(false);
+                Array.ForEach(robotControllers, (RobotController r) => r.canCommand = false);
+                myturn = false;
             }
             else
             {
@@ -278,24 +291,28 @@ public class Interpreter {
             }
             yield return new WaitForSeconds(eventDelay);
         }
-        uiController.priorityArrow.SetActive(false);
-        History[turnNumber] = priorityToState;
-        currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0};
-        uiController.EventTitle.text = "Turn: " + (byte)(turnNumber + 1);// " - P " + 0;
-        myturn = true;
-        Array.ForEach(robotControllers, (RobotController r) => {
-            r.canCommand = !r.isOpponent;
-            r.gameObject.SetActive(true);
-            if (GameConstants.LOCAL_MODE || !r.isOpponent)
+        if (!uiController.SplashScreen.gameObject.activeInHierarchy)
+        {
+            uiController.priorityArrow.SetActive(false);
+            History[turnNumber] = priorityToState;
+            currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
+            uiController.EventTitle.text = "Turn: " + (byte)(turnNumber + 1);// " - P " + 0;
+            myturn = true;
+            Array.ForEach(robotControllers, (RobotController r) =>
             {
-                uiController.ClearCommands(r.id);
-            }
-            r.commands.Clear();
-        });
-        uiController.SetButtons(true);
-        uiController.LightUpPanel(false, true);
-        uiController.LightUpPanel(false, false);
-        presentState = SerializeState(-1);
+                r.canCommand = !r.isOpponent;
+                r.gameObject.SetActive(true);
+                if (GameConstants.LOCAL_MODE || !r.isOpponent)
+                {
+                    uiController.ClearCommands(r.id);
+                }
+                r.commands.Clear();
+            });
+            uiController.SetButtons(true);
+            uiController.LightUpPanel(false, true);
+            uiController.LightUpPanel(false, false);
+            presentState = SerializeState(-1);
+        }
     }
 
     public static void DestroyCommandMenu()
