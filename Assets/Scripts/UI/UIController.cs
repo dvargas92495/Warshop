@@ -27,7 +27,6 @@ public class UIController : MonoBehaviour {
     public Button StepBackButton;
     public Button StepForwardButton;
     public Button BackToPresent;
-    public Text EventTitle;
     public Image SplashScreen;
     
     public Sprite[] sprites;

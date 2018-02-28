@@ -260,7 +260,6 @@ public class Interpreter {
             }
             else
             {
-                uiController.EventTitle.text = "Turn: " + turnNumber;// + " - P " + e.priority;
                 uiController.SetPriority(e.priority);
                 RobotController primaryRobot = GetRobot(e.primaryRobotId);
                 if (e is GameEvent.Move)
@@ -304,7 +303,6 @@ public class Interpreter {
             uiController.priorityArrow.SetActive(false);
             History[turnNumber] = priorityToState;
             currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
-            uiController.EventTitle.text = "Turn: " + (byte)(turnNumber + 1);// " - P " + 0;
             myturn = true;
             Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) =>
             {
@@ -380,7 +378,6 @@ public class Interpreter {
             }
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
-            bf.Serialize(ms, uiController.EventTitle.text);
             bf.Serialize(ms, priority);
             return ms.ToArray();
         }
@@ -441,7 +438,6 @@ public class Interpreter {
             int userBattery = (int)bf.Deserialize(ms);
             int opponentBattery = (int)bf.Deserialize(ms);
             uiController.SetBattery(userBattery, opponentBattery);
-            uiController.EventTitle.text = (string)bf.Deserialize(ms);
             uiController.SetPriority((int)bf.Deserialize(ms));
         }
     }
