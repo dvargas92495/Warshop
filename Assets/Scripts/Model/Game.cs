@@ -208,7 +208,7 @@ public class Game
             valid = true;
             idsToWantedEvents.Keys.ToList().ForEach((short id) =>
             {
-                valid = Validate(idsToWantedEvents[id]);
+                valid = valid && Validate(idsToWantedEvents[id]);
             });
             if (!valid) continue;
             valid = AreValidTogether(idsToWantedEvents);
