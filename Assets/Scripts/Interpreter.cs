@@ -105,6 +105,7 @@ public class Interpreter {
                 r.transform.GetChild(0).GetComponent<SpriteRenderer>().color = (r.isOpponent ? Color.red : Color.blue);
                 robotControllers[r.id] = r;
                 r.transform.position = dock.position + Vector3.right * (i - dock.localScale.x / 2 + 0.5f);
+                r.transform.localScale -= Vector3.right * ((player.team.Length - 1.0f)/player.team.Length) * r.transform.localScale.x;
             }
         }
     }
@@ -143,12 +144,6 @@ public class Interpreter {
         }
         myturn = false;
         GameClient.SendSubmitCommands(commands, username);
-    }
-
-    public static void Flip()
-    {
-        Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.transform.Rotate(Vector3.forward, 180));
-        uiController.Flip();
     }
 
     public static void DeleteCommand(short rid, int index)

@@ -309,51 +309,21 @@ public class UIController : MonoBehaviour {
         float xMin = UsersRobots.transform.parent.GetComponent<RectTransform>().anchorMax.x;
         float xMax = OpponentsRobots.transform.parent.GetComponent<RectTransform>().anchorMin.x;
         boardCamera.rect = new Rect(xMin, 0, xMax - xMin, 1);
-        boardCamera.transform.localPosition = new Vector3(Interpreter.boardController.boardCellsWide-1, Interpreter.boardController.boardCellsHeight-1,-20)/2;
-        int iterations = 0;
-        float diff;
-        while (iterations < 20)
-        {
-            diff = (boardCamera.ViewportToWorldPoint(Vector3.back * boardCamera.transform.position.z).x + 0.5f);
-            if (diff == 0) break;
-            boardCamera.transform.position -= Vector3.forward * diff;
-            iterations++;
-        }
-        float yspace = boardCamera.ViewportToWorldPoint(new Vector3(0, 1, -boardCamera.transform.position.z)).y - boardCamera.ViewportToWorldPoint(Vector3.back * boardCamera.transform.position.z).y;
-        float minusHeight = 1 - (yspace - Interpreter.boardController.boardCellsHeight) / 2;
-        Interpreter.boardController.primaryDock.transform.localScale -= Vector3.up*minusHeight;
-        Interpreter.boardController.secondaryDock.transform.localScale -= Vector3.up * minusHeight;
-        Interpreter.boardController.primaryDock.transform.position += Vector3.up * (minusHeight / 2);
-        Interpreter.boardController.secondaryDock.transform.position += Vector3.down * (minusHeight / 2);
-        Array.ForEach(Interpreter.robotControllers.Values.ToArray(), (RobotController r) =>
-        {
-            Vector3 oldScale = r.transform.localScale;
-            oldScale.x = ((1 - minusHeight) * oldScale.y) / r.transform.parent.localScale.x;
-            r.transform.localScale = oldScale;
-        });
         if (!isPrimary)
         {
             Color tmp = Interpreter.boardController.primaryDock.color;
             Interpreter.boardController.primaryDock.color = Interpreter.boardController.secondaryDock.color;
             Interpreter.boardController.secondaryDock.color = tmp;
-            Interpreter.Flip();
+            Array.ForEach(Interpreter.robotControllers.Values.ToArray(), (RobotController r) => r.transform.Rotate(Vector3.forward, 180));
+            boardCamera.transform.Rotate(new Vector3(0, 0, 180));
+            Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
+            {
+                //t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
+                //t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
+            });
+            userScore.transform.Rotate(Vector3.forward, 180);
+            opponentScore.transform.Rotate(Vector3.forward, 180);
         }
-    }
-
-    public void Flip()
-    {
-        boardCamera.transform.Rotate(new Vector3(0, 0, 180));
-        Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
-        {
-            //t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
-            //t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
-        });
-        //Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipX = !Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipX;
-        //Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipY = !Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipY;
-        //Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipX = !Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipX;
-        //Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipY = !Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipY;
-        userScore.transform.Rotate(Vector3.forward, 180);
-        opponentScore.transform.Rotate(Vector3.forward, 180);
     }
 
     public void SetButtons(bool b)
