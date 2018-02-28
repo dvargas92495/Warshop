@@ -2,7 +2,7 @@
 
 public class TileController : MonoBehaviour {
 
-    public Sprite battery;
+    public GameObject battery;
     public Sprite[] queueSprites;
     public Sprite defaultSpace;
 
@@ -24,7 +24,10 @@ public class TileController : MonoBehaviour {
             return BoardController.QUEUE_TYPE;
         } else if (b.IsBattery(v))
         {
-            //sr.sprite = battery;
+            GameObject Battery = Instantiate(battery, transform);
+            Battery.transform.localRotation = Quaternion.Euler(Vector3.left * 90);
+            Battery.transform.localPosition = Vector3.back * 0.5f;
+            Battery.transform.localScale += Vector3.up * ((1 / transform.localScale.z) - 1);
             return BoardController.BATTERY_TYPE;
         } else
         {

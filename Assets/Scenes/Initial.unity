@@ -1578,7 +1578,7 @@ MonoBehaviour:
   keys: {fileID: 4900000, guid: 1bde21f1d884b95459415aeb632bf441, type: 3}
   localModeToggle: {fileID: 413148677}
   useServerToggle: {fileID: 1772817137}
-  playtest: {fileID: 0}
+  playtest: {fileID: 4900000, guid: 56e3325a1a85dcb40b8cb9f8d8febd5f, type: 3}
   boardfiles:
   - {fileID: 4900000, guid: e3fc191eedea8f343a82bbf5f9a1e104, type: 3}
   robotBase: {fileID: 114303540073418012, guid: 80728159308e23b4d9f9bfbb0e53167d,
