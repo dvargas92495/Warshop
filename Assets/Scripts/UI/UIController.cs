@@ -345,13 +345,13 @@ public class UIController : MonoBehaviour {
         boardCamera.transform.Rotate(new Vector3(0, 0, 180));
         Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
         {
-            t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
-            t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
+            //t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
+            //t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
         });
-        Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipX = !Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipX;
-        Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipY = !Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipY;
-        Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipX = !Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipX;
-        Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipY = !Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipY;
+        //Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipX = !Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipX;
+        //Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipY = !Interpreter.boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().flipY;
+        //Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipX = !Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipX;
+        //Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipY = !Interpreter.boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().flipY;
         userScore.transform.Rotate(Vector3.forward, 180);
         opponentScore.transform.Rotate(Vector3.forward, 180);
     }

@@ -14,22 +14,21 @@ public class TileController : MonoBehaviour {
     public byte LoadTile(Map b, int x, int y)
     {
         Vector2Int v = new Vector2Int(x, y);
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        sr.sprite = defaultSpace;
+        //sr.sprite = defaultSpace;
         if (b.IsVoid(v)) {
-            sr.color = Color.black;
+            //sr.color = Color.black;
             return BoardController.VOID_TYPE;
         } else if (b.IsQueue(v))
         {
-            sr.sprite = queueSprites[b.GetQueueIndex(v)];
+            //sr.sprite = queueSprites[b.GetQueueIndex(v)];
             return BoardController.QUEUE_TYPE;
         } else if (b.IsBattery(v))
         {
-            sr.sprite = battery;
+            //sr.sprite = battery;
             return BoardController.BATTERY_TYPE;
         } else
         {
-            sr.color = Color.white;
+            //sr.color = Color.white;
             return BoardController.BLANK_TYPE;
         }
     }
