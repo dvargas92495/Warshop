@@ -12,6 +12,7 @@ public class RobotController : MonoBehaviour
     internal List<SpriteRenderer> currentEvents = new List<SpriteRenderer>();
     internal List<Command> commands = new List<Command>();
 
+    public GameObject DefaultModel;
     public GameObject menu;
     public GameObject submenu;
     public SpriteRenderer eventArrow;
@@ -25,11 +26,9 @@ public class RobotController : MonoBehaviour
     public static RobotController Load(Robot robot, Transform dock)
     {
         RobotController r = Instantiate(robotBase, dock);
-        SpriteRenderer sprite = r.GetComponent<SpriteRenderer>();
-        sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(robot.name));
+        r.LoadModel(robot.name);
         r.name = robot.name;
         r.id = robot.id;
-        r.displayMove(robot.position);
         r.displayHealth(robot.health);
         r.displayAttack(robot.attack);
         r.HealthLabel.GetComponent<MeshRenderer>().sortingOrder = r.HealthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
@@ -41,6 +40,13 @@ public class RobotController : MonoBehaviour
         }
         return r;
     }
+
+    public void LoadModel(string n)
+    {
+        GameObject model = Instantiate(DefaultModel, transform);
+        SpriteRenderer sprite = model.GetComponentInChildren<SpriteRenderer>();
+        sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(n));
+    }
     
     /************************
      * Robot Event Handlers *
@@ -51,7 +57,7 @@ public class RobotController : MonoBehaviour
         
     }
 
-    void OnMouseUp()
+    private void OnMouseUp()
     {
         toggleMenu();
     }
@@ -77,29 +83,31 @@ public class RobotController : MonoBehaviour
 
     internal void ShowMenuOptions(GameObject m)
     {
-        bool any = false;
         if (
             (transform.parent.Equals(Interpreter.boardController.primaryDock.transform) ||
             transform.parent.Equals(Interpreter.boardController.secondaryDock.transform)) &&
             commands.Count == 0
         )
         {
-            for (int i = 1; i < m.transform.childCount; i++) m.transform.GetChild(i).gameObject.SetActive(false);
-            m.transform.Find(Command.Spawn.DISPLAY).gameObject.SetActive(true);
-            any = true;
+            Command.limit.Keys.ToList().ForEach((Type t) =>
+            {
+                m.transform.Find(Command.GetDisplay(t)).gameObject.SetActive(t.Equals(typeof(Command.Spawn)));
+            });
         }
         else
         {
-            Command.limit.Keys.Where((Type t) => !t.Equals(typeof(Command.Spawn))).ToList().ForEach((Type t) =>
+            Command.limit.Keys.ToList().ForEach((Type t) =>
             {
                 int num = GetNumCommandType(t);
                 bool active = num < Command.limit[t];
-                any = any || active;
-                m.transform.Find(Command.GetDisplay(t)).gameObject.SetActive(active);
+                MenuItemController item = m.transform.Find(Command.GetDisplay(t)).GetComponent<MenuItemController>();
+                item.gameObject.SetActive(!t.Equals(typeof(Command.Spawn)));
+                if (active) item.Activate();
+                else item.Deactivate();
             });
             m.transform.Find(Command.Spawn.DISPLAY).gameObject.SetActive(false);
         }
-        m.SetActive(any);
+        m.gameObject.SetActive(true);
     }
 
     internal void toggleMenu()
@@ -184,8 +192,9 @@ public class RobotController : MonoBehaviour
 
     public void displayEvent(string eventName, Vector2Int targetLoc, bool relative = true)
     {
-        Sprite eventType = eventName.Length == 0 ? GetComponent<SpriteRenderer>().sprite : Interpreter.uiController.GetArrow(eventName);
+        Sprite eventType = eventName.Length == 0 ? GetComponentInChildren<SpriteRenderer>().sprite : Interpreter.uiController.GetArrow(eventName);
         Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
+        loc.z = transform.position.z;
         Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;
         SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
         addedEvent.sprite = eventType;

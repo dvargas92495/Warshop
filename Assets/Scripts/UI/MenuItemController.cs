@@ -6,23 +6,28 @@ using UnityEngine.EventSystems;
 public class MenuItemController : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler {
 
     Action callback;
+    internal Color inactiveColor = new Color(0.25f, 0.25f, 0.25f);
     internal Color onHover = Color.gray;
     internal Color offHover = Color.white;
+    private bool inactive;
 
     void OnMouseEnter()
     {
-        GetComponent<SpriteRenderer>().color = onHover;
+        if (!inactive) GetComponent<SpriteRenderer>().color = onHover;
     }
 
     void OnMouseExit()
     {
-        GetComponent<SpriteRenderer>().color = offHover;
+        if (!inactive) GetComponent<SpriteRenderer>().color = offHover;
     }
 
     void OnMouseUp()
     {
-        GetComponent<SpriteRenderer>().color = offHover;
-        callback();
+        if (!inactive)
+        {
+            GetComponent<SpriteRenderer>().color = offHover;
+            callback();
+        }
     }
 
     public void SetCallback(Action c)
@@ -32,17 +37,46 @@ public class MenuItemController : MonoBehaviour, IPointerClickHandler, IPointerE
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        GetComponent<Image>().color = offHover;
-        callback();
+
+        if (!inactive)
+        {
+            GetComponent<Image>().color = offHover;
+            callback();
+        }
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        GetComponent<Image>().color = onHover;
+        if (!inactive) GetComponent<Image>().color = onHover;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        GetComponent<Image>().color = offHover;
+        if (!inactive) GetComponent<Image>().color = offHover;
+    }
+
+    public void Deactivate()
+    {
+        inactive = true;
+        if (GetComponent<SpriteRenderer>() != null)
+        {
+            GetComponent<SpriteRenderer>().color = inactiveColor;
+        } else
+        {
+            GetComponent<Image>().color = inactiveColor;
+        }
+    }
+
+    public void Activate()
+    {
+        inactive = false;
+        if (GetComponent<SpriteRenderer>() != null)
+        {
+            GetComponent<SpriteRenderer>().color = offHover;
+        }
+        else
+        {
+            GetComponent<Image>().color = offHover;
+        }
     }
 }

@@ -60,7 +60,7 @@ public class BoardController : MonoBehaviour {
             return;
         }
         TileController loc = allLocations[y][x];
-        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y);
+        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -tile.transform.localScale.z);
     }
 
     public TileController GetVoidTile(bool isUser)

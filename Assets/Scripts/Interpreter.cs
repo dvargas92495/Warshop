@@ -223,13 +223,9 @@ public class Interpreter {
                             boardController.secondaryDock.transform : boardController.primaryDock.transform;
                         primaryRobot.transform.position = dock.position + Vector3.right * (dock.childCount - dock.localScale.x / 2 + 0.5f);
                         primaryRobot.transform.parent = dock;
-                        Vector3 newScale = new Vector3(0.6f,0.6f,1);
-                        newScale.x = (dock.localScale.y * newScale.y) / dock.localScale.x;
-                        primaryRobot.transform.localScale = newScale;
                     } else if (evt is GameEvent.Spawn)
                     {
                         primaryRobot.transform.parent = boardController.transform;
-                        primaryRobot.transform.localScale = new Vector3(0.6f, 0.6f, 1);
                         primaryRobot.displayMove(((GameEvent.Spawn)evt).destinationPos);
                     }
                     primaryRobot.clearEvents();
