@@ -12,6 +12,7 @@ public class BoardController : MonoBehaviour {
     public GameObject primaryDock;
     public GameObject secondaryDock;
     public GameObject Platform;
+    public Light CeilingLight;
     private List< List<TileController>> allLocations = new List<List<TileController>>();
     internal HashSet<TileController> allQueueLocations = new HashSet<TileController>();
     internal TileController primaryBatteryLocation;
@@ -51,6 +52,15 @@ public class BoardController : MonoBehaviour {
             allLocations.Add(row);
             primaryDock.transform.position = new Vector3(0, -1);
             secondaryDock.transform.position = new Vector3(boardCellsWide - 1, boardCellsHeight);
+        }
+
+        for (int y = 1; y< boardCellsHeight; y+=2)
+        {
+            for (int x = 1; x < boardCellsWide; x+=2)
+            {
+                Light l = Instantiate(CeilingLight, transform);
+                l.transform.position += new Vector3(x- 0.5f, y);
+            }
         }
     }
 		
