@@ -311,10 +311,6 @@ public class UIController : MonoBehaviour {
         boardCamera.rect = new Rect(xMin, 0, xMax - xMin, 1);
         if (!isPrimary)
         {
-            Color tmp = Interpreter.boardController.primaryDock.color;
-            Interpreter.boardController.primaryDock.color = Interpreter.boardController.secondaryDock.color;
-            Interpreter.boardController.secondaryDock.color = tmp;
-            Array.ForEach(Interpreter.robotControllers.Values.ToArray(), (RobotController r) => r.transform.Rotate(Vector3.forward, 180));
             boardCamera.transform.Rotate(new Vector3(0, 0, 180));
             Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
             {

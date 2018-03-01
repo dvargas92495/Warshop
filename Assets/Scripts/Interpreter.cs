@@ -86,10 +86,6 @@ public class Interpreter {
 
     private static void InitializeRobots(Game.Player[] playerTurns)
     {
-        boardController.primaryDock.transform.localScale += Vector3.right * (playerTurns[isPrimary ? 0 : 1].team.Length - 1);
-        boardController.secondaryDock.transform.localScale += Vector3.right * (playerTurns[isPrimary ? 1 : 0].team.Length - 1);
-        boardController.primaryDock.transform.position += Vector3.right * (playerTurns[isPrimary ? 0 : 1].team.Length - 1) / 2;
-        boardController.secondaryDock.transform.position += Vector3.left * (playerTurns[isPrimary ? 1 : 0].team.Length - 1) / 2;
         Transform[] docks = isPrimary ? new Transform[] { boardController.primaryDock.transform, boardController.secondaryDock.transform } :
             new Transform[] { boardController.secondaryDock.transform, boardController.primaryDock.transform };
         robotControllers = new Dictionary<short, RobotController>();
@@ -104,9 +100,10 @@ public class Interpreter {
                 r.canCommand = !r.isOpponent;
                 r.transform.GetChild(0).GetComponent<SpriteRenderer>().color = (r.isOpponent ? Color.red : Color.blue);
                 robotControllers[r.id] = r;
-                r.transform.position = dock.position + Vector3.right * (i - dock.localScale.x / 2 + 0.5f);
-                r.transform.localScale -= Vector3.right * ((player.team.Length - 1.0f)/player.team.Length) * r.transform.localScale.x;
+                r.transform.position = boardController.PlacePlatform(dock, i);
+                r.transform.rotation = Quaternion.Euler(0, 0, isPrimary ? 0 : 180);
             }
+
         }
     }
 

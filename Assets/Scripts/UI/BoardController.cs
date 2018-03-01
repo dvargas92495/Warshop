@@ -9,8 +9,9 @@ public class BoardController : MonoBehaviour {
     public int boardCellsWide;
     public int boardCellsHeight;
     public TileController tile;
-    public SpriteRenderer primaryDock;
-    public SpriteRenderer secondaryDock;
+    public GameObject primaryDock;
+    public GameObject secondaryDock;
+    public GameObject Platform;
     private List< List<TileController>> allLocations = new List<List<TileController>>();
     internal HashSet<TileController> allQueueLocations = new HashSet<TileController>();
     internal TileController primaryBatteryLocation;
@@ -60,12 +61,19 @@ public class BoardController : MonoBehaviour {
             return;
         }
         TileController loc = allLocations[y][x];
-        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -tile.transform.localScale.z);
+        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -tile.transform.localScale.z*0.501f);
     }
 
     public TileController GetVoidTile(bool isUser)
-    { //TODO - hacky
+    {
         return isUser ? primaryVoidLocation : secondaryVoidLocation;
+    }
+
+    public Vector3 PlacePlatform(Transform t, int i)
+    {
+        GameObject p = Instantiate(Platform, t);
+        p.transform.localPosition += Vector3.right * i;
+        return p.transform.position + Vector3.back* tile.transform.localScale.z * 0.501f;
     }
 
 }
