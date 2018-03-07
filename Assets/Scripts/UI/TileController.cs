@@ -3,6 +3,7 @@
 public class TileController : MonoBehaviour {
 
     public GameObject battery;
+    public GameObject QueueMarker;
     public Sprite[] queueSprites;
     public Sprite defaultSpace;
 
@@ -21,6 +22,8 @@ public class TileController : MonoBehaviour {
         } else if (b.IsQueue(v))
         {
             //sr.sprite = queueSprites[b.GetQueueIndex(v)];
+            GameObject marker = Instantiate(QueueMarker, transform);
+            marker.transform.localPosition = Vector3.back * 0.501f;
             return BoardController.QUEUE_TYPE;
         } else if (b.IsBattery(v))
         {
