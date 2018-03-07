@@ -58,29 +58,34 @@ public class UIController : MonoBehaviour {
         {
             Application.Quit();
         }
-        for (KeyCode i = KeyCode.Alpha1;i < KeyCode.Alpha9; i++)
+        MenuItemController[] mics = RobotButtonContainer.GetComponentsInChildren<MenuItemController>();
+        for (int i = 0; i < mics.Length; i++)
         {
-            if (Input.GetKeyDown(i)) Interpreter.SelectRobot(i - KeyCode.Alpha0);
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i)) mics[i].Click();
         }
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            Interpreter.ClickMenuItem(Command.Spawn.DISPLAY);
+            CommandButtonContainer.GetComponentsInChildren<MenuItemController>()[0].Click();
         } else if (Input.GetKeyDown(KeyCode.M))
         {
-            Interpreter.ClickMenuItem(Command.Move.DISPLAY);
+            CommandButtonContainer.GetComponentsInChildren<MenuItemController>()[1].Click();
         }
         else if (Input.GetKeyDown(KeyCode.A))
         {
-            Interpreter.ClickMenuItem(Command.Attack.DISPLAY);
+            CommandButtonContainer.GetComponentsInChildren<MenuItemController>()[2].Click();
         }
-        if (Input.GetKeyDown(KeyCode.UpArrow)){
-            Interpreter.ClickSubmenuItem(Command.UP);
-        } else if (Input.GetKeyDown(KeyCode.DownArrow)){
-            Interpreter.ClickSubmenuItem(Command.DOWN);
-        } else if(Input.GetKeyDown(KeyCode.LeftArrow)){
-            Interpreter.ClickSubmenuItem(Command.LEFT);
-        } else if (Input.GetKeyDown(KeyCode.RightArrow)){
-            Interpreter.ClickSubmenuItem(Command.RIGHT);
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            DirectionButtonContainer.GetComponentsInChildren<MenuItemController>()[0].Click();
+        } else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            DirectionButtonContainer.GetComponentsInChildren<MenuItemController>()[1].Click();
+        } else if(Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            DirectionButtonContainer.GetComponentsInChildren<MenuItemController>()[2].Click();
+        } else if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            DirectionButtonContainer.GetComponentsInChildren<MenuItemController>()[3].Click();
         }
         if (Input.GetKeyDown(KeyCode.Return))
         {
@@ -359,9 +364,9 @@ public class UIController : MonoBehaviour {
         return int.Parse(opponentScore.text);
     }
 
-    private void EachMenuItem(GameObject g, Action<MenuItemController> a)
+    internal void EachMenuItem(GameObject g, Action<MenuItemController> a)
     {
-        g.GetComponentsInChildren<MenuItemController>().ToList().ForEach(a);
+        g.GetComponentsInChildren<MenuItemController>(true).ToList().ForEach(a);
     }
 
     private void EachMenuItemSet(GameObject g, Action<string> a)
@@ -378,31 +383,7 @@ public class UIController : MonoBehaviour {
 
     public void SetButtons(bool b)
     {
-        if (b)
-        {
-            SubmitCommands.Activate();
-            BackToPresent.Activate();
-            StepBackButton.Activate();
-            StepForwardButton.Activate();
-        } else
-        {
-            SubmitCommands.Deactivate();
-            BackToPresent.Deactivate();
-            StepBackButton.Deactivate();
-            StepForwardButton.Deactivate();
-        }
-    }
-
-    public void SetSubmitButton(bool b)
-    {
-        if (b)
-        {
-            SubmitCommands.Activate();
-        }
-        else
-        {
-            SubmitCommands.Deactivate();
-        }
+        SetButtons(SubmitCommands.transform.parent.gameObject, b);
     }
 
     public void LightUpPanel(bool bright, bool isUser)

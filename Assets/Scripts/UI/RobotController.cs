@@ -13,8 +13,6 @@ public class RobotController : MonoBehaviour
     internal List<Command> commands = new List<Command>();
 
     public GameObject DefaultModel;
-    public GameObject menu;
-    public GameObject submenu;
     public SpriteRenderer eventArrow;
     public TextMesh HealthLabel;
     public TextMesh AttackLabel;
@@ -33,11 +31,6 @@ public class RobotController : MonoBehaviour
         r.displayAttack(robot.attack);
         r.HealthLabel.GetComponent<MeshRenderer>().sortingOrder = r.HealthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
         r.AttackLabel.GetComponent<MeshRenderer>().sortingOrder = r.AttackLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
-        for (int i = 0; i < r.menu.transform.childCount; i++)
-        {
-            MenuItemController menuitem = r.menu.transform.GetChild(i).GetComponent<MenuItemController>();
-            menuitem.SetCallback(() => r.toggleSubmenu(menuitem.name));
-        }
         return r;
     }
 
@@ -48,20 +41,6 @@ public class RobotController : MonoBehaviour
         sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(n));
     }
     
-    /************************
-     * Robot Event Handlers *
-     ************************/
-
-    void FixedUpdate()
-    {
-        
-    }
-
-    private void OnMouseUp()
-    {
-        toggleMenu();
-    }
-
     /***********************************
      * Robot Model Before Turn Methods *
      ***********************************/
@@ -103,39 +82,6 @@ public class RobotController : MonoBehaviour
                 MenuItemController item = m.transform.Find(Command.GetDisplay(t)).GetComponent<MenuItemController>();
                 item.SetActive(active);
             });
-        }
-    }
-
-    internal void toggleMenu()
-    {
-        if (!canCommand) return;
-        if (menu.activeInHierarchy)
-        {
-            menu.SetActive(false);
-        } else
-        {
-            Interpreter.DestroyCommandMenu();
-            ShowMenuOptions(menu);
-        }
-    }
-
-    internal void toggleSubmenu(string command)
-    {
-        if (!canCommand) return;
-        submenu.SetActive(true);
-        menu.SetActive(false);
-        bool isSpawn = command.Equals(Command.Spawn.DISPLAY);
-        for (int i = 0; i < submenu.transform.childCount; i++)
-        {
-            MenuItemController submenuitem = submenu.transform.GetChild(i).GetComponent<MenuItemController>();
-            submenuitem.GetComponent<SpriteRenderer>().sprite = command.Equals(Command.Spawn.DISPLAY) ?
-                Interpreter.boardController.tile.queueSprites[i] : Interpreter.uiController.GetArrow(command + " Arrow");
-            byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
-            submenuitem.SetCallback(() =>
-            {
-                addRobotCommand(command, dir);
-            });
-            submenuitem.transform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * 90);
         }
     }
 
@@ -188,7 +134,7 @@ public class RobotController : MonoBehaviour
     {
         Sprite eventType = eventName.Length == 0 ? GetComponentInChildren<SpriteRenderer>().sprite : Interpreter.uiController.GetArrow(eventName);
         Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
-        loc.z = menu.transform.position.z;
+        loc.z = -1;
         Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;
         SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
         addedEvent.sprite = eventType;

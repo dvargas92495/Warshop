@@ -7,11 +7,6 @@ public class TileController : MonoBehaviour {
     public Sprite[] queueSprites;
     public Sprite defaultSpace;
 
-    public void OnMouseUp()
-    {
-        Interpreter.DestroyCommandMenu();
-    }
-
     public byte LoadTile(Map b, int x, int y)
     {
         Vector2Int v = new Vector2Int(x, y);

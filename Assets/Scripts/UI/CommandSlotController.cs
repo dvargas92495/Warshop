@@ -55,11 +55,12 @@ public class CommandSlotController : MonoBehaviour {
         deletable = false;
         myClick = () =>
         {
-            Interpreter.DestroyCommandMenu();
             if (deletable)
             {
                 Interpreter.DeleteCommand(rid, p - i);
-                Interpreter.DestroyCommandMenu();
+                Interpreter.uiController.SetButtons(Interpreter.uiController.RobotButtonContainer, true);
+                Interpreter.uiController.SetButtons(Interpreter.uiController.CommandButtonContainer, false);
+                Interpreter.uiController.SetButtons(Interpreter.uiController.DirectionButtonContainer, false);
                 deletable = !Arrow.sprite.Equals(Interpreter.uiController.Default);
                 Delete.gameObject.SetActive(deletable);
             }

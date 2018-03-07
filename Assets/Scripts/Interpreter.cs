@@ -109,7 +109,6 @@ public class Interpreter {
 
     public static void SubmitActions()
     {
-        DestroyCommandMenu();
         if (!GameConstants.LOCAL_MODE && !myturn)
         {
             return;
@@ -133,10 +132,17 @@ public class Interpreter {
         if (GameConstants.LOCAL_MODE)
         {
             Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.canCommand = r.isOpponent && myturn);
+            uiController.EachMenuItem(uiController.RobotButtonContainer, (MenuItemController m) =>
+            {
+                m.gameObject.SetActive(!m.gameObject.activeInHierarchy);
+            });
         } else
         {
             uiController.SetButtons(false);
+            uiController.SetButtons(uiController.RobotButtonContainer, false);
         }
+        uiController.SetButtons(uiController.CommandButtonContainer, false);
+        uiController.SetButtons(uiController.DirectionButtonContainer, false);
         myturn = false;
         GameClient.SendSubmitCommands(commands, username);
     }
@@ -163,6 +169,9 @@ public class Interpreter {
         if (GameConstants.LOCAL_MODE)
         {
             uiController.SetButtons(false);
+            uiController.SetButtons(uiController.RobotButtonContainer, false);
+            uiController.SetButtons(uiController.CommandButtonContainer, false);
+            uiController.SetButtons(uiController.DirectionButtonContainer, false);
             uiController.LightUpPanel(true, true);
         }
         foreach (RobotController robot in robotControllers.Values)
@@ -294,28 +303,11 @@ public class Interpreter {
                 r.commands.Clear();
             });
             uiController.SetButtons(true);
+            uiController.SetButtons(uiController.RobotButtonContainer, true);
             uiController.LightUpPanel(false, true);
             uiController.LightUpPanel(false, false);
             presentState = SerializeState(-1);
         }
-    }
-
-    public static void DestroyCommandMenu()
-    {
-        foreach (RobotController robot in robotControllers.Values)
-        {
-            if (robot.menu.activeInHierarchy)
-            {
-                robot.menu.SetActive(false);
-                break;
-            }
-            if (robot.submenu.activeInHierarchy)
-            {
-                robot.submenu.SetActive(false);
-                break;
-            }
-        }
-        uiController.DestroyCommandMenu();
     }
 
     private static byte[] SerializeState(int priority)
@@ -431,7 +423,8 @@ public class Interpreter {
             r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, r.id));
             r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
-        uiController.SetSubmitButton(true);
+        uiController.SubmitCommands.SetActive(true);
+        uiController.SetButtons(uiController.RobotButtonContainer, true);
     }
 
     public static void StepForward()
@@ -519,56 +512,16 @@ public class Interpreter {
                 }
             }
         }
-        uiController.SetSubmitButton(false);
-        DestroyCommandMenu();
+        uiController.SubmitCommands.SetActive(false);
+        uiController.SetButtons(uiController.RobotButtonContainer, false);
+        uiController.SetButtons(uiController.CommandButtonContainer, false);
+        uiController.SetButtons(uiController.DirectionButtonContainer, false);
     }
 
     private static RobotController GetRobot(short id)
     {
         return Array.Find(robotControllers.Values.ToArray(), (RobotController r) => r.id == id);
     }
-
-    // begin hot key methods
-
-    internal static void SelectRobot(int index)
-    {
-        int count = 0;
-        foreach (RobotController robot in robotControllers.Values)
-        {
-            if (robot.canCommand) count++;
-            if (count == index)
-            {
-                robot.toggleMenu();
-                break;
-            }
-        }
-    }
-
-    internal static void ClickMenuItem(string name)
-    {
-        foreach (RobotController robot in robotControllers.Values)
-        {
-            if (robot.menu.activeInHierarchy && robot.menu.transform.Find(name).gameObject.activeInHierarchy)
-            {
-                robot.toggleSubmenu(name);
-                break;
-            }
-        }
-    }
-
-    internal static void ClickSubmenuItem(byte dir)
-    {
-        foreach (RobotController robot in robotControllers.Values)
-        {
-            if (robot.submenu.activeInHierarchy)
-            {
-                string name = robot.submenu.GetComponentInChildren<SpriteRenderer>().sprite.name.Split(' ')[0];
-                robot.addRobotCommand(name, dir);
-                break;
-            }
-        }
-    }
-
-    // end hot key methods
+    
 }
 

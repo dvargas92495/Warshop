@@ -22,16 +22,20 @@ public class MenuItemController : MonoBehaviour {
 
     void OnMouseUp()
     {
-        if (!inactive)
-        {
-            GetComponent<SpriteRenderer>().color = offHover;
-            callback();
-        }
+        Click();
     }
 
     public void SetCallback(Action c)
     {
         callback = c;
+    }
+
+    public void Click()
+    {
+        if (!inactive)
+        {
+            callback();
+        }
     }
     
 
