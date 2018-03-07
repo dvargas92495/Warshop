@@ -45,7 +45,7 @@ class Logger {
 
     internal void Fatal(Exception e)
     {
-        log.Fatal(e.GetType() + " - " + e.Message);
+        log.Fatal(e.GetType() + " - " + e.Message + ":\n\t" + e.StackTrace);
     }
 
     internal void Fatal(object message)

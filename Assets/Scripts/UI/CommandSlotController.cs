@@ -8,7 +8,6 @@ public class CommandSlotController : MonoBehaviour {
 
     public SpriteRenderer Arrow;
     public SpriteRenderer Delete;
-    public Sprite Default;
     internal bool deletable;
     internal bool isOpponent;
 
@@ -61,7 +60,7 @@ public class CommandSlotController : MonoBehaviour {
             {
                 Interpreter.DeleteCommand(rid, p - i);
                 Interpreter.DestroyCommandMenu();
-                deletable = !Arrow.sprite.Equals(Default);
+                deletable = !Arrow.sprite.Equals(Interpreter.uiController.Default);
                 Delete.gameObject.SetActive(deletable);
             }
         };

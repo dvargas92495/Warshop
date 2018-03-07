@@ -24,8 +24,13 @@ public class UIController : MonoBehaviour {
     public MenuItemController StepBackButton;
     public MenuItemController StepForwardButton;
     public MenuItemController BackToPresent;
-   // public Image SplashScreen;
-    
+    public MenuItemController GenericButton;
+    public GameObject RobotButtonContainer;
+    public GameObject CommandButtonContainer;
+    public GameObject DirectionButtonContainer;
+    // public Image SplashScreen;
+
+    public Sprite Default;
     public Sprite[] sprites;
     public Sprite[] arrows;
     public Camera cam;
@@ -114,6 +119,9 @@ public class UIController : MonoBehaviour {
         BackToPresent.SetCallback(Interpreter.BackToPresent);
         StepBackButton.SetCallback(Interpreter.StepBackward);
         StepForwardButton.SetCallback(Interpreter.StepForward);
+        SetButtons(RobotButtonContainer, true);
+        SetButtons(CommandButtonContainer, false);
+        SetButtons(DirectionButtonContainer, false);
         return;
         
     }
@@ -137,10 +145,12 @@ public class UIController : MonoBehaviour {
 
         for (int i = 0; i < player.team.Length; i++)
         {
+            //Robot Panel First
             Robot r = player.team[i];
             GameObject panel = Instantiate(RobotPanel, container);
             panel.name = "Robot" + r.id;
-            panel.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
+            Sprite robotSprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
+            panel.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite = robotSprite;
             TextMesh[] fields = panel.GetComponentsInChildren<TextMesh>();
             fields[0].text = r.name;
             fields[1].text = 0.ToString();
@@ -162,6 +172,43 @@ public class UIController : MonoBehaviour {
                 Vector3 oldScale = panel.transform.GetChild(c).localScale;
                 panel.transform.GetChild(c).localScale = new Vector3(oldScale.x / outerScale.x, oldScale.y / outerScale.y);
             }
+
+            //Then Command Button
+            MenuItemController robotButton = Instantiate(GenericButton, RobotButtonContainer.transform);
+            robotButton.GetComponent<SpriteRenderer>().sprite = robotSprite;
+            robotButton.SetCallback(() => {
+                SetButtons(RobotButtonContainer, true);
+                robotButton.Deactivate();
+                Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
+                SetButtons(DirectionButtonContainer, false);
+                EachMenuItemSet(CommandButtonContainer, (string m) => {
+                    SetButtons(DirectionButtonContainer, true);
+                    bool isSpawn = m.Equals(Command.Spawn.DISPLAY);
+                    EachMenuItem(DirectionButtonContainer, (MenuItemController d) => {
+                        byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> pair) => pair.Value.Equals(d.name)).Key;
+                        d.GetComponent<SpriteRenderer>().sprite = isSpawn ?
+                            Interpreter.boardController.tile.queueSprites[dir] : Interpreter.uiController.GetArrow(m + " Arrow");
+                        d.SetCallback(() => {
+                            Interpreter.robotControllers[r.id].addRobotCommand(m, dir);
+                            EachMenuItem(DirectionButtonContainer, (MenuItemController d2) => d2.GetComponent<SpriteRenderer>().sprite = Default);
+                            SetButtons(RobotButtonContainer, true);
+                            robotButton.Deactivate();
+                            Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
+                            SetButtons(DirectionButtonContainer, false);
+                        });
+                        d.transform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * 90);
+                    });
+                });
+            });
+            robotButton.gameObject.SetActive(!isOpponent);
+            robotButton.transform.localPosition = new Vector3(
+                (i%4)*0.25f - 0.4f,
+                0.25f - (i/4)*0.5f
+            );
+            robotButton.transform.localScale = new Vector3(
+                2*robotButton.transform.localScale.x / Controls.transform.localScale.x, 
+                2*robotButton.transform.localScale.y / Controls.transform.localScale.y
+            );
         }
     }
 
@@ -194,7 +241,7 @@ public class UIController : MonoBehaviour {
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
             child.deletable = false;
-            child.Arrow.sprite = child.Default;
+            child.Arrow.sprite = Default;
             if (!child.Closed())
             {
                 child.Open();
@@ -273,7 +320,7 @@ public class UIController : MonoBehaviour {
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
             if (child.Closed()) continue;
-            if (child.Arrow.sprite.Equals(child.Default)) break;
+            if (child.Arrow.sprite.Equals(Default)) break;
             string name = child.Arrow.sprite.name;
             byte d = name.StartsWith(Command.Spawn.DISPLAY) ? 
                 (byte)Interpreter.boardController.tile.queueSprites.ToList().IndexOf(child.Arrow.sprite) : 
@@ -310,6 +357,23 @@ public class UIController : MonoBehaviour {
     public int GetOpponentBattery()
     {
         return int.Parse(opponentScore.text);
+    }
+
+    private void EachMenuItem(GameObject g, Action<MenuItemController> a)
+    {
+        g.GetComponentsInChildren<MenuItemController>().ToList().ForEach(a);
+    }
+
+    private void EachMenuItemSet(GameObject g, Action<string> a)
+    {
+        EachMenuItem(g, (MenuItemController m) => {
+            m.SetCallback(() => a(m.name));
+        });
+    }
+
+    public void SetButtons(GameObject container, bool b)
+    {
+        EachMenuItem(container, (MenuItemController m) => m.SetActive(b));
     }
 
     public void SetButtons(bool b)

@@ -46,4 +46,10 @@ public class MenuItemController : MonoBehaviour {
         inactive = false;
         GetComponent<SpriteRenderer>().color = offHover;
     }
+
+    public void SetActive(bool b)
+    {
+        if (b) Activate();
+        else Deactivate();
+    }
 }

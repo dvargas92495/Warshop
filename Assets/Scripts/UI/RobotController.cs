@@ -91,7 +91,7 @@ public class RobotController : MonoBehaviour
         {
             Command.limit.Keys.ToList().ForEach((Type t) =>
             {
-                m.transform.Find(Command.GetDisplay(t)).gameObject.SetActive(t.Equals(typeof(Command.Spawn)));
+                m.transform.Find(Command.GetDisplay(t)).GetComponent<MenuItemController>().SetActive(t.Equals(typeof(Command.Spawn)));
             });
         }
         else
@@ -99,15 +99,11 @@ public class RobotController : MonoBehaviour
             Command.limit.Keys.ToList().ForEach((Type t) =>
             {
                 int num = GetNumCommandType(t);
-                bool active = num < Command.limit[t];
+                bool active = num < Command.limit[t] && !t.Equals(typeof(Command.Spawn));
                 MenuItemController item = m.transform.Find(Command.GetDisplay(t)).GetComponent<MenuItemController>();
-                item.gameObject.SetActive(!t.Equals(typeof(Command.Spawn)));
-                if (active) item.Activate();
-                else item.Deactivate();
+                item.SetActive(active);
             });
-            m.transform.Find(Command.Spawn.DISPLAY).gameObject.SetActive(false);
         }
-        m.gameObject.SetActive(true);
     }
 
     internal void toggleMenu()
@@ -157,8 +153,6 @@ public class RobotController : MonoBehaviour
         {
             addRobotCommand(new Command.Attack(dir));
         }
-        submenu.SetActive(false);
-        toggleMenu();
     }
 
     /********************************
