@@ -17,13 +17,13 @@ public class UIController : MonoBehaviour {
     public GameObject UsersRobots;
     public GameObject RobotPanel;
     public CommandSlotController CommandSlot;
+    public GameObject Controls;
    // public GameObject priorityArrow;
 
-   // public Button OpponentSubmit;
-   // public Button SubmitCommands;
-   // public Button StepBackButton;
-   // public Button StepForwardButton;
-   // public Button BackToPresent;
+    public MenuItemController SubmitCommands;
+    public MenuItemController StepBackButton;
+    public MenuItemController StepForwardButton;
+    public MenuItemController BackToPresent;
    // public Image SplashScreen;
     
     public Sprite[] sprites;
@@ -91,7 +91,6 @@ public class UIController : MonoBehaviour {
     //Loads the UICanvas and it's child components
     public void InitializeUICanvas(Game.Player[] playerObjects, bool isPrimary)
     {
-        cam.transform.position += Vector3.forward * Interpreter.boardController.cam.transform.position.z;
         SetPlayerPanel(playerObjects[1], true);
         SetPlayerPanel(playerObjects[0], false);
 
@@ -111,17 +110,11 @@ public class UIController : MonoBehaviour {
             userScore.transform.Rotate(Vector3.forward, 180);
             opponentScore.transform.Rotate(Vector3.forward, 180);
         }
+        SubmitCommands.SetCallback(Interpreter.SubmitActions);
+        BackToPresent.SetCallback(Interpreter.BackToPresent);
+        StepBackButton.SetCallback(Interpreter.StepBackward);
+        StepForwardButton.SetCallback(Interpreter.StepForward);
         return;
-
-        /*if (GameConstants.LOCAL_MODE) {
-            OpponentSubmit.gameObject.SetActive(true);
-            OpponentSubmit.onClick.AddListener(Interpreter.SubmitActions);
-        }
-        SubmitCommands.onClick.AddListener(Interpreter.SubmitActions);
-        BackToPresent.onClick.AddListener(Interpreter.BackToPresent);
-        StepBackButton.onClick.AddListener(Interpreter.StepBackward);
-        StepForwardButton.onClick.AddListener(Interpreter.StepForward);
-        */
         
     }
 
@@ -129,13 +122,17 @@ public class UIController : MonoBehaviour {
     {
         Transform container = (isOpponent ? OpponentsRobots.transform : UsersRobots.transform);
 
-        float depth = 1;
+        float depth = 10;
         Vector3 topLeft = cam.ViewportToWorldPoint(new Vector3(0, 1, depth));
         Vector3 bottomRight = cam.ViewportToWorldPoint(new Vector3(0.2f, 0, depth));
-        container.parent.localScale = new Vector3(bottomRight.x - topLeft.x, topLeft.y - bottomRight.y, 1);
-        container.parent.position = new Vector3((bottomRight.x + topLeft.x) / (isOpponent ? -2 : 2), (topLeft.y + bottomRight.y) / 2, cam.transform.position.z - depth);
+        Vector3 outerScale = new Vector3(bottomRight.x - topLeft.x, topLeft.y - bottomRight.y, 1);
+        container.parent.localScale = outerScale;
+        container.parent.position = new Vector3((bottomRight.x + topLeft.x) / (isOpponent ? -2 : 2), (topLeft.y + bottomRight.y) / 2, depth);
+        Controls.transform.position = new Vector3(0, (topLeft.y - bottomRight.y) * 0.1f + bottomRight.y, depth);
+        Controls.transform.localScale = new Vector3(-2*bottomRight.x, (topLeft.y - bottomRight.y) * 0.2f, 1);
 
         TextMesh playerName = container.parent.GetComponentInChildren<TextMesh>();
+        playerName.transform.localScale = new Vector3(0.5f / outerScale.x, 0.5f / outerScale.y);
         playerName.text = player.name;
 
         for (int i = 0; i < player.team.Length; i++)
@@ -157,8 +154,14 @@ public class UIController : MonoBehaviour {
                 cmd.transform.localPosition = new Vector3(0, (1.0f / GameConstants.MAX_PRIORITY) * (c + 0.5f) - 0.5f, 0);
             }
             robotIdToPanel[r.id] = panel;
-            panel.transform.localScale = new Vector3(1.0f / player.team.Length, 1, 1);
+            Vector3 innerScale = new Vector3(1.0f / player.team.Length, 1, 1);
+            panel.transform.localScale = innerScale;
             panel.transform.localPosition = new Vector3((1.0f / player.team.Length)*(i+0.5f) - 0.5f, 0, 0);
+            for (int c = 0; c < panel.transform.childCount - 1; c++)
+            {
+                Vector3 oldScale = panel.transform.GetChild(c).localScale;
+                panel.transform.GetChild(c).localScale = new Vector3(oldScale.x / outerScale.x, oldScale.y / outerScale.y);
+            }
         }
     }
 
@@ -191,7 +194,7 @@ public class UIController : MonoBehaviour {
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
             child.deletable = false;
-            child.Arrow.sprite = null;
+            child.Arrow.sprite = child.Default;
             if (!child.Closed())
             {
                 child.Open();
@@ -212,7 +215,7 @@ public class UIController : MonoBehaviour {
         {
             Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
             CommandSlotController cmd = commandPanel.GetChild(commandPanel.childCount - p).GetComponent<CommandSlotController>();
-            if (cmd.Arrow.sprite != null && cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(cmd.GetType())))
+            if (cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(cmd.GetType())))
             {
                 cmd.Highlight();
             }
@@ -255,12 +258,9 @@ public class UIController : MonoBehaviour {
                 }
                 powerConsumed += Command.power[cmd.GetType()];
                 break;
-            } else if (child.Arrow.sprite != null)
-            {
-                if (child.Arrow.sprite.name.StartsWith(Command.Spawn.DISPLAY)) powerConsumed += Command.power[typeof(Command.Spawn)];
-                else if (child.Arrow.sprite.name.StartsWith(Command.Move.DISPLAY)) powerConsumed += Command.power[typeof(Command.Move)];
-                else if (child.Arrow.sprite.name.StartsWith(Command.Attack.DISPLAY)) powerConsumed += Command.power[typeof(Command.Attack)];
-            }
+            } else if (child.Arrow.sprite.name.StartsWith(Command.Spawn.DISPLAY)) powerConsumed += Command.power[typeof(Command.Spawn)];
+              else if (child.Arrow.sprite.name.StartsWith(Command.Move.DISPLAY)) powerConsumed += Command.power[typeof(Command.Move)];
+              else if (child.Arrow.sprite.name.StartsWith(Command.Attack.DISPLAY)) powerConsumed += Command.power[typeof(Command.Attack)];
         }
         panel.parent.GetComponentsInChildren<TextMesh>()[1].text = powerConsumed.ToString();
     }
@@ -273,7 +273,7 @@ public class UIController : MonoBehaviour {
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
             if (child.Closed()) continue;
-            if (child.Arrow.sprite == null) break;
+            if (child.Arrow.sprite.Equals(child.Default)) break;
             string name = child.Arrow.sprite.name;
             byte d = name.StartsWith(Command.Spawn.DISPLAY) ? 
                 (byte)Interpreter.boardController.tile.queueSprites.ToList().IndexOf(child.Arrow.sprite) : 
@@ -314,12 +314,31 @@ public class UIController : MonoBehaviour {
 
     public void SetButtons(bool b)
     {
-        //StepBackButton.interactable = StepForwardButton.interactable = BackToPresent.interactable = SubmitCommands.interactable = b;
+        if (b)
+        {
+            SubmitCommands.Activate();
+            BackToPresent.Activate();
+            StepBackButton.Activate();
+            StepForwardButton.Activate();
+        } else
+        {
+            SubmitCommands.Deactivate();
+            BackToPresent.Deactivate();
+            StepBackButton.Deactivate();
+            StepForwardButton.Deactivate();
+        }
     }
 
     public void SetSubmitButton(bool b)
     {
-        //SubmitCommands.interactable = b;
+        if (b)
+        {
+            SubmitCommands.Activate();
+        }
+        else
+        {
+            SubmitCommands.Deactivate();
+        }
     }
 
     public void LightUpPanel(bool bright, bool isUser)

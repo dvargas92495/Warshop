@@ -7,7 +7,8 @@ using System;
 public class CommandSlotController : MonoBehaviour {
 
     public SpriteRenderer Arrow;
-    //public Button Delete;
+    public SpriteRenderer Delete;
+    public Sprite Default;
     internal bool deletable;
     internal bool isOpponent;
 
@@ -30,15 +31,15 @@ public class CommandSlotController : MonoBehaviour {
 
     void OnMouseEnter()
     {
-        //Delete.gameObject.SetActive(deletable);
+        Delete.gameObject.SetActive(deletable);
     }
 
     void OnMouseExit()
     {
-        //Delete.gameObject.SetActive(false);
+        Delete.gameObject.SetActive(false);
     }
 
-    void OnMouseClick()
+    void OnMouseUp()
     {
         myClick();
     }
@@ -56,13 +57,14 @@ public class CommandSlotController : MonoBehaviour {
         myClick = () =>
         {
             Interpreter.DestroyCommandMenu();
+            if (deletable)
+            {
+                Interpreter.DeleteCommand(rid, p - i);
+                Interpreter.DestroyCommandMenu();
+                deletable = !Arrow.sprite.Equals(Default);
+                Delete.gameObject.SetActive(deletable);
+            }
         };
-        /*Delete.onClick.AddListener(() =>
-        {
-            Interpreter.DeleteCommand(rid, p - i);
-            Interpreter.DestroyCommandMenu();
-            Delete.gameObject.SetActive(Arrow.sprite != null);
-        });*/
     }
 
     internal void Open()

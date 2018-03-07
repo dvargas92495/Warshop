@@ -1,9 +1,8 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class MenuItemController : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler {
+public class MenuItemController : MonoBehaviour {
 
     Action callback;
     internal Color inactiveColor = new Color(0.25f, 0.25f, 0.25f);
@@ -34,49 +33,17 @@ public class MenuItemController : MonoBehaviour, IPointerClickHandler, IPointerE
     {
         callback = c;
     }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-
-        if (!inactive)
-        {
-            GetComponent<Image>().color = offHover;
-            callback();
-        }
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        if (!inactive) GetComponent<Image>().color = onHover;
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        if (!inactive) GetComponent<Image>().color = offHover;
-    }
+    
 
     public void Deactivate()
     {
         inactive = true;
-        if (GetComponent<SpriteRenderer>() != null)
-        {
-            GetComponent<SpriteRenderer>().color = inactiveColor;
-        } else
-        {
-            GetComponent<Image>().color = inactiveColor;
-        }
+        GetComponent<SpriteRenderer>().color = inactiveColor;
     }
 
     public void Activate()
     {
         inactive = false;
-        if (GetComponent<SpriteRenderer>() != null)
-        {
-            GetComponent<SpriteRenderer>().color = offHover;
-        }
-        else
-        {
-            GetComponent<Image>().color = offHover;
-        }
+        GetComponent<SpriteRenderer>().color = offHover;
     }
 }
