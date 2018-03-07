@@ -13,6 +13,7 @@ public class BoardController : MonoBehaviour {
     public GameObject secondaryDock;
     public GameObject Platform;
     public Light CeilingLight;
+    public Camera cam;
     private List< List<TileController>> allLocations = new List<List<TileController>>();
     internal HashSet<TileController> allQueueLocations = new HashSet<TileController>();
     internal TileController primaryBatteryLocation;

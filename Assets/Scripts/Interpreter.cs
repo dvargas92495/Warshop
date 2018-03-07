@@ -133,8 +133,6 @@ public class Interpreter {
         if (GameConstants.LOCAL_MODE)
         {
             Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.canCommand = r.isOpponent && myturn);
-            uiController.SubmitCommands.interactable = !uiController.SubmitCommands.interactable;
-            uiController.OpponentSubmit.interactable = !uiController.OpponentSubmit.interactable;
         } else
         {
             uiController.SetButtons(false);
@@ -181,6 +179,7 @@ public class Interpreter {
 
     public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
+        bool gameOver = false;
         int currentUserBattery;
         int currentOpponentBattery;
         int userBattery = uiController.GetUserBattery();
@@ -234,17 +233,10 @@ public class Interpreter {
                 GameEvent.End evt = (GameEvent.End)e;
                 if (evt.primaryLost) boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().sprite = uiController.GetArrow("Damage");
                 if (evt.secondaryLost) boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().sprite = uiController.GetArrow("Damage");
-                if ((isPrimary && evt.primaryLost) || (!isPrimary && evt.secondaryLost))
-                {
-                    uiController.SplashScreen.GetComponentInChildren<Text>().text = "YOU LOSE!";
-                } else
-                {
-                    uiController.SplashScreen.GetComponentInChildren<Text>().text = "YOU WIN!";
-                }
-                uiController.SplashScreen.gameObject.SetActive(true);
-                uiController.SetButtons(false);
+                uiController.Splash(!((isPrimary && evt.primaryLost) || (!isPrimary && evt.secondaryLost)));
                 Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.canCommand = false);
                 myturn = false;
+                gameOver = true;
             }
             else
             {
@@ -286,9 +278,8 @@ public class Interpreter {
             }
             yield return new WaitForSeconds(eventDelay);
         }
-        if (!uiController.SplashScreen.gameObject.activeInHierarchy)
+        if (!gameOver)
         {
-            uiController.priorityArrow.SetActive(false);
             History[turnNumber] = priorityToState;
             currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
             myturn = true;
@@ -440,7 +431,7 @@ public class Interpreter {
             r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, r.id));
             r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
-        uiController.SubmitCommands.interactable = true;
+        uiController.SetSubmitButton(true);
     }
 
     public static void StepForward()
@@ -528,7 +519,7 @@ public class Interpreter {
                 }
             }
         }
-        uiController.SubmitCommands.interactable = false;
+        uiController.SetSubmitButton(false);
         DestroyCommandMenu();
     }
 

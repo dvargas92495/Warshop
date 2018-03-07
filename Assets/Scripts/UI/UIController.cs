@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Linq;
@@ -10,28 +9,26 @@ using System.Linq;
 public class UIController : MonoBehaviour {
 
 	public TextMesh ScoreModel;
-
-    public TMP_Text opponentNameText;
+    
     internal TextMesh opponentScore;
     public GameObject OpponentsRobots;
-
-    public TMP_Text userNameText;
+    
     internal TextMesh userScore;
     public GameObject UsersRobots;
     public GameObject RobotPanel;
     public CommandSlotController CommandSlot;
-    public GameObject priorityArrow;
+   // public GameObject priorityArrow;
 
-    public Button OpponentSubmit;
-    public Button SubmitCommands;
-    public Button StepBackButton;
-    public Button StepForwardButton;
-    public Button BackToPresent;
-    public Image SplashScreen;
+   // public Button OpponentSubmit;
+   // public Button SubmitCommands;
+   // public Button StepBackButton;
+   // public Button StepForwardButton;
+   // public Button BackToPresent;
+   // public Image SplashScreen;
     
     public Sprite[] sprites;
     public Sprite[] arrows;
-    public Camera boardCamera;
+    public Camera cam;
 
     private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
 
@@ -94,10 +91,29 @@ public class UIController : MonoBehaviour {
     //Loads the UICanvas and it's child components
     public void InitializeUICanvas(Game.Player[] playerObjects, bool isPrimary)
     {
-        SetOpponentPlayerPanel(playerObjects[1]);
-        SetUsersPlayerPanel(playerObjects[0]);
+        cam.transform.position += Vector3.forward * Interpreter.boardController.cam.transform.position.z;
+        SetPlayerPanel(playerObjects[1], true);
+        SetPlayerPanel(playerObjects[0], false);
 
-        if (GameConstants.LOCAL_MODE) {
+        userScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(isPrimary).transform);
+        userScore.GetComponent<MeshRenderer>().sortingOrder = 1;
+        opponentScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(!isPrimary).transform);
+        opponentScore.GetComponent<MeshRenderer>().sortingOrder = 1;
+        SetBattery(playerObjects[0].battery, playerObjects[1].battery);
+        if (!isPrimary)
+        {
+            Interpreter.boardController.cam.transform.Rotate(new Vector3(0, 0, 180));
+            Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
+            {
+                //t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
+                //t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
+            });
+            userScore.transform.Rotate(Vector3.forward, 180);
+            opponentScore.transform.Rotate(Vector3.forward, 180);
+        }
+        return;
+
+        /*if (GameConstants.LOCAL_MODE) {
             OpponentSubmit.gameObject.SetActive(true);
             OpponentSubmit.onClick.AddListener(Interpreter.SubmitActions);
         }
@@ -105,55 +121,50 @@ public class UIController : MonoBehaviour {
         BackToPresent.onClick.AddListener(Interpreter.BackToPresent);
         StepBackButton.onClick.AddListener(Interpreter.StepBackward);
         StepForwardButton.onClick.AddListener(Interpreter.StepForward);
-
-        userScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(isPrimary).transform);
-        userScore.GetComponent<MeshRenderer>().sortingOrder = 1;
-        opponentScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(!isPrimary).transform);
-        opponentScore.GetComponent<MeshRenderer>().sortingOrder = 1;
-        SetBattery(playerObjects[0].battery, playerObjects[1].battery);
-        PositionCamera(isPrimary);
+        */
+        
     }
 
-    void SetOpponentPlayerPanel(Game.Player opponentPlayer)
+    void SetPlayerPanel(Game.Player player, bool isOpponent)
     {
-        opponentNameText.SetText(opponentPlayer.name);
-        for (int i = 0; i < opponentPlayer.team.Length; i++)
-        {
-            SetRobotPanel(opponentPlayer.team[i], true);
-        }
-    }
+        Transform container = (isOpponent ? OpponentsRobots.transform : UsersRobots.transform);
 
-    void SetUsersPlayerPanel(Game.Player userPlayer)
-    {
-        userNameText.SetText(userPlayer.name);
-        for (int i = 0; i < userPlayer.team.Length; i++)
-        {
-            SetRobotPanel(userPlayer.team[i], false);
-        }
-    }
+        float depth = 1;
+        Vector3 topLeft = cam.ViewportToWorldPoint(new Vector3(0, 1, depth));
+        Vector3 bottomRight = cam.ViewportToWorldPoint(new Vector3(0.2f, 0, depth));
+        container.parent.localScale = new Vector3(bottomRight.x - topLeft.x, topLeft.y - bottomRight.y, 1);
+        container.parent.position = new Vector3((bottomRight.x + topLeft.x) / (isOpponent ? -2 : 2), (topLeft.y + bottomRight.y) / 2, cam.transform.position.z - depth);
 
-    public GameObject SetRobotPanel(Robot r, bool isOpponent)
-    {
-        GameObject panel = Instantiate(RobotPanel, isOpponent ? OpponentsRobots.transform : UsersRobots.transform);
-        panel.name = "Robot" + r.id;
-        Transform icon = panel.transform.GetChild(1);
-        icon.GetComponentInChildren<Image>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
-        TMP_Text[] fields = panel.GetComponentsInChildren<TMP_Text>();
-        fields[0].SetText(r.name);
-        fields[1].SetText(0.ToString());
-        for (int i = GameConstants.MAX_PRIORITY; i > 0; i--)
+        TextMesh playerName = container.parent.GetComponentInChildren<TextMesh>();
+        playerName.text = player.name;
+
+        for (int i = 0; i < player.team.Length; i++)
         {
-            CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(3));
-            cmd.Initialize(r.id, i, r.priority);
-            cmd.isOpponent = isOpponent;
+            Robot r = player.team[i];
+            GameObject panel = Instantiate(RobotPanel, container);
+            panel.name = "Robot" + r.id;
+            panel.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
+            TextMesh[] fields = panel.GetComponentsInChildren<TextMesh>();
+            fields[0].text = r.name;
+            fields[1].text = 0.ToString();
+            fields[0].GetComponent<MeshRenderer>().sortingOrder = fields[1].GetComponent<MeshRenderer>().sortingOrder = 2;
+            for (int c = GameConstants.MAX_PRIORITY; c > 0; c--)
+            {
+                CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(3));
+                cmd.Initialize(r.id, c, r.priority);
+                cmd.isOpponent = isOpponent;
+                cmd.transform.localScale = new Vector3(1, 1.0f / GameConstants.MAX_PRIORITY, 1);
+                cmd.transform.localPosition = new Vector3(0, (1.0f / GameConstants.MAX_PRIORITY) * (c + 0.5f) - 0.5f, 0);
+            }
+            robotIdToPanel[r.id] = panel;
+            panel.transform.localScale = new Vector3(1.0f / player.team.Length, 1, 1);
+            panel.transform.localPosition = new Vector3((1.0f / player.team.Length)*(i+0.5f) - 0.5f, 0, 0);
         }
-        robotIdToPanel[r.id] = panel;
-        return panel;
     }
 
     public void SetPriority(int priority)
     {
-        if (priority == -1)
+        /*if (priority == -1)
         {
             priorityArrow.SetActive(false);
             return;
@@ -170,7 +181,7 @@ public class UIController : MonoBehaviour {
         arrowRect.position = anchor.position;
         Vector2 translation = new Vector2(anchor.rect.width + 10, 0);
         arrowRect.anchoredPosition += translation;
-        priorityArrow.SetActive(true);
+        priorityArrow.SetActive(true);*/
     }
 
     public void ClearCommands(Transform panel)
@@ -184,7 +195,7 @@ public class UIController : MonoBehaviour {
             if (!child.Closed())
             {
                 child.Open();
-                child.Clickable = clickable;
+                if (clickable) child.Next();
                 clickable = false;
             }
         }
@@ -216,7 +227,7 @@ public class UIController : MonoBehaviour {
             CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
             if (!cmd.Closed()) cmd.Submit();
         }
-        panel.parent.GetComponentsInChildren<TMP_Text>()[1].SetText(0.ToString());
+        panel.parent.GetComponentsInChildren<TextMesh>()[1].text = 0.ToString();
     }
 
     public void addSubmittedCommand(Command cmd, short id)
@@ -226,22 +237,21 @@ public class UIController : MonoBehaviour {
         for (int i = 0; i < panel.childCount; i++)
         {
             CommandSlotController child = panel.GetChild(i).GetComponent<CommandSlotController>();
-            if (!child.Closed() && child.Arrow.sprite == null)
+            if (child.IsNext())
             {
-                if (!child.Closed()) child.Open();
+                child.Open();
                 if (cmd is Command.Spawn)
                 {
                     child.Arrow.sprite = Interpreter.boardController.tile.queueSprites[cmd.direction];
                 } else
                 {
                     child.Arrow.sprite = GetArrow(cmd.ToSpriteString());
-                    child.Arrow.rectTransform.localRotation = Quaternion.Euler(Vector3.forward * cmd.direction * 90);
+                    child.Arrow.transform.localRotation = Quaternion.Euler(Vector3.forward * cmd.direction * 90);
                 }
-                child.deletable = child.Opened();
-                child.Clickable = false;
+                child.deletable = true;
                 if (i + 1 < panel.childCount)
                 {
-                    panel.GetChild(i + 1).GetComponent<CommandSlotController>().Clickable = true;
+                    panel.GetChild(i + 1).GetComponent<CommandSlotController>().Next();
                 }
                 powerConsumed += Command.power[cmd.GetType()];
                 break;
@@ -252,7 +262,7 @@ public class UIController : MonoBehaviour {
                 else if (child.Arrow.sprite.name.StartsWith(Command.Attack.DISPLAY)) powerConsumed += Command.power[typeof(Command.Attack)];
             }
         }
-        panel.parent.GetComponentsInChildren<TMP_Text>()[1].SetText(powerConsumed.ToString());
+        panel.parent.GetComponentsInChildren<TextMesh>()[1].text = powerConsumed.ToString();
     }
 
     public Tuple<string, byte>[] getCommandsSerialized(short id)
@@ -267,7 +277,7 @@ public class UIController : MonoBehaviour {
             string name = child.Arrow.sprite.name;
             byte d = name.StartsWith(Command.Spawn.DISPLAY) ? 
                 (byte)Interpreter.boardController.tile.queueSprites.ToList().IndexOf(child.Arrow.sprite) : 
-                (byte)(child.Arrow.rectTransform.localRotation.eulerAngles.z / 90);
+                (byte)(child.Arrow.transform.localRotation.eulerAngles.z / 90);
             content.Add(new Tuple<string, byte>(child.Arrow.sprite.name, d));
         }
         return content.ToArray();
@@ -282,8 +292,6 @@ public class UIController : MonoBehaviour {
             {
                 CommandSlotController child = commandPanel.GetChild(i).GetComponent<CommandSlotController>();
                 child.Arrow.gameObject.SetActive(true);
-                child.Menu.gameObject.SetActive(false);
-                child.Submenu.gameObject.SetActive(false);
             }
         }
     }
@@ -304,32 +312,19 @@ public class UIController : MonoBehaviour {
         return int.Parse(opponentScore.text);
     }
 
-    public void PositionCamera(bool isPrimary)
-    {
-        float xMin = UsersRobots.transform.parent.GetComponent<RectTransform>().anchorMax.x;
-        float xMax = OpponentsRobots.transform.parent.GetComponent<RectTransform>().anchorMin.x;
-        boardCamera.rect = new Rect(xMin, 0, xMax - xMin, 1);
-        if (!isPrimary)
-        {
-            boardCamera.transform.Rotate(new Vector3(0, 0, 180));
-            Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
-            {
-                //t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
-                //t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
-            });
-            userScore.transform.Rotate(Vector3.forward, 180);
-            opponentScore.transform.Rotate(Vector3.forward, 180);
-        }
-    }
-
     public void SetButtons(bool b)
     {
-        StepBackButton.interactable = StepForwardButton.interactable = BackToPresent.interactable = SubmitCommands.interactable = b;
+        //StepBackButton.interactable = StepForwardButton.interactable = BackToPresent.interactable = SubmitCommands.interactable = b;
+    }
+
+    public void SetSubmitButton(bool b)
+    {
+        //SubmitCommands.interactable = b;
     }
 
     public void LightUpPanel(bool bright, bool isUser)
     {
-        Image panel = (isUser ? UsersRobots : OpponentsRobots).transform.parent.GetComponent<Image>();
+        SpriteRenderer panel = (isUser ? UsersRobots : OpponentsRobots).transform.parent.GetComponent<SpriteRenderer>();
         Color regular = (isUser ? new Color(0, 0.5f, 1.0f, 1.0f) : new Color(1.0f, 0, 0, 1.0f));
         float mult = (bright ? 1.0f : 0.5f);
         panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
@@ -338,5 +333,12 @@ public class UIController : MonoBehaviour {
     public Sprite GetArrow(string eventName)
     {
         return Array.Find(arrows, (Sprite s) => s.name.Equals(eventName));
+    }
+
+    public void Splash(bool win)
+    {
+        //SplashScreen.GetComponentInChildren<Text>().text = win ? "YOU WIN!" : "YOU LOSE!";
+        //SplashScreen.gameObject.SetActive(true);
+        //SetButtons(false);
     }
 }

@@ -1,17 +1,13 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 
-public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler {
+public class CommandSlotController : MonoBehaviour {
 
-    public Image Arrow;
-    public Button Delete;
-    public RectTransform Menu;
-    public RectTransform Submenu;
-    private bool clickable;
+    public SpriteRenderer Arrow;
+    //public Button Delete;
     internal bool deletable;
     internal bool isOpponent;
 
@@ -21,20 +17,6 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
     private static Color SUBMITTED_COMMAND = new Color(0.75f, 0.75f, 0.75f);
     private static Color NEXT_COMMAND = new Color(0.5f, 1, 0.5f);
     private static Color OPEN_COMMAND = new Color(1, 1, 1);
-
-    internal bool Clickable
-    {
-        get
-        {
-            return clickable;
-        }
-
-        set
-        {
-            clickable = value;
-            if (value) Arrow.color = NEXT_COMMAND;
-        }
-    }
 
     // Use this for initialization
     void Start () {
@@ -46,17 +28,17 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
 		
 	}
 
-    public void OnPointerEnter(PointerEventData eventData)
+    void OnMouseEnter()
     {
-        Delete.gameObject.SetActive(deletable);
+        //Delete.gameObject.SetActive(deletable);
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    void OnMouseExit()
     {
-        Delete.gameObject.SetActive(false);
+        //Delete.gameObject.SetActive(false);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    void OnMouseClick()
     {
         myClick();
     }
@@ -66,64 +48,27 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
         if (i > p)
         {
             Arrow.color = NO_COMMAND;
+        }else if (i == p)
+        {
+            Arrow.color = NEXT_COMMAND;
         }
-        Clickable = i == p;
         deletable = false;
         myClick = () =>
         {
             Interpreter.DestroyCommandMenu();
-            if (Clickable && !isOpponent) Interpreter.robotControllers[rid].ShowMenuOptions(Menu.gameObject);
-            Arrow.gameObject.SetActive(!Menu.gameObject.activeInHierarchy);
         };
-        Delete.onClick.AddListener(() =>
+        /*Delete.onClick.AddListener(() =>
         {
             Interpreter.DeleteCommand(rid, p - i);
             Interpreter.DestroyCommandMenu();
             Delete.gameObject.SetActive(Arrow.sprite != null);
-        });
-        for (int j = 0; j < Menu.childCount - 1; j++)
-        {
-            MenuItemController menuItem = Menu.GetChild(j).GetComponent<MenuItemController>();
-            menuItem.SetCallback(() =>
-            {
-                Submenu.gameObject.SetActive(true);
-                Menu.gameObject.SetActive(false);
-                bool isSpawn = menuItem.name.Equals(Command.Spawn.DISPLAY);
-                for (int k = 0; k < Submenu.transform.childCount; k++)
-                {
-                    MenuItemController submenuitem = Submenu.GetChild(k).GetComponentInChildren<MenuItemController>();
-                    Image image = submenuitem.GetComponent<Image>();
-                    image.sprite = isSpawn ? 
-                        Interpreter.boardController.tile.queueSprites[k] : 
-                        Interpreter.uiController.GetArrow(menuItem.name + " Arrow");
-                    byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> d) => d.Value.Equals(submenuitem.name)).Key;
-                    submenuitem.SetCallback(() =>
-                    {
-                        if (menuItem.name.Equals(Command.Spawn.DISPLAY))
-                        {
-                            Interpreter.robotControllers[rid].addRobotCommand(new Command.Spawn(dir));
-                        }
-                        else if (menuItem.name.Equals(Command.Move.DISPLAY))
-                        {
-                            Interpreter.robotControllers[rid].addRobotCommand(new Command.Move(dir));
-                        }
-                        else if (menuItem.name.Equals(Command.Attack.DISPLAY))
-                        {
-                            Interpreter.robotControllers[rid].addRobotCommand(new Command.Attack(dir));
-                        }
-                        Submenu.gameObject.SetActive(false);
-                        Arrow.gameObject.SetActive(true);
-                    });
-                    image.rectTransform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * 90);
-                }
-            });
-        }
+        });*/
     }
 
     internal void Open()
     {
         Arrow.color = OPEN_COMMAND;
-        Arrow.rectTransform.rotation = Quaternion.Euler(Vector3.zero);
+        Arrow.transform.rotation = Quaternion.Euler(Vector3.zero);
     }
 
     internal bool Opened()
@@ -150,6 +95,15 @@ public class CommandSlotController : MonoBehaviour, IPointerEnterHandler, IPoint
     {
         Arrow.color = SUBMITTED_COMMAND;
         deletable = false;
-        Clickable = false;
+    }
+
+    internal void Next()
+    {
+        Arrow.color = NEXT_COMMAND;
+    }
+
+    internal bool IsNext()
+    {
+        return Arrow.color.Equals(NEXT_COMMAND);
     }
 }
