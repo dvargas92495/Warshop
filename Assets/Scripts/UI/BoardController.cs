@@ -12,6 +12,7 @@ public class BoardController : MonoBehaviour {
     public GameObject primaryDock;
     public GameObject secondaryDock;
     public GameObject Platform;
+    public GameObject[] RobotModels;
     public Light CeilingLight;
     public Camera cam;
     private List< List<TileController>> allLocations = new List<List<TileController>>();

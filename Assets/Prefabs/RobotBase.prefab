@@ -272,7 +272,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0, z: -0.5}
 --- !u!102 &102573961694724984
 TextMesh:
   serializedVersion: 3
@@ -328,8 +328,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DefaultModel: {fileID: 1175896210484362, guid: 0f0c5c7685f77af4fbf6c63bac0e02ae,
     type: 2}
-  menu: {fileID: 0}
-  submenu: {fileID: 0}
   eventArrow: {fileID: 212940891813466512, guid: 0ec74add9afba8b4cb2c69239a746618,
     type: 2}
   HealthLabel: {fileID: 102736957411386890}

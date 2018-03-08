@@ -36,9 +36,10 @@ public class RobotController : MonoBehaviour
 
     public void LoadModel(string n)
     {
-        GameObject model = Instantiate(DefaultModel, transform);
-        SpriteRenderer sprite = model.GetComponentInChildren<SpriteRenderer>();
-        sprite.sprite = Array.Find(robotDir, (Sprite s) => s.name.Equals(n));
+        GameObject model = Array.Find(Interpreter.boardController.RobotModels, (GameObject g) => g.name.Equals(n));
+        if (model == null) model = DefaultModel;
+        GameObject baseModel = Instantiate(model, transform);
+        baseModel.transform.Rotate(Vector3.left * 90);
     }
     
     /***********************************

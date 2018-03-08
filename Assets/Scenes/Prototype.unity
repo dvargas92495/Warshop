@@ -424,6 +424,8 @@ MonoBehaviour:
   primaryDock: {fileID: 1035633613}
   secondaryDock: {fileID: 1442155181}
   Platform: {fileID: 1396837878019024, guid: bc4f85c1df3116c46add14ff07527d56, type: 2}
+  RobotModels:
+  - {fileID: 1537432016106166, guid: b9581a2f81c5ce3498e20a1fec92f3f5, type: 2}
   CeilingLight: {fileID: 108209534531051058, guid: 1c6545edaa460a249808658fed7e286c,
     type: 2}
   cam: {fileID: 1948599136}
