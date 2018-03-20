@@ -11,7 +11,6 @@ public class BoardController : MonoBehaviour {
     public TileController tile;
     public GameObject primaryDock;
     public GameObject secondaryDock;
-    public GameObject Platform;
     public GameObject[] RobotModels;
     public Light CeilingLight;
     public Camera cam;
@@ -79,13 +78,6 @@ public class BoardController : MonoBehaviour {
     public TileController GetVoidTile(bool isUser)
     {
         return isUser ? primaryVoidLocation : secondaryVoidLocation;
-    }
-
-    public Vector3 PlacePlatform(Transform t, int i)
-    {
-        GameObject p = Instantiate(Platform, t);
-        p.transform.localPosition += Vector3.right * i;
-        return p.transform.position + Vector3.back* tile.transform.localScale.z * 0.501f;
     }
 
 }
