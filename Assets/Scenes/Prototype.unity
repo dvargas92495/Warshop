@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.37311992, g: 0.38074034, b: 0.35872713, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311918, g: 0.3807398, b: 0.35872716, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -425,6 +425,7 @@ MonoBehaviour:
   secondaryDock: {fileID: 1442155181}
   RobotModels:
   - {fileID: 1537432016106166, guid: b9581a2f81c5ce3498e20a1fec92f3f5, type: 2}
+  - {fileID: 1132578333882946, guid: 0d5c26ddc25b32146b48f98d47657986, type: 2}
   CeilingLight: {fileID: 108209534531051058, guid: 1c6545edaa460a249808658fed7e286c,
     type: 2}
   cam: {fileID: 1948599136}
