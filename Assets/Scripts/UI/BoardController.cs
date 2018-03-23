@@ -55,7 +55,7 @@ public class BoardController : MonoBehaviour {
             secondaryDock.transform.position = new Vector3(boardCellsWide - 1, boardCellsHeight);
         }
 
-        for (int y = 1; y< boardCellsHeight; y+=2)
+        for (int y = -1; y< boardCellsHeight+2; y+=2)
         {
             for (int x = 1; x < boardCellsWide; x+=2)
             {

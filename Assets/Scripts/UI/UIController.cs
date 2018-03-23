@@ -33,7 +33,6 @@ public class UIController : MonoBehaviour {
     public Sprite Default;
     public Sprite[] sprites;
     public Sprite[] arrows;
-    public Camera cam;
 
     private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
 
@@ -134,18 +133,8 @@ public class UIController : MonoBehaviour {
     void SetPlayerPanel(Game.Player player, bool isOpponent)
     {
         Transform container = (isOpponent ? OpponentsRobots.transform : UsersRobots.transform);
-
-        float depth = 10;
-        Vector3 topLeft = cam.ViewportToWorldPoint(new Vector3(0, 1, depth));
-        Vector3 bottomRight = cam.ViewportToWorldPoint(new Vector3(0.2f, 0, depth));
-        Vector3 outerScale = new Vector3(bottomRight.x - topLeft.x, topLeft.y - bottomRight.y, 1);
-        container.parent.localScale = outerScale;
-        container.parent.position = new Vector3((bottomRight.x + topLeft.x) / (isOpponent ? -2 : 2), (topLeft.y + bottomRight.y) / 2, depth);
-        Controls.transform.position = new Vector3(0, (topLeft.y - bottomRight.y) * 0.1f + bottomRight.y, depth);
-        Controls.transform.localScale = new Vector3(-2*bottomRight.x, (topLeft.y - bottomRight.y) * 0.2f, 1);
-
-        TextMesh playerName = container.parent.GetComponentInChildren<TextMesh>();
-        playerName.transform.localScale = new Vector3(0.5f / outerScale.x, 0.5f / outerScale.y);
+        
+        TextMesh playerName = container.parent.GetComponentInChildren<TextMesh>(true);
         playerName.text = player.name;
 
         for (int i = 0; i < player.team.Length; i++)
@@ -155,32 +144,25 @@ public class UIController : MonoBehaviour {
             GameObject panel = Instantiate(RobotPanel, container);
             panel.name = "Robot" + r.id;
             Sprite robotSprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
-            panel.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite = robotSprite;
+            panel.transform.GetChild(2).GetComponent<SpriteRenderer>().sprite = robotSprite;
             TextMesh[] fields = panel.GetComponentsInChildren<TextMesh>();
             fields[0].text = r.name;
             fields[1].text = 0.ToString();
             fields[0].GetComponent<MeshRenderer>().sortingOrder = fields[1].GetComponent<MeshRenderer>().sortingOrder = 2;
             for (int c = GameConstants.MAX_PRIORITY; c > 0; c--)
             {
-                CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(3));
+                CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(4));
                 cmd.Initialize(r.id, c, r.priority);
                 cmd.isOpponent = isOpponent;
                 cmd.transform.localScale = new Vector3(1, 1.0f / GameConstants.MAX_PRIORITY, 1);
                 cmd.transform.localPosition = new Vector3(0, (1.0f / GameConstants.MAX_PRIORITY) * (c + 0.5f) - 0.5f, 0);
             }
             robotIdToPanel[r.id] = panel;
-            Vector3 innerScale = new Vector3(1.0f / player.team.Length, 1, 1);
-            panel.transform.localScale = innerScale;
             panel.transform.localPosition = new Vector3((1.0f / player.team.Length)*(i+0.5f) - 0.5f, 0, 0);
-            for (int c = 0; c < panel.transform.childCount - 1; c++)
-            {
-                Vector3 oldScale = panel.transform.GetChild(c).localScale;
-                panel.transform.GetChild(c).localScale = new Vector3(oldScale.x / outerScale.x, oldScale.y / outerScale.y);
-            }
 
             //Then Command Button
             MenuItemController robotButton = Instantiate(GenericButton, RobotButtonContainer.transform);
-            robotButton.GetComponent<SpriteRenderer>().sprite = robotSprite;
+            robotButton.GetComponentInChildren<SpriteRenderer>().sprite = robotSprite;
             robotButton.SetCallback(() => {
                 SetButtons(RobotButtonContainer, true);
                 robotButton.Deactivate();
@@ -191,11 +173,11 @@ public class UIController : MonoBehaviour {
                     bool isSpawn = m.Equals(Command.Spawn.DISPLAY);
                     EachMenuItem(DirectionButtonContainer, (MenuItemController d) => {
                         byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> pair) => pair.Value.Equals(d.name)).Key;
-                        d.GetComponent<SpriteRenderer>().sprite = isSpawn ?
+                        d.GetComponentInChildren<SpriteRenderer>().sprite = isSpawn ?
                             Interpreter.boardController.tile.queueSprites[dir] : Interpreter.uiController.GetArrow(m + " Arrow");
                         d.SetCallback(() => {
                             Interpreter.robotControllers[r.id].addRobotCommand(m, dir);
-                            EachMenuItem(DirectionButtonContainer, (MenuItemController d2) => d2.GetComponent<SpriteRenderer>().sprite = Default);
+                            EachMenuItem(DirectionButtonContainer, (MenuItemController d2) => d2.GetComponentInChildren<SpriteRenderer>().sprite = Default);
                             SetButtons(RobotButtonContainer, true);
                             robotButton.Deactivate();
                             Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
@@ -206,14 +188,7 @@ public class UIController : MonoBehaviour {
                 });
             });
             robotButton.gameObject.SetActive(!isOpponent);
-            robotButton.transform.localPosition = new Vector3(
-                (i%4)*0.25f - 0.4f,
-                0.25f - (i/4)*0.5f
-            );
-            robotButton.transform.localScale = new Vector3(
-                2*robotButton.transform.localScale.x / Controls.transform.localScale.x, 
-                2*robotButton.transform.localScale.y / Controls.transform.localScale.y
-            );
+            robotButton.transform.localPosition = Vector3.right*((i%4)*3 - 4.5f);
         }
     }
 

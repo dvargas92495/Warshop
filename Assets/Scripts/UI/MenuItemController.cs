@@ -12,12 +12,12 @@ public class MenuItemController : MonoBehaviour {
 
     void OnMouseEnter()
     {
-        if (!inactive) GetComponent<SpriteRenderer>().color = onHover;
+        //if (!inactive) GetComponent<SpriteRenderer>().color = onHover;
     }
 
     void OnMouseExit()
     {
-        if (!inactive) GetComponent<SpriteRenderer>().color = offHover;
+        //if (!inactive) GetComponent<SpriteRenderer>().color = offHover;
     }
 
     void OnMouseUp()
@@ -42,13 +42,13 @@ public class MenuItemController : MonoBehaviour {
     public void Deactivate()
     {
         inactive = true;
-        GetComponent<SpriteRenderer>().color = inactiveColor;
+        //GetComponent<SpriteRenderer>().color = inactiveColor;
     }
 
     public void Activate()
     {
         inactive = false;
-        GetComponent<SpriteRenderer>().color = offHover;
+        //GetComponent<SpriteRenderer>().color = offHover;
     }
 
     public void SetActive(bool b)
