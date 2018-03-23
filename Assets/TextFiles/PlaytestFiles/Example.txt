@@ -1,5 +1,5 @@
 Battery
-Silver Grunt,Golden Grunt
+Silver Grunt,Golden Grunt,Bronze Grunt,Bronze Grunt,Bronze Grunt,Bronze Grunt,Bronze Grunt
 Platinum Grunt,Bronze Grunt
 Vargas
 Calvin

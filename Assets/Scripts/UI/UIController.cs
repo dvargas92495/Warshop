@@ -115,8 +115,10 @@ public class UIController : MonoBehaviour {
             Interpreter.boardController.cam.transform.Rotate(new Vector3(0, 0, 180));
             Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
             {
-                //t.GetComponent<SpriteRenderer>().flipY = !t.GetComponent<SpriteRenderer>().flipY;
-                //t.GetComponent<SpriteRenderer>().flipX = !t.GetComponent<SpriteRenderer>().flipX;
+                SpriteRenderer s = t.GetComponent<SpriteRenderer>();
+                s.flipY = !s.flipY;
+                s.flipX = !s.flipX;
+                s.color = s.color.Equals(TileController.userQueueColor) ? TileController.opponentQueueColor : TileController.userQueueColor;
             });
             userScore.transform.Rotate(Vector3.forward, 180);
             opponentScore.transform.Rotate(Vector3.forward, 180);
@@ -162,7 +164,7 @@ public class UIController : MonoBehaviour {
             robotIdToPanel[r.id] = panel;
             panel.transform.localPosition = new Vector3((1.0f / player.team.Length)*(i+0.5f) - 0.5f, 0, 0);
 
-            //Then Command Button
+            //Then Command Button - Beware some unreadable code below
             MenuItemController robotButton = Instantiate(GenericButton, RobotButtonContainer.transform);
             robotButton.GetComponentInChildren<SpriteRenderer>().sprite = robotSprite;
             robotButton.SetCallback(() => {
@@ -170,7 +172,11 @@ public class UIController : MonoBehaviour {
                 robotButton.Select();
                 Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
                 SetButtons(DirectionButtonContainer, false);
+                EachMenuItem(DirectionButtonContainer, (MenuItemController m) => m.GetComponentInChildren<SpriteRenderer>().sprite = null);
                 EachMenuItemSet(CommandButtonContainer, (string m) => {
+                    EachMenuItem(CommandButtonContainer, (MenuItemController d) => {
+                        if (d.IsSelected() && !d.name.Equals(m)) d.Activate();
+                    });
                     SetButtons(DirectionButtonContainer, true);
                     bool isSpawn = m.Equals(Command.Spawn.DISPLAY);
                     EachMenuItem(DirectionButtonContainer, (MenuItemController d) => {
@@ -185,12 +191,13 @@ public class UIController : MonoBehaviour {
                             Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
                             SetButtons(DirectionButtonContainer, false);
                         });
-                        d.GetComponentInChildren<SpriteRenderer>().transform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * -90);
+                        d.GetComponentInChildren<SpriteRenderer>().transform.localRotation = Quaternion.Euler(Vector3.up*180 + (isSpawn ? Vector3.zero : Vector3.forward * dir * 90));
+                        d.GetComponentInChildren<SpriteRenderer>().color = isSpawn ? Color.gray : Color.white; //TODO: Hack
                     });
                 });
             });
             robotButton.gameObject.SetActive(!isOpponent);
-            robotButton.transform.localPosition = Vector3.right*((i%4)*3 - 4.5f);
+            robotButton.transform.localPosition = new Vector3(((i%4)*3 - 4.5f), 0, (i/4)*(-2.5f));
         }
     }
 

@@ -62,4 +62,9 @@ public class MenuItemController : MonoBehaviour {
         if (b) Activate();
         else Deactivate();
     }
+
+    public bool IsSelected()
+    {
+        return selected;
+    }
 }

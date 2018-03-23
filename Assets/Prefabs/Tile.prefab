@@ -111,8 +111,8 @@ MonoBehaviour:
   QueueMarker: {fileID: 1876748846819744, guid: 7d72de74c17c1bb45af234002e5af9e0,
     type: 2}
   queueSprites:
-  - {fileID: 21300000, guid: 75d506403fd10e642a225488ebd5a359, type: 3}
-  - {fileID: 21300000, guid: 1b692350058bb664ea3b7c96935fd2c8, type: 3}
-  - {fileID: 21300000, guid: 755ab683371ba444786cebc155c30217, type: 3}
-  - {fileID: 21300000, guid: 886ebe62e4d3da24d8477b9c3e8453a2, type: 3}
+  - {fileID: 21300000, guid: e5f20df8ac10f5a4b9cbf5e87b7aaa7a, type: 3}
+  - {fileID: 21300000, guid: 1ac28f5bf90f52d48b085e1876ef69af, type: 3}
+  - {fileID: 21300000, guid: bbbb43afd8cd2b4489b4609caf9e9622, type: 3}
+  - {fileID: 21300000, guid: 30a6aba9d87687e45a84fc9ef134d377, type: 3}
   defaultSpace: {fileID: 21300000, guid: 549aa4fce42c65649bf0387375e508f0, type: 3}
