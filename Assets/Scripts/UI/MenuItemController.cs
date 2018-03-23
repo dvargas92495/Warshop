@@ -5,20 +5,12 @@ using UnityEngine.EventSystems;
 public class MenuItemController : MonoBehaviour {
 
     Action callback;
-    internal Color inactiveColor = new Color(0.25f, 0.25f, 0.25f);
-    internal Color onHover = Color.gray;
-    internal Color offHover = Color.white;
+    public Material inactiveRing;
+    public Material activeRing;
+    public Material inactiveBase;
+    public Material activeBase;
     private bool inactive;
-
-    void OnMouseEnter()
-    {
-        //if (!inactive) GetComponent<SpriteRenderer>().color = onHover;
-    }
-
-    void OnMouseExit()
-    {
-        //if (!inactive) GetComponent<SpriteRenderer>().color = offHover;
-    }
+    private bool selected;
 
     void OnMouseUp()
     {
@@ -32,8 +24,9 @@ public class MenuItemController : MonoBehaviour {
 
     public void Click()
     {
-        if (!inactive)
+        if (!inactive && !selected)
         {
+            Select();
             callback();
         }
     }
@@ -42,13 +35,26 @@ public class MenuItemController : MonoBehaviour {
     public void Deactivate()
     {
         inactive = true;
-        //GetComponent<SpriteRenderer>().color = inactiveColor;
+        selected = false;
+        transform.GetChild(0).GetComponent<MeshRenderer>().material = inactiveBase;
+        transform.GetChild(1).GetComponent<MeshRenderer>().material = inactiveRing;
+        transform.GetChild(0).localPosition = Vector3.up*0.225f;
+    }
+
+    public void Select()
+    {
+        selected = true;
+        transform.GetChild(0).GetComponent<MeshRenderer>().material = inactiveBase;
+        transform.GetChild(0).localPosition = Vector3.zero;
     }
 
     public void Activate()
     {
         inactive = false;
-        //GetComponent<SpriteRenderer>().color = offHover;
+        selected = false;
+        transform.GetChild(0).GetComponent<MeshRenderer>().material = activeBase;
+        transform.GetChild(1).GetComponent<MeshRenderer>().material = activeRing;
+        transform.GetChild(0).localPosition = Vector3.up * 0.225f;
     }
 
     public void SetActive(bool b)

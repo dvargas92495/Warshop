@@ -136,6 +136,7 @@ public class Interpreter {
             {
                 m.gameObject.SetActive(!m.gameObject.activeInHierarchy);
             });
+            uiController.SubmitCommands.SetActive(myturn);
         } else
         {
             uiController.SetButtons(false);
@@ -425,6 +426,7 @@ public class Interpreter {
         }
         uiController.SubmitCommands.SetActive(true);
         uiController.SetButtons(uiController.RobotButtonContainer, true);
+        uiController.BackToPresent.Activate();
     }
 
     public static void StepForward()
@@ -460,6 +462,7 @@ public class Interpreter {
         if (!stepped) {
             BackToPresent();
         }
+        uiController.StepForwardButton.Activate();
     }
 
     public static void StepBackward()
@@ -492,6 +495,7 @@ public class Interpreter {
                 break;
             }
         }
+        uiController.StepBackButton.Activate();
     }
 
     private static void GoTo(byte turn, byte priority, byte command)

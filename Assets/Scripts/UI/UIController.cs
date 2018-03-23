@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Linq;
@@ -32,9 +33,10 @@ public class UIController : MonoBehaviour {
 
     public Sprite Default;
     public Sprite[] sprites;
-    public Sprite[] arrows;
+    public Sprite[] arrows;    
 
     private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
+    private int CommandChildIndex = 4;
 
     void Start()
     {
@@ -151,7 +153,7 @@ public class UIController : MonoBehaviour {
             fields[0].GetComponent<MeshRenderer>().sortingOrder = fields[1].GetComponent<MeshRenderer>().sortingOrder = 2;
             for (int c = GameConstants.MAX_PRIORITY; c > 0; c--)
             {
-                CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(4));
+                CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(CommandChildIndex));
                 cmd.Initialize(r.id, c, r.priority);
                 cmd.isOpponent = isOpponent;
                 cmd.transform.localScale = new Vector3(1, 1.0f / GameConstants.MAX_PRIORITY, 1);
@@ -165,7 +167,7 @@ public class UIController : MonoBehaviour {
             robotButton.GetComponentInChildren<SpriteRenderer>().sprite = robotSprite;
             robotButton.SetCallback(() => {
                 SetButtons(RobotButtonContainer, true);
-                robotButton.Deactivate();
+                robotButton.Select();
                 Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
                 SetButtons(DirectionButtonContainer, false);
                 EachMenuItemSet(CommandButtonContainer, (string m) => {
@@ -177,13 +179,13 @@ public class UIController : MonoBehaviour {
                             Interpreter.boardController.tile.queueSprites[dir] : Interpreter.uiController.GetArrow(m + " Arrow");
                         d.SetCallback(() => {
                             Interpreter.robotControllers[r.id].addRobotCommand(m, dir);
-                            EachMenuItem(DirectionButtonContainer, (MenuItemController d2) => d2.GetComponentInChildren<SpriteRenderer>().sprite = Default);
+                            EachMenuItem(DirectionButtonContainer, (MenuItemController d2) => d2.GetComponentInChildren<SpriteRenderer>().sprite = null);
                             SetButtons(RobotButtonContainer, true);
-                            robotButton.Deactivate();
+                            robotButton.Select();
                             Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
                             SetButtons(DirectionButtonContainer, false);
                         });
-                        d.transform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * 90);
+                        d.GetComponentInChildren<SpriteRenderer>().transform.localRotation = isSpawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * dir * -90);
                     });
                 });
             });
@@ -233,14 +235,14 @@ public class UIController : MonoBehaviour {
 
     public void ClearCommands(short id)
     {
-        ClearCommands(robotIdToPanel[id].transform.GetChild(3));
+        ClearCommands(robotIdToPanel[id].transform.GetChild(CommandChildIndex));
     }
 
     public void HighlightCommands(Type t, byte p)
     {
         foreach (short id in robotIdToPanel.Keys)
         {
-            Transform commandPanel = robotIdToPanel[id].transform.GetChild(3);
+            Transform commandPanel = robotIdToPanel[id].transform.GetChild(CommandChildIndex);
             CommandSlotController cmd = commandPanel.GetChild(commandPanel.childCount - p).GetComponent<CommandSlotController>();
             if (cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(cmd.GetType())))
             {
@@ -251,7 +253,7 @@ public class UIController : MonoBehaviour {
 
     public void ColorCommandsSubmitted(short id)
     {
-        Transform panel = robotIdToPanel[id].transform.GetChild(3);
+        Transform panel = robotIdToPanel[id].transform.GetChild(CommandChildIndex);
         for (int i = 0; i < panel.childCount; i++)
         {
             CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
@@ -262,7 +264,7 @@ public class UIController : MonoBehaviour {
 
     public void addSubmittedCommand(Command cmd, short id)
     {
-        Transform panel = robotIdToPanel[id].transform.GetChild(3);
+        Transform panel = robotIdToPanel[id].transform.GetChild(CommandChildIndex);
         int powerConsumed = 0;
         for (int i = 0; i < panel.childCount; i++)
         {
@@ -363,7 +365,7 @@ public class UIController : MonoBehaviour {
 
     public void LightUpPanel(bool bright, bool isUser)
     {
-        SpriteRenderer panel = (isUser ? UsersRobots : OpponentsRobots).transform.parent.GetComponent<SpriteRenderer>();
+        Image panel = (isUser ? UsersRobots : OpponentsRobots).transform.parent.GetComponentInChildren<Image>();
         Color regular = (isUser ? new Color(0, 0.5f, 1.0f, 1.0f) : new Color(1.0f, 0, 0, 1.0f));
         float mult = (bright ? 1.0f : 0.5f);
         panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
