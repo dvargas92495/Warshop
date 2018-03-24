@@ -446,6 +446,8 @@ MonoBehaviour:
   RobotModels:
   - {fileID: 1537432016106166, guid: b9581a2f81c5ce3498e20a1fec92f3f5, type: 2}
   - {fileID: 1132578333882946, guid: 0d5c26ddc25b32146b48f98d47657986, type: 2}
+  - {fileID: 1386792060425170, guid: 5f37ebd7492708144a8907b3f9d8d78e, type: 2}
+  - {fileID: 1799556217153306, guid: dcbbc77c550fa9448b408dc6ee84b80c, type: 2}
   CeilingLight: {fileID: 108209534531051058, guid: 1c6545edaa460a249808658fed7e286c,
     type: 2}
   cam: {fileID: 1948599136}

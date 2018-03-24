@@ -286,6 +286,7 @@ public class UIController : MonoBehaviour {
                 if (cmd is Command.Spawn)
                 {
                     child.Arrow.sprite = Interpreter.boardController.tile.queueSprites[cmd.direction];
+                    child.Arrow.transform.localRotation = Quaternion.identity;
                 } else
                 {
                     child.Arrow.sprite = GetArrow(cmd.ToSpriteString());
@@ -379,7 +380,8 @@ public class UIController : MonoBehaviour {
         Image panel = (isUser ? UserBackground : OpponentBackground);
         Color regular = (isUser ? new Color(0, 0.5f, 1.0f, 1.0f) : new Color(1.0f, 0, 0, 1.0f));
         float mult = (bright ? 1.0f : 0.5f);
-        panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
+        //panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
+        //TODO - Need another indicator of opponent ready here
     }
 
     public Sprite GetArrow(string eventName)
