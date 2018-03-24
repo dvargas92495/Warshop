@@ -72,7 +72,7 @@ public class CommandSlotController : MonoBehaviour {
     internal void Open()
     {
         Arrow.color = OPEN_COMMAND;
-        Arrow.transform.rotation = Quaternion.Euler(Vector3.zero);
+        Arrow.transform.localRotation = Quaternion.identity;
     }
 
     internal bool Opened()
