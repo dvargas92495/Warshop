@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.373122, g: 0.38074183, b: 0.35872623, a: 1}
+  m_IndirectSpecularColor: {r: 0.37312284, g: 0.3807422, b: 0.35872623, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -652,6 +652,12 @@ MonoBehaviour:
     type: 2}
   m_PrefabInternal: {fileID: 401409833}
   m_Script: {fileID: -806885394, guid: 89f0137620f6af44b9ba852b4190e64e, type: 3}
+--- !u!114 &401409837 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114193299606674752, guid: 75b7fbdc77bad204da76a8d824cbfdfe,
+    type: 2}
+  m_PrefabInternal: {fileID: 401409833}
+  m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
 --- !u!1 &416315080
 GameObject:
   m_ObjectHideFlags: 0
@@ -1749,6 +1755,12 @@ MonoBehaviour:
     type: 2}
   m_PrefabInternal: {fileID: 1860529150}
   m_Script: {fileID: -806885394, guid: 89f0137620f6af44b9ba852b4190e64e, type: 3}
+--- !u!114 &1860529154 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114193299606674752, guid: 75b7fbdc77bad204da76a8d824cbfdfe,
+    type: 2}
+  m_PrefabInternal: {fileID: 1860529150}
+  m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
 --- !u!1 &1862019101
 GameObject:
   m_ObjectHideFlags: 0
@@ -1778,7 +1790,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ScoreModel: {fileID: 102877597928948098, guid: b3c359c2c68fe1644818134067bb2dda,
     type: 2}
+  OpponentBackground: {fileID: 401409837}
   OpponentsRobots: {fileID: 401409834}
+  UserBackground: {fileID: 1860529154}
   UsersRobots: {fileID: 1860529152}
   RobotPanel: {fileID: 1300967514835442, guid: a4a92458a8797bc4cbc46c7f1b051f55, type: 2}
   CommandSlot: {fileID: 114345010557230512, guid: 6d25ff3d7038a41429a0aa48a07418fa,

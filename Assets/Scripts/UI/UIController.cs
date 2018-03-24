@@ -12,10 +12,13 @@ public class UIController : MonoBehaviour {
 	public TextMesh ScoreModel;
     
     internal TextMesh opponentScore;
+    public Image OpponentBackground;
     public GameObject OpponentsRobots;
     
     internal TextMesh userScore;
+    public Image UserBackground;
     public GameObject UsersRobots;
+
     public GameObject RobotPanel;
     public CommandSlotController CommandSlot;
     public GameObject Controls;
@@ -38,7 +41,7 @@ public class UIController : MonoBehaviour {
     public Sprite[] arrows;    
 
     private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
-    private int CommandChildIndex = 4;
+    private int CommandChildIndex = 3;
 
     void Start()
     {
@@ -150,11 +153,10 @@ public class UIController : MonoBehaviour {
             GameObject panel = Instantiate(RobotPanel, container);
             panel.name = "Robot" + r.id;
             Sprite robotSprite = Array.Find(sprites, (Sprite s) => s.name.Equals(r.name));
-            panel.transform.GetChild(2).GetComponent<SpriteRenderer>().sprite = robotSprite;
-            TextMesh[] fields = panel.GetComponentsInChildren<TextMesh>();
-            fields[0].text = r.name;
-            fields[1].text = 0.ToString();
-            fields[0].GetComponent<MeshRenderer>().sortingOrder = fields[1].GetComponent<MeshRenderer>().sortingOrder = 2;
+            panel.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite = robotSprite;
+            TextMesh field = panel.GetComponentInChildren<TextMesh>();
+            field.text = 0.ToString();
+            field.GetComponent<MeshRenderer>().sortingOrder = 2;
             for (int c = GameConstants.MAX_PRIORITY; c > 0; c--)
             {
                 CommandSlotController cmd = Instantiate(CommandSlot, panel.transform.GetChild(CommandChildIndex));
@@ -268,7 +270,7 @@ public class UIController : MonoBehaviour {
             CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
             if (!cmd.Closed()) cmd.Submit();
         }
-        panel.parent.GetComponentsInChildren<TextMesh>()[1].text = 0.ToString();
+        panel.parent.GetComponentInChildren<TextMesh>().text = 0.ToString();
     }
 
     public void addSubmittedCommand(Command cmd, short id)
@@ -300,7 +302,7 @@ public class UIController : MonoBehaviour {
               else if (child.Arrow.sprite.name.StartsWith(Command.Move.DISPLAY)) powerConsumed += Command.power[typeof(Command.Move)];
               else if (child.Arrow.sprite.name.StartsWith(Command.Attack.DISPLAY)) powerConsumed += Command.power[typeof(Command.Attack)];
         }
-        panel.parent.GetComponentsInChildren<TextMesh>()[1].text = powerConsumed.ToString();
+        panel.parent.GetComponentInChildren<TextMesh>().text = powerConsumed.ToString();
     }
 
     public Tuple<string, byte>[] getCommandsSerialized(short id)
@@ -374,7 +376,7 @@ public class UIController : MonoBehaviour {
 
     public void LightUpPanel(bool bright, bool isUser)
     {
-        Image panel = (isUser ? UsersRobots : OpponentsRobots).transform.parent.GetComponentInChildren<Image>();
+        Image panel = (isUser ? UserBackground : OpponentBackground);
         Color regular = (isUser ? new Color(0, 0.5f, 1.0f, 1.0f) : new Color(1.0f, 0, 0, 1.0f));
         float mult = (bright ? 1.0f : 0.5f);
         panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
