@@ -28,6 +28,8 @@ public class UIController : MonoBehaviour {
     public MenuItemController GenericButton;
     public GameObject RobotButtonContainer;
     public GameObject CommandButtonContainer;
+    public TMP_Text UserPlayerName;
+    public TMP_Text OpponentsPlayerName;
     public GameObject DirectionButtonContainer;
     // public Image SplashScreen;
 
@@ -138,7 +140,7 @@ public class UIController : MonoBehaviour {
     {
         Transform container = (isOpponent ? OpponentsRobots.transform : UsersRobots.transform);
         
-        TextMesh playerName = container.parent.GetComponentInChildren<TextMesh>(true);
+        TMP_Text playerName = (isOpponent ? OpponentsPlayerName : UserPlayerName);
         playerName.text = player.name;
 
         for (int i = 0; i < player.team.Length; i++)
