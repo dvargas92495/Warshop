@@ -115,4 +115,10 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 1ac28f5bf90f52d48b085e1876ef69af, type: 3}
   - {fileID: 21300000, guid: bbbb43afd8cd2b4489b4609caf9e9622, type: 3}
   - {fileID: 21300000, guid: 30a6aba9d87687e45a84fc9ef134d377, type: 3}
+  spawnTileText: {fileID: 114021522439281750, guid: 6565701cfaec4cf4b81dbc922faf8695,
+    type: 2}
+  userSpawnTileTextMaterial: {fileID: 2100000, guid: c28038670ef15434f887a9957b69bc1e,
+    type: 2}
+  opponentSpawnTileTextMaterial: {fileID: 2100000, guid: d7c95eaf00268624b9dbef86f4351252,
+    type: 2}
   defaultSpace: {fileID: 21300000, guid: 549aa4fce42c65649bf0387375e508f0, type: 3}
