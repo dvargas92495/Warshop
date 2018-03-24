@@ -20,7 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4822743516479606}
   - component: {fileID: 212281303974517162}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37,7 +37,7 @@ GameObject:
   - component: {fileID: 4863110447779896}
   - component: {fileID: 33079751984210514}
   - component: {fileID: 23097856372123604}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Ring
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -54,7 +54,7 @@ GameObject:
   - component: {fileID: 4436482696864590}
   - component: {fileID: 114957039928557280}
   - component: {fileID: 135382993898672932}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: GenericButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -71,7 +71,7 @@ GameObject:
   - component: {fileID: 4257443704328524}
   - component: {fileID: 33328902578822378}
   - component: {fileID: 23976746588196042}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}

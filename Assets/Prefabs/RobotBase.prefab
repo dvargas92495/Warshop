@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4996168253374000}
   - component: {fileID: 114303540073418012}
   - component: {fileID: 65617746113484424}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: RobotBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38,7 +38,7 @@ GameObject:
   - component: {fileID: 4493362385329840}
   - component: {fileID: 23616210894304974}
   - component: {fileID: 102573961694724984}
-  m_Layer: 5
+  m_Layer: 11
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -54,7 +54,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4103477727608090}
   - component: {fileID: 212308555163392000}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -70,7 +70,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4880199127219614}
   - component: {fileID: 212897620987297906}
-  m_Layer: 5
+  m_Layer: 11
   m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 4149282419412306}
   - component: {fileID: 23364946913414654}
   - component: {fileID: 102736957411386890}
-  m_Layer: 5
+  m_Layer: 11
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -103,7 +103,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4404958300051858}
   - component: {fileID: 212492285030493294}
-  m_Layer: 5
+  m_Layer: 11
   m_Name: Attack
   m_TagString: Untagged
   m_Icon: {fileID: 0}

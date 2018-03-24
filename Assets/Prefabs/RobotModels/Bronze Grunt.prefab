@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 33851597076475940}
   - component: {fileID: 136444208809390998}
   - component: {fileID: 23263472883250264}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Gun 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   - component: {fileID: 33340537431849634}
   - component: {fileID: 136590327002999246}
   - component: {fileID: 23081067693019354}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Right Pylon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -58,7 +58,7 @@ GameObject:
   - component: {fileID: 33430448201167904}
   - component: {fileID: 135599339051086182}
   - component: {fileID: 23105859099740196}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -76,7 +76,7 @@ GameObject:
   - component: {fileID: 33105954790943924}
   - component: {fileID: 136118024886815466}
   - component: {fileID: 23869273405923610}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Gun 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -91,7 +91,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4639967501350624}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Bronze Grunt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -109,7 +109,7 @@ GameObject:
   - component: {fileID: 33250523010447760}
   - component: {fileID: 136510657045830148}
   - component: {fileID: 23656432215464704}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Left Pylon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -127,7 +127,7 @@ GameObject:
   - component: {fileID: 33984455393144408}
   - component: {fileID: 136367239441014232}
   - component: {fileID: 23918785642554706}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Gun
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -145,7 +145,7 @@ GameObject:
   - component: {fileID: 33374810488744430}
   - component: {fileID: 135864950343076676}
   - component: {fileID: 23837013908411892}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Left Ball
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -163,7 +163,7 @@ GameObject:
   - component: {fileID: 33507344823911622}
   - component: {fileID: 135264062533997560}
   - component: {fileID: 23004881141217912}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Right Ball
   m_TagString: Untagged
   m_Icon: {fileID: 0}

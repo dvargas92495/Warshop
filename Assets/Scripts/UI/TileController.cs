@@ -21,7 +21,6 @@ public class TileController : MonoBehaviour {
         //sr.sprite = defaultSpace;
         if (b.IsVoid(v)) {
             //sr.color = Color.black;
-            Debug.Log(b.IsPrimary(v));
             return BoardController.VOID_TYPE;
         } else if (b.IsQueue(v))
         {
