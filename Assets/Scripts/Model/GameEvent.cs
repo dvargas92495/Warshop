@@ -64,6 +64,9 @@ public abstract class GameEvent
             case End.EVENT_ID:
                 evt = End.Deserialize(reader);
                 break;
+            case Collision.EVENT_ID:
+                evt = End.Deserialize(reader);
+                break;
             default:
                 throw new ZException("Unknown Event Id to deserialize: " + eventId);
         }
@@ -424,6 +427,38 @@ public abstract class GameEvent
             evt.primaryLost = reader.ReadBoolean();
             evt.secondaryLost = reader.ReadBoolean();
             return evt;
+        }
+    }
+
+    public class Collision : GameEvent
+    {
+        internal const byte EVENT_ID = 14;
+        internal short[] collidingRobots;
+        internal Vector2Int deniedPos;
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(EVENT_ID);
+            writer.Write(collidingRobots.Length);
+            Array.ForEach(collidingRobots, writer.Write);
+            writer.Write(deniedPos.x);
+            writer.Write(deniedPos.y);
+        }
+        public new static Collision Deserialize(NetworkReader reader)
+        {
+            Collision evt = new Collision();
+            evt.collidingRobots = new short[reader.ReadInt32()];
+            for(int i = 0; i < evt.collidingRobots.Length; i++)
+            {
+                evt.collidingRobots[i] = reader.ReadInt16();
+            }
+            evt.deniedPos = new Vector2Int();
+            evt.deniedPos.x = reader.ReadInt32();
+            evt.deniedPos.y = reader.ReadInt32();
+            return evt;
+        }
+        public override string ToString()
+        {
+            return ToString("was blocked by " + string.Join(",",collidingRobots));
         }
     }
 }
