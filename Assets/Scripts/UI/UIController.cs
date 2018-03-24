@@ -197,7 +197,7 @@ public class UIController : MonoBehaviour {
                 });
             });
             robotButton.gameObject.SetActive(!isOpponent);
-            robotButton.transform.localPosition = new Vector3(((i%4)*3 - 4.5f), 0, (i/4)*(-2.5f));
+            robotButton.transform.localPosition = Vector3.right*((i%4)*3 - 4.5f);
         }
     }
 
