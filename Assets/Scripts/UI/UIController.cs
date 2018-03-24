@@ -123,7 +123,7 @@ public class UIController : MonoBehaviour {
                 SpriteRenderer s = t.GetComponent<SpriteRenderer>();
                 s.flipY = !s.flipY;
                 s.flipX = !s.flipX;
-                s.color = s.color.Equals(TileController.userQueueColor) ? TileController.opponentQueueColor : TileController.userQueueColor;
+                //s.color = s.color.Equals(TileController.userQueueColor) ? TileController.opponentQueueColor : TileController.userQueueColor;
             });
             userScore.transform.Rotate(Vector3.forward, 180);
             opponentScore.transform.Rotate(Vector3.forward, 180);
