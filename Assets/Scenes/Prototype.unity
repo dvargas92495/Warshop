@@ -1709,11 +1709,25 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4854548161490898, guid: 75b7fbdc77bad204da76a8d824cbfdfe, type: 2}
       propertyPath: m_RootOrder
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4368256567047406, guid: 75b7fbdc77bad204da76a8d824cbfdfe, type: 2}
       propertyPath: m_RootOrder
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1793408414576852, guid: 75b7fbdc77bad204da76a8d824cbfdfe, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 224747041268527028, guid: 75b7fbdc77bad204da76a8d824cbfdfe,
+        type: 2}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 33374471703126196, guid: 75b7fbdc77bad204da76a8d824cbfdfe,
+        type: 2}
+      propertyPath: m_Mesh
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 81958318628327412, guid: 75b7fbdc77bad204da76a8d824cbfdfe, type: 2}
