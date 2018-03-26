@@ -132,6 +132,10 @@ public class UIController : MonoBehaviour {
         BackToPresent.SetCallback(Interpreter.BackToPresent);
         StepBackButton.SetCallback(Interpreter.StepBackward);
         StepForwardButton.SetCallback(Interpreter.StepForward);
+        SubmitCommands.Activate();
+        BackToPresent.Deactivate();
+        StepBackButton.Deactivate();
+        StepForwardButton.Deactivate();
         SetButtons(RobotButtonContainer, true);
         SetButtons(CommandButtonContainer, false);
         SetButtons(DirectionButtonContainer, false);
@@ -255,7 +259,7 @@ public class UIController : MonoBehaviour {
         {
             Transform commandPanel = robotIdToPanel[id].transform.GetChild(CommandChildIndex);
             CommandSlotController cmd = commandPanel.GetChild(commandPanel.childCount - p).GetComponent<CommandSlotController>();
-            if (cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(cmd.GetType())))
+            if (cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(t)))
             {
                 cmd.Highlight();
             }

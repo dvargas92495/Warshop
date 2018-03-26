@@ -24,11 +24,11 @@ public class Interpreter {
     private static bool myturn;
     private static bool isPrimary;
     private static byte turnNumber = 1;
-    private static byte[] currentHistory = new byte[] { 1, GameConstants.MAX_PRIORITY, 0 };
+    private static Tuple<byte, byte, byte> currentHistory = new Tuple<byte, byte, byte> ( 1, GameConstants.MAX_PRIORITY, 0 );
     private static byte[] presentState;
 
-    //[turnNumber][priority][commandtype]
-    private static Dictionary<byte, Dictionary<byte, Dictionary<byte, byte[]>>> History = new Dictionary<byte, Dictionary<byte, Dictionary<byte, byte[]>>>();
+    //[turnNumber, priority, commandtype, State]
+    private static List<Tuple<byte, byte, byte, byte[]>> History = new List<Tuple<byte, byte, byte, byte[]>>();
 
     public static void ConnectToServer(string playerId, string opponentId, string boardFile)
     {
@@ -195,7 +195,6 @@ public class Interpreter {
         int userBattery = uiController.GetUserBattery();
         int opponentBattery = uiController.GetOpponentBattery();
         List<GameEvent> eventsThisPriority = new List<GameEvent>();
-        Dictionary<byte, Dictionary<byte, byte[]>> priorityToState = new Dictionary<byte, Dictionary<byte, byte[]>>();
         foreach(GameEvent e in events)
         {
             if (!eventsThisPriority.Any())
@@ -207,11 +206,10 @@ public class Interpreter {
             {
                 GameEvent.Resolve r = (GameEvent.Resolve)e;
                 uiController.HighlightCommands(r.commandType, r.priority);
-                if (!priorityToState.ContainsKey(r.priority)) priorityToState[r.priority] = new Dictionary<byte, byte[]>();
                 currentUserBattery = uiController.GetUserBattery();
                 currentOpponentBattery = uiController.GetOpponentBattery();
                 uiController.SetBattery(userBattery, opponentBattery);
-                priorityToState[r.priority][GameEvent.Resolve.GetByte(r.commandType)] = SerializeState((int)r.priority);
+                History.Add(new Tuple<byte, byte, byte, byte[]>(turnNumber, r.priority, GameEvent.Resolve.GetByte(r.commandType), SerializeState(r.priority)));
                 uiController.SetBattery(currentUserBattery, currentOpponentBattery);
                 uiController.SetPriority(r.priority);
                 foreach (GameEvent evt in eventsThisPriority)
@@ -290,8 +288,7 @@ public class Interpreter {
         }
         if (!gameOver)
         {
-            History[turnNumber] = priorityToState;
-            currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
+            currentHistory = new Tuple<byte, byte, byte> ((byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 );
             myturn = true;
             Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) =>
             {
@@ -303,7 +300,10 @@ public class Interpreter {
                 }
                 r.commands.Clear();
             });
-            uiController.SetButtons(true);
+            uiController.SubmitCommands.Activate();
+            uiController.BackToPresent.Deactivate();
+            uiController.StepForwardButton.Deactivate();
+            uiController.StepBackButton.SetActive(History.Count != 0);
             uiController.SetButtons(uiController.RobotButtonContainer, true);
             uiController.LightUpPanel(false, true);
             uiController.LightUpPanel(false, false);
@@ -417,7 +417,7 @@ public class Interpreter {
     public static void BackToPresent()
     {
         DeserializeState(presentState);
-        currentHistory = new byte[] { (byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 };
+        currentHistory = new Tuple<byte, byte, byte>((byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0);
         foreach (RobotController r in robotControllers.Values)
         {
             uiController.ClearCommands(r.id);
@@ -426,82 +426,49 @@ public class Interpreter {
         }
         uiController.SubmitCommands.SetActive(true);
         uiController.SetButtons(uiController.RobotButtonContainer, true);
-        uiController.BackToPresent.Activate();
+        uiController.BackToPresent.Deactivate();
+        uiController.StepBackButton.Activate();
+        uiController.StepForwardButton.Deactivate();
     }
 
     public static void StepForward()
     {
-        byte turn = currentHistory[0];
-        byte priority = currentHistory[1];
-        byte command = currentHistory[2];
-        bool stepped = false;
-        while (turn < turnNumber + 1)
+        Tuple<byte, byte, byte, byte[]> historyState = History.Find((Tuple<byte, byte, byte, byte[]> t) =>
+                   (t.Item1 == currentHistory.Item1 && t.Item2 == currentHistory.Item2 && t.Item3 == currentHistory.Item3));
+        int historyIndex = History.IndexOf(historyState);
+        if (historyIndex == History.Count - 1)
         {
-            if (command == 3)
-            {
-                command = 0;
-                if (priority == 0)
-                {
-                    priority = GameConstants.MAX_PRIORITY;
-                    turn++;
-                } else
-                {
-                    priority--;
-                }
-            } else
-            {
-                command++;
-            }
-            if (History.ContainsKey(turn) && History[turn].ContainsKey(priority) && History[turn][priority].ContainsKey(command))
-            {
-                GoTo(turn, priority, command );
-                stepped = true;
-                break;
-            }
-        }
-        if (!stepped) {
             BackToPresent();
-        }
-        uiController.StepForwardButton.Activate();
-    }
-
-    public static void StepBackward()
-    {
-        byte turn = currentHistory[0];
-        byte priority = currentHistory[1];
-        byte command = currentHistory[2];
-        while (!(turn == 1 && priority == GameConstants.MAX_PRIORITY && command == 0))
+        } else
         {
-            if (command == 0)
-            {
-                command = 3;
-                if (priority == GameConstants.MAX_PRIORITY)
-                {
-                    priority = 0;
-                    turn--;
-                }
-                else
-                {
-                    priority++;
-                }
-            }
-            else
-            {
-                command--;
-            }
-            if (History.ContainsKey(turn) && History[turn].ContainsKey(priority) && History[turn][priority].ContainsKey(command))
-            {
-                GoTo( turn, priority, command );
-                break;
-            }
+            Tuple<byte, byte, byte, byte[]> nextState = History[historyIndex + 1];
+            GoTo(nextState.Item1, nextState.Item2, nextState.Item3, nextState.Item4);
+            uiController.StepForwardButton.Activate();
+            uiController.BackToPresent.Activate();
         }
         uiController.StepBackButton.Activate();
     }
 
-    private static void GoTo(byte turn, byte priority, byte command)
+    public static void StepBackward()
     {
-        DeserializeState(History[turn][priority][command]);
-        currentHistory = new byte[] { turn, priority, command };
+        int historyIndex = History.Count;
+        if (currentHistory.Item1 != turnNumber+1)
+        {
+            Tuple<byte, byte, byte, byte[]> historyState = History.Find((Tuple<byte, byte, byte, byte[]> t) =>
+               (t.Item1 == currentHistory.Item1 && t.Item2 == currentHistory.Item2 && t.Item3 == currentHistory.Item3));
+            historyIndex = History.IndexOf(historyState);
+        }
+        Tuple<byte, byte, byte, byte[]> nextState = History[historyIndex - 1];
+        GoTo(nextState.Item1, nextState.Item2, nextState.Item3, nextState.Item4);
+        uiController.StepBackButton.SetActive(historyIndex > 1);
+        uiController.StepForwardButton.Activate();
+        uiController.BackToPresent.Activate();
+    }
+
+    private static void GoTo(byte turn, byte priority, byte command, byte[] state)
+    {
+        DeserializeState(state);
+        currentHistory = new Tuple<byte,byte,byte> ( turn, priority, command );
         Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => {
             uiController.ColorCommandsSubmitted(r.id);
             r.canCommand = false;
