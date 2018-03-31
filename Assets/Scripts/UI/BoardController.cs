@@ -6,11 +6,13 @@ using System.Linq;
 public class BoardController : MonoBehaviour {
 
     //Area board is allowed to be in
+    public TextAsset DefaultBoard;
     public int boardCellsWide;
     public int boardCellsHeight;
     public TileController tile;
     public GameObject primaryDock;
     public GameObject secondaryDock;
+    public RobotController robotBase;
     public GameObject[] RobotModels;
     public Light CeilingLight;
     public Camera cam;

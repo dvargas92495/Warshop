@@ -17,13 +17,9 @@ public class RobotController : MonoBehaviour
     public TextMesh HealthLabel;
     public TextMesh AttackLabel;
 
-    internal static RobotController robotBase;
-    internal static Sprite[] robotDir;
-
-
     public static RobotController Load(Robot robot, Transform dock)
     {
-        RobotController r = Instantiate(robotBase, dock);
+        RobotController r = Instantiate(Interpreter.boardController.robotBase, dock);
         r.LoadModel(robot.name);
         r.name = robot.name;
         r.id = robot.id;

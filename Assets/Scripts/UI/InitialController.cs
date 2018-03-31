@@ -22,7 +22,6 @@ public class InitialController : MonoBehaviour {
     public Toggle useServerToggle;
     public TextAsset playtest;
     public TextAsset[] boardfiles;
-    public RobotController robotBase;
     public Sprite[] robotDir;
     public Sprite[] squadSpriteDir;
     public GameObject robotRosterImage;
@@ -166,8 +165,6 @@ public class InitialController : MonoBehaviour {
             rosterRobot.name = r.name;
             rosterRobot.GetComponent<Image>().sprite = r;
             rosterRobot.GetComponent<Button>().onClick.AddListener(() => RosterController.maximizeRobot(rosterRobot.name));
-
-
         }
 
 
@@ -343,8 +340,6 @@ public class InitialController : MonoBehaviour {
     void StartGame(string b, string[] mybots, string[] opbots, string myname, string opponentname)
     {
 
-        RobotController.robotBase = robotBase;
-        RobotController.robotDir = robotDir;
         Interpreter.myRobotNames = mybots;
         Interpreter.opponentRobotNames = opbots;
         statusText.color = Color.black;

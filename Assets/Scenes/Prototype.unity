@@ -502,11 +502,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbb3b35710c3a514abec8440803b6c9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  DefaultBoard: {fileID: 4900000, guid: e3fc191eedea8f343a82bbf5f9a1e104, type: 3}
   boardCellsWide: 0
   boardCellsHeight: 0
   tile: {fileID: 114061480948572856, guid: 8cf26a144fe69a34fb03103c015fd34d, type: 2}
   primaryDock: {fileID: 1035633613}
   secondaryDock: {fileID: 1442155181}
+  robotBase: {fileID: 114303540073418012, guid: 80728159308e23b4d9f9bfbb0e53167d,
+    type: 2}
   RobotModels:
   - {fileID: 1537432016106166, guid: b9581a2f81c5ce3498e20a1fec92f3f5, type: 2}
   - {fileID: 1132578333882946, guid: 0d5c26ddc25b32146b48f98d47657986, type: 2}

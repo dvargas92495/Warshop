@@ -1,25 +1,26 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Interpreter {
-
-    private static Game.Player[] playerTurnObjectArray;
-    private static Map board;
 
     internal static InitialController initialController;
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static Dictionary<short, RobotController> robotControllers;
-    public const int eventDelay = 1;
+
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
+
+    private const int eventDelay = 1;
+    private static bool loadedLocally = false;
+    private static Game.Player[] playerTurnObjectArray;
+    private static Map board;
     private static Logger log = new Logger(typeof(Interpreter));
     private static bool myturn;
     private static bool isPrimary;
@@ -61,7 +62,7 @@ public class Interpreter {
         board = b;
         myturn = true;
         isPrimary = isP;
-        SceneManager.LoadScene("Prototype");
+        if (!loadedLocally) SceneManager.LoadScene("Prototype");
     }
 
     public static void ClientError(string s)
@@ -70,18 +71,30 @@ public class Interpreter {
         initialController.statusText.text = s;
     }
 
+    public static void InitializeBoard(BoardController bc)
+    {
+        boardController = bc;
+#if UNITY_EDITOR
+        if (board == null && GameConstants.LOCAL_MODE)
+        {
+            //We are loading from Prototype scene
+            loadedLocally = true;
+            App.LinkAssets(new TextAsset[] { bc.DefaultBoard });
+            myRobotNames = new string[] { "Bronze Grunt", "Silver Grunt", "Bronze Grunt", "Platinum Grunt" };
+            opponentRobotNames = new string[] { "Silver Grunt", "Golden Grunt", "Silver Grunt", "Bronze Grunt" };
+            ConnectToServer("", "", bc.DefaultBoard.name);
+            while (board == null) { }
+        }
+#endif
+        boardController.InitializeBoard(board);
+        InitializeRobots(playerTurnObjectArray);
+    }
+
     public static void InitializeUI(UIController ui)
     {
         uiController = ui;
         uiController.InitializeUICanvas(playerTurnObjectArray, isPrimary);
         presentState = SerializeState(-1);
-    }
-
-    public static void InitializeBoard(BoardController bc)
-    {
-        boardController = bc;
-        boardController.InitializeBoard(board);
-        InitializeRobots(playerTurnObjectArray);
     }
 
     private static void InitializeRobots(Game.Player[] playerTurns)
