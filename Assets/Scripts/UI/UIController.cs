@@ -117,13 +117,15 @@ public class UIController : MonoBehaviour {
         SetBattery(playerObjects[0].battery, playerObjects[1].battery);
         if (!isPrimary)
         {
-            Interpreter.boardController.cam.transform.Rotate(new Vector3(0, 0, 180));
+            Interpreter.boardController.cam.transform.Rotate(new Vector3(60, 0, 180));
+            Interpreter.boardController.cam.transform.position += Vector3.up * 16; //TODO: Magic Number?
             Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
             {
-                SpriteRenderer s = t.GetComponent<SpriteRenderer>();
-                s.flipY = !s.flipY;
-                s.flipX = !s.flipX;
-                //s.color = s.color.Equals(TileController.userQueueColor) ? TileController.opponentQueueColor : TileController.userQueueColor;
+                TMP_Text s = t.transform.GetComponentInChildren<TMP_Text>();
+                s.transform.Rotate(new Vector3(0, 0, 180));
+                s.fontSharedMaterial = s.fontSharedMaterial.Equals(Interpreter.boardController.tile.userSpawnTileTextMaterial) ?
+                    Interpreter.boardController.tile.opponentSpawnTileTextMaterial : 
+                    Interpreter.boardController.tile.userSpawnTileTextMaterial;
             });
             userScore.transform.Rotate(Vector3.forward, 180);
             opponentScore.transform.Rotate(Vector3.forward, 180);
@@ -381,9 +383,9 @@ public class UIController : MonoBehaviour {
 
     public void LightUpPanel(bool bright, bool isUser)
     {
-        Image panel = (isUser ? UserBackground : OpponentBackground);
-        Color regular = (isUser ? new Color(0, 0.5f, 1.0f, 1.0f) : new Color(1.0f, 0, 0, 1.0f));
-        float mult = (bright ? 1.0f : 0.5f);
+        //Image panel = (isUser ? UserBackground : OpponentBackground);
+        //Color regular = (isUser ? new Color(0, 0.5f, 1.0f, 1.0f) : new Color(1.0f, 0, 0, 1.0f));
+        //float mult = (bright ? 1.0f : 0.5f);
         //panel.color = new Color(regular.r * mult, regular.g*mult, regular.b * mult, regular.a * mult);
         //TODO - Need another indicator of opponent ready here
     }

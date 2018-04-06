@@ -22,6 +22,8 @@ public class BoardController : MonoBehaviour {
     internal TileController secondaryBatteryLocation;
     private TileController primaryVoidLocation;
     private TileController secondaryVoidLocation;
+    private bool[] primaryDockOccupied = new bool[] { false, false, false, false};
+    private bool[] secondaryDockOccupied = new bool[] { false, false, false, false };
 
     internal const byte BLANK_TYPE = 0;
     internal const byte QUEUE_TYPE = 1;
@@ -82,4 +84,25 @@ public class BoardController : MonoBehaviour {
         return isUser ? primaryVoidLocation : secondaryVoidLocation;
     }
 
+    public Vector3 PlaceInBelt(bool isPrimary)
+    {
+        int i;
+        bool[] isOccupied = (isPrimary ? primaryDockOccupied : secondaryDockOccupied);
+        for (i = 0;i<isOccupied.Length; i++)
+        {
+            if (!isOccupied[i])
+            {
+                isOccupied[i] = true;
+                break;
+            }
+        }
+        return Vector3.right * i + Vector3.back * tile.transform.localScale.z * 1.001f;
+    }
+
+    public void RemoveFromBelt(Vector3 localPos, bool isPrimary)
+    {
+        int i = (int)localPos.x;
+        bool[] isOccupied = (isPrimary ? primaryDockOccupied : secondaryDockOccupied);
+        isOccupied[i] = false;
+    }
 }

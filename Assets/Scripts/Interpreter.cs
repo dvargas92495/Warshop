@@ -113,7 +113,7 @@ public class Interpreter {
                 r.canCommand = !r.isOpponent;
                 r.transform.GetChild(0).GetComponent<SpriteRenderer>().color = (r.isOpponent ? Color.red : Color.blue);
                 robotControllers[r.id] = r;
-                r.transform.localPosition = Vector3.right * i + Vector3.back*boardController.tile.transform.localScale.z*1.001f;
+                r.transform.localPosition = boardController.PlaceInBelt((isPrimary && !r.isOpponent) || (!isPrimary && r.isOpponent));
                 r.transform.rotation = Quaternion.Euler(0, 0, isPrimary ? 0 : 180);
             }
 
@@ -236,12 +236,13 @@ public class Interpreter {
                         GameEvent.Death d = (GameEvent.Death)evt;
                         primaryRobot.displayHealth(d.returnHealth);
                         primaryRobot.gameObject.SetActive(false);
-                        Transform dock = ((primaryRobot.isOpponent && isPrimary) || (!primaryRobot.isOpponent && !isPrimary)) ?
-                            boardController.secondaryDock.transform : boardController.primaryDock.transform;
-                        primaryRobot.transform.position = dock.position + Vector3.right * (dock.childCount - dock.localScale.x / 2 + 0.5f);
+                        bool isP = ((!primaryRobot.isOpponent && isPrimary) || (primaryRobot.isOpponent && !isPrimary));
+                        Transform dock = isP ? boardController.primaryDock.transform : boardController.secondaryDock.transform;
                         primaryRobot.transform.parent = dock;
+                        primaryRobot.transform.localPosition = boardController.PlaceInBelt(isP);
                     } else if (evt is GameEvent.Spawn)
                     {
+                        boardController.RemoveFromBelt(primaryRobot.transform.localPosition, ((!primaryRobot.isOpponent && isPrimary) || (primaryRobot.isOpponent && !isPrimary)));
                         primaryRobot.transform.parent = boardController.transform;
                         primaryRobot.displayMove(((GameEvent.Spawn)evt).destinationPos);
                     }
