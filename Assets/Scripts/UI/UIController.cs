@@ -248,6 +248,7 @@ public class UIController : MonoBehaviour {
                 clickable = false;
             }
         }
+        panel.parent.GetComponentInChildren<TextMesh>().text = 0.ToString();
     }
 
     public void ClearCommands(short id)
@@ -276,7 +277,6 @@ public class UIController : MonoBehaviour {
             CommandSlotController cmd = panel.GetChild(i).GetComponent<CommandSlotController>();
             if (!cmd.Closed()) cmd.Submit();
         }
-        panel.parent.GetComponentInChildren<TextMesh>().text = 0.ToString();
     }
 
     public void addSubmittedCommand(Command cmd, short id)
