@@ -111,7 +111,6 @@ public class Interpreter {
                 RobotController r = RobotController.Load(player.team[i], dock);
                 r.isOpponent = p == 1;
                 r.canCommand = !r.isOpponent;
-                r.transform.GetChild(0).GetComponent<SpriteRenderer>().color = (r.isOpponent ? Color.red : Color.blue);
                 robotControllers[r.id] = r;
                 r.transform.localPosition = boardController.PlaceInBelt((isPrimary && !r.isOpponent) || (!isPrimary && r.isOpponent));
                 r.transform.rotation = Quaternion.Euler(0, 0, isPrimary ? 0 : 180);

@@ -71,11 +71,19 @@ public class BoardController : MonoBehaviour {
 		
     public void PlaceRobot(Transform robot, int x, int y)
     {
-        if (y < 0 || y >= allLocations.Count || x < 0 || x >= allLocations[y].Count)
+        if (y < 0 || y >= boardCellsHeight || x < 0 || x >= boardCellsWide)
         {
             return;
         }
+        int oldy = (int)robot.position.y;
+        int oldx = (int)robot.position.x;
+        if (oldy >= 0 && oldy < boardCellsHeight && x >= 0 && x < boardCellsWide)
+        {
+            TileController oldLoc = allLocations[oldy][oldx];
+            oldLoc.GetComponent<MeshRenderer>().material = tile.BaseTile;
+        }
         TileController loc = allLocations[y][x];
+        loc.GetComponent<MeshRenderer>().material = robot.GetComponent<RobotController>().isOpponent ? tile.OpponentBaseTile : tile.UserBaseTile;
         robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -tile.transform.localScale.z*0.501f);
     }
 

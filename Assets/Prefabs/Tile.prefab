@@ -121,4 +121,7 @@ MonoBehaviour:
     type: 2}
   opponentSpawnTileTextMaterial: {fileID: 2100000, guid: d7c95eaf00268624b9dbef86f4351252,
     type: 2}
+  BaseTile: {fileID: 2100000, guid: 7aa1e75bf5e0e514a8c49e6e5cf91236, type: 2}
+  UserBaseTile: {fileID: 2100000, guid: c3954acba22942f4a87c3f2975fa9702, type: 2}
+  OpponentBaseTile: {fileID: 2100000, guid: 42bf17ec753258549ad282863832aad1, type: 2}
   defaultSpace: {fileID: 21300000, guid: 549aa4fce42c65649bf0387375e508f0, type: 3}

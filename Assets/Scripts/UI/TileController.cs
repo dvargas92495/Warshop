@@ -10,6 +10,9 @@ public class TileController : MonoBehaviour {
     public TMP_Text spawnTileText;
     public Material userSpawnTileTextMaterial;
     public Material opponentSpawnTileTextMaterial;
+    public Material BaseTile;
+    public Material UserBaseTile;
+    public Material OpponentBaseTile;
     public Sprite defaultSpace;
     //Not used for now:
     //internal static Color userQueueColor = new Color(0, 0.5f, 1.0f);
