@@ -76,16 +76,28 @@ public class BoardController : MonoBehaviour {
         {
             return;
         }
+        UnplaceRobot(robot);
+        TileController loc = allLocations[y][x];
+        loc.GetComponent<MeshRenderer>().material = robot.GetComponent<RobotController>().isOpponent ? tile.OpponentBaseTile : tile.UserBaseTile;
+        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -tile.transform.localScale.z*0.501f);
+    }
+
+    public void UnplaceRobot(Transform robot)
+    {
         int oldy = (int)robot.position.y;
         int oldx = (int)robot.position.x;
-        if (oldy >= 0 && oldy < boardCellsHeight && x >= 0 && x < boardCellsWide)
+        foreach (RobotController other in Interpreter.robotControllers.Values)
+        {
+            if (other.transform.position.x == oldx && other.transform.position.y== oldy && !other.transform.Equals(robot))
+            {
+                return;
+            }
+        }
+        if (oldy >= 0 && oldy < boardCellsHeight && oldx >= 0 && oldx < boardCellsWide)
         {
             TileController oldLoc = allLocations[oldy][oldx];
             oldLoc.GetComponent<MeshRenderer>().material = tile.BaseTile;
         }
-        TileController loc = allLocations[y][x];
-        loc.GetComponent<MeshRenderer>().material = robot.GetComponent<RobotController>().isOpponent ? tile.OpponentBaseTile : tile.UserBaseTile;
-        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -tile.transform.localScale.z*0.501f);
     }
 
     public TileController GetVoidTile(bool isUser)

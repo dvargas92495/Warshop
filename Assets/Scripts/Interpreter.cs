@@ -234,6 +234,7 @@ public class Interpreter {
                     {
                         GameEvent.Death d = (GameEvent.Death)evt;
                         primaryRobot.displayHealth(d.returnHealth);
+                        boardController.UnplaceRobot(primaryRobot.transform);
                         primaryRobot.gameObject.SetActive(false);
                         bool isP = ((!primaryRobot.isOpponent && isPrimary) || (primaryRobot.isOpponent && !isPrimary));
                         Transform dock = isP ? boardController.primaryDock.transform : boardController.secondaryDock.transform;
