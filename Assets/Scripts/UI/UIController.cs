@@ -115,6 +115,7 @@ public class UIController : MonoBehaviour {
         opponentScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(!isPrimary).transform);
         opponentScore.GetComponent<MeshRenderer>().sortingOrder = 1;
         SetBattery(playerObjects[0].battery, playerObjects[1].battery);
+        Interpreter.boardController.ColorQueueBelt(isPrimary);
         if (!isPrimary)
         {
             Interpreter.boardController.cam.transform.Rotate(new Vector3(60, 0, 180));

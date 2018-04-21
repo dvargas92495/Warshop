@@ -508,6 +508,8 @@ MonoBehaviour:
   tile: {fileID: 114061480948572856, guid: 8cf26a144fe69a34fb03103c015fd34d, type: 2}
   primaryDock: {fileID: 1035633613}
   secondaryDock: {fileID: 1442155181}
+  OpponentQueueBeamMaterial: {fileID: 2100000, guid: ac0a83a70d2fed145ae21860f0d34799,
+    type: 2}
   robotBase: {fileID: 114303540073418012, guid: 80728159308e23b4d9f9bfbb0e53167d,
     type: 2}
   RobotModels:

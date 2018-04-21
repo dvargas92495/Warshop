@@ -12,6 +12,7 @@ public class BoardController : MonoBehaviour {
     public TileController tile;
     public GameObject primaryDock;
     public GameObject secondaryDock;
+    public Material OpponentQueueBeamMaterial;
     public RobotController robotBase;
     public GameObject[] RobotModels;
     public Light CeilingLight;
@@ -112,5 +113,18 @@ public class BoardController : MonoBehaviour {
         int i = (int)localPos.x;
         bool[] isOccupied = (isPrimary ? primaryDockOccupied : secondaryDockOccupied);
         isOccupied[i] = false;
+    }
+
+    public void ColorQueueBelt(bool isPrimary)
+    {
+        Transform t = isPrimary ? secondaryDock.transform : primaryDock.transform;
+        for (int i = 0; i < t.GetChild(0).childCount; i++)
+        {
+            if (t.GetChild(0).GetChild(i).name.StartsWith("Cylinder"))
+            {
+                MeshRenderer m = t.GetChild(0).GetChild(i).GetComponent<MeshRenderer>();
+                m.material = OpponentQueueBeamMaterial;
+            }
+        }
     }
 }
