@@ -42,6 +42,8 @@ public class UIController : MonoBehaviour {
 
     private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
     private int CommandChildIndex = 3;
+    internal int BoardLayer = 11;
+    private int SelectedLayer = 12;
 
     void Start()
     {
@@ -181,9 +183,15 @@ public class UIController : MonoBehaviour {
             MenuItemController robotButton = Instantiate(GenericButton, RobotButtonContainer.transform);
             robotButton.GetComponentInChildren<SpriteRenderer>().sprite = robotSprite;
             robotButton.SetCallback(() => {
-                SetButtons(RobotButtonContainer, true);
-                robotButton.Select();
-                Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
+                Action robotButtonSelect = () =>
+                {
+                    SetButtons(RobotButtonContainer, true);
+                    Interpreter.robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, BoardLayer));
+                    robotButton.Select();
+                    Util.ChangeLayer(Interpreter.robotControllers[r.id].gameObject, SelectedLayer);
+                    Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
+                };
+                robotButtonSelect();
                 SetButtons(DirectionButtonContainer, false);
                 EachMenuItem(DirectionButtonContainer, (MenuItemController m) => m.GetComponentInChildren<SpriteRenderer>().sprite = null);
                 EachMenuItemSet(CommandButtonContainer, (string m) => {
@@ -199,9 +207,7 @@ public class UIController : MonoBehaviour {
                         d.SetCallback(() => {
                             Interpreter.robotControllers[r.id].addRobotCommand(m, dir);
                             EachMenuItem(DirectionButtonContainer, (MenuItemController d2) => d2.GetComponentInChildren<SpriteRenderer>().sprite = null);
-                            SetButtons(RobotButtonContainer, true);
-                            robotButton.Select();
-                            Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
+                            robotButtonSelect();
                             SetButtons(DirectionButtonContainer, false);
                         });
                         d.GetComponentInChildren<SpriteRenderer>().transform.localRotation = Quaternion.Euler(Vector3.up*180 + (isSpawn ? Vector3.zero : Vector3.forward * dir * 90));
@@ -404,4 +410,5 @@ public class UIController : MonoBehaviour {
         //SplashScreen.gameObject.SetActive(true);
         //SetButtons(false);
     }
+
 }

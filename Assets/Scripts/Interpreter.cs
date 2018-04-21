@@ -154,6 +154,7 @@ public class Interpreter {
             uiController.SetButtons(false);
             uiController.SetButtons(uiController.RobotButtonContainer, false);
         }
+        robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, uiController.BoardLayer));
         uiController.SetButtons(uiController.CommandButtonContainer, false);
         uiController.SetButtons(uiController.DirectionButtonContainer, false);
         myturn = false;
@@ -498,6 +499,7 @@ public class Interpreter {
             }
         }
         uiController.SubmitCommands.SetActive(false);
+        robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, uiController.BoardLayer));
         uiController.SetButtons(uiController.RobotButtonContainer, false);
         uiController.SetButtons(uiController.CommandButtonContainer, false);
         uiController.SetButtons(uiController.DirectionButtonContainer, false);
