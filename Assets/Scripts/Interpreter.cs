@@ -227,6 +227,7 @@ public class Interpreter {
                 uiController.SetPriority(r.priority);
                 foreach (GameEvent evt in eventsThisPriority)
                 {
+                    if (!evt.success) continue;
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
                     if (evt is GameEvent.Move)
                     {

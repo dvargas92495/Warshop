@@ -10,6 +10,7 @@ public abstract class GameEvent
     internal byte priority;
     internal short primaryBattery;
     internal short secondaryBattery;
+    internal bool success = true;
     public GameEvent() { }
     public void FinishMessage(NetworkWriter writer)
     {
@@ -17,6 +18,7 @@ public abstract class GameEvent
         writer.Write(priority);
         writer.Write(primaryBattery);
         writer.Write(secondaryBattery);
+        writer.Write(success);
     }
     public abstract void Serialize(NetworkWriter writer);
     public static GameEvent Deserialize(NetworkReader reader)
@@ -74,6 +76,7 @@ public abstract class GameEvent
         evt.priority = reader.ReadByte();
         evt.primaryBattery = reader.ReadInt16();
         evt.secondaryBattery = reader.ReadInt16();
+        evt.success = reader.ReadBoolean();
         return evt;
     }
     public override string ToString()
