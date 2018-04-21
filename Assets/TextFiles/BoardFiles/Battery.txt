@@ -1,6 +1,6 @@
 ﻿8 5
 A W W W W W W a
 B W W W W W W b
-V P W W W W p V
+W P W W W W p W
 C W W W W W W c
 D W W W W W W d
