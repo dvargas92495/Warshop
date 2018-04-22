@@ -179,7 +179,6 @@ public class Interpreter {
     public static void PlayEvents(List<GameEvent> events, byte t)
     {
         turnNumber = t;
-        DeserializeState(presentState);
         if (GameConstants.LOCAL_MODE)
         {
             uiController.SetButtons(false);
@@ -364,6 +363,14 @@ public class Interpreter {
                    });
                 }
             }
+            foreach (TileController t in boardController.GetComponentsInChildren<TileController>())
+            {
+                Material m = t.GetComponent<MeshRenderer>().material;
+                if (m.name.StartsWith(t.BaseTile.name)) bf.Serialize(ms, 0);
+                else if (m.name.StartsWith(t.UserBaseTile.name)) bf.Serialize(ms, 1);
+                else if (m.name.StartsWith(t.OpponentBaseTile.name)) bf.Serialize(ms, 2);
+                else throw new Exception("Unknown material: " + m);
+            }
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
             bf.Serialize(ms, priority);
@@ -422,6 +429,13 @@ public class Interpreter {
                         if (s.StartsWith(Command.Attack.DISPLAY)) uiController.addSubmittedCommand(new Command.Attack(d), r.id);
                     }
                 }
+            }
+            foreach (TileController t in boardController.GetComponentsInChildren<TileController>())
+            {
+                int m = (int)bf.Deserialize(ms);
+                if (m == 0) t.GetComponent<MeshRenderer>().material = boardController.tile.BaseTile;
+                else if (m == 1) t.GetComponent<MeshRenderer>().material = boardController.tile.UserBaseTile;
+                else if (m == 2) t.GetComponent<MeshRenderer>().material = boardController.tile.OpponentBaseTile;
             }
             int userBattery = (int)bf.Deserialize(ms);
             int opponentBattery = (int)bf.Deserialize(ms);
