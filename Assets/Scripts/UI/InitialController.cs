@@ -44,22 +44,6 @@ public class InitialController : MonoBehaviour {
 
     //TEMP JUST FOR PLAYTEST: DELETE
     public Text starText;
-    private Dictionary<string, byte[]> robotDictionary = new Dictionary<string, byte[]>()
-    {
-        // Rating, attack, health
-        {"Bronze Grunt", new byte[] {1,2,3}},
-        {"Silver Grunt", new byte[] {2,3,8}},
-        {"Golden Grunt", new byte[] {3,5,10}},
-        {"Platinum Grunt",new byte[] {4,6,15}},
-    };
-    private Dictionary<string, string[]> abilityDictionary = new Dictionary<string, string[]>()
-    {
-        // Rating, attack, health
-        {"Bronze Grunt", new string[] {"None",""}},
-        {"Silver Grunt", new string[] {"None",""}},
-        {"Golden Grunt", new string[] {"None",""}},
-        {"Platinum Grunt",new string[] {"None",""}},
-    };
 
     public void Awake()
     {
@@ -193,25 +177,11 @@ public class InitialController : MonoBehaviour {
                     GameObject selectedRobotInfo = Instantiate(maximizedRosterRobotInfoPanel, robotSelectedPanel.transform);
                     TMP_Text[] fields = selectedRobotInfo.GetComponentsInChildren<TMP_Text>();
                     fields[0].SetText(robotSelection);
-                    if (robotDictionary[robotSelection][0] == 1)
-                    {
-                        fields[1].SetText("Rating: Bronze");
-                    }
-                    if (robotDictionary[robotSelection][0] == 2)
-                    {
-                        fields[1].SetText("Rating: Silver");
-                    }
-                    if (robotDictionary[robotSelection][0] == 3)
-                    {
-                        fields[1].SetText("Rating: Gold");
-                    }
-                    if (robotDictionary[robotSelection][0] == 4)
-                    {
-                        fields[1].SetText("Rating: Platinum");
-                    }
-                    fields[2].SetText("Attack: " + robotDictionary[robotSelection][1].ToString());
-                    fields[3].SetText("Health: " + robotDictionary[robotSelection][2].ToString());
-                    fields[4].SetText("Ability: " + abilityDictionary[robotSelection][0] + abilityDictionary[robotSelection][1]);
+                    Robot selected = Robot.create(robotSelection);
+                    fields[1].SetText("Rating: " + selected.rating);
+                    fields[2].SetText("Attack: " + selected.attack);
+                    fields[3].SetText("Health: " + selected.health);
+                    fields[4].SetText("Ability: " + selected.description);
 
                     mySquadsAddButton.interactable = true;
                     if (GameConstants.LOCAL_MODE)
@@ -304,7 +274,7 @@ public class InitialController : MonoBehaviour {
             }
             if (squadOwner == "My Squads")
             {
-                myStarCount += robotDictionary[robotSelection][0];
+                myStarCount += (byte)Robot.create(robotSelection).rating;
                 starText.text = myStarCount.ToString() + "/8";
                 if (myStarCount == 8)
                 {
@@ -323,7 +293,7 @@ public class InitialController : MonoBehaviour {
     {
         if (squadOwner == "My Squads")
         {
-            myStarCount -= robotDictionary[robotName.name][0];
+            myStarCount -= (byte)Robot.create(robotName.name).rating;
             starText.text = myStarCount.ToString() + "/8";
             if (myStarCount == 8)
             {

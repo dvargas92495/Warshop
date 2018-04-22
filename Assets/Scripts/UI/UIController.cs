@@ -113,10 +113,12 @@ public class UIController : MonoBehaviour {
         SetPlayerPanel(playerObjects[0], false);
 
         //userScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(isPrimary).transform);
-        userScore = Instantiate(ScoreModel, Interpreter.boardController.primaryBatteryLocation.transform);
+        userScore = Instantiate(ScoreModel, (isPrimary ? Interpreter.boardController.primaryBatteryLocation : 
+            Interpreter.boardController.secondaryBatteryLocation).transform);
         userScore.GetComponent<MeshRenderer>().sortingOrder = 1;
         //opponentScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(!isPrimary).transform);
-        opponentScore = Instantiate(ScoreModel, Interpreter.boardController.secondaryBatteryLocation.transform);
+        opponentScore = Instantiate(ScoreModel, (!isPrimary ? Interpreter.boardController.primaryBatteryLocation : 
+            Interpreter.boardController.secondaryBatteryLocation).transform);
         opponentScore.GetComponent<MeshRenderer>().sortingOrder = 1;
         SetBattery(playerObjects[0].battery, playerObjects[1].battery);
         Interpreter.boardController.ColorQueueBelt(isPrimary);
