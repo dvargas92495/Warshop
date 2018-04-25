@@ -39,10 +39,6 @@ public class InitialController : MonoBehaviour {
     private Button opponentSquadsAddButton;
     private Transform mySquadPanelRobotHolder;
     private Transform opponentSquadPanelRobotHolder;
-
-
-
-    //TEMP JUST FOR PLAYTEST: DELETE
     public Text starText;
 
     public void Awake()
@@ -110,33 +106,30 @@ public class InitialController : MonoBehaviour {
 
         startGameButton.onClick.AddListener(() =>
             {                           
-                if (myStarCount == 8)
+                string[] myRosterStrings = new string[mySquadPanelRobotHolder.transform.childCount];
+                for(int i = 0; i < myRosterStrings.Length; i++)
                 {
-                   string[] myRosterStrings = new string[mySquadPanelRobotHolder.transform.childCount];
-                   for(int i = 0; i < myRosterStrings.Length; i++)
-                   {
-                        myRosterStrings[i] = mySquadPanelRobotHolder.transform.GetChild(i).name.Trim();
-                   }
-
-                    string[] opponentRosterStrings = new string[0];
-                    if (GameConstants.LOCAL_MODE)
-                    {
-                        opponentRosterStrings = new string[opponentSquadPanelRobotHolder.transform.childCount];
-                        for (int i = 0; i < opponentRosterStrings.Length; i++)
-                        {
-                            opponentRosterStrings[i] = opponentSquadPanelRobotHolder.transform.GetChild(i).name.Trim();
-                        }
-                    }
-
-
-                    StartGame(
-                          "Battery",
-                          (myRosterStrings),
-                          (GameConstants.LOCAL_MODE && opponentRosterStrings.Length > 0 ? opponentRosterStrings : new string[0]),
-                          myName.text,
-                          (opponentName.IsActive() ? opponentName.text : "")
-                    );
+                    myRosterStrings[i] = mySquadPanelRobotHolder.transform.GetChild(i).name.Trim();
                 }
+
+                string[] opponentRosterStrings = new string[0];
+                if (GameConstants.LOCAL_MODE)
+                {
+                    opponentRosterStrings = new string[opponentSquadPanelRobotHolder.transform.childCount];
+                    for (int i = 0; i < opponentRosterStrings.Length; i++)
+                    {
+                        opponentRosterStrings[i] = opponentSquadPanelRobotHolder.transform.GetChild(i).name.Trim();
+                    }
+                }
+
+
+                StartGame(
+                      "Battery",
+                      (myRosterStrings),
+                      (GameConstants.LOCAL_MODE && opponentRosterStrings.Length > 0 ? opponentRosterStrings : new string[0]),
+                      myName.text,
+                      (opponentName.IsActive() ? opponentName.text : "")
+                );
             }
         );
 
@@ -156,12 +149,21 @@ public class InitialController : MonoBehaviour {
 
     }
 
-   public void maximizeSelection(string selection)
+    void Update()
+    {
+        startGameButton.interactable = (
+            myStarCount == 8 &&
+            mySquadPanelRobotHolder.transform.childCount <= 4 &&
+            !myName.text.Equals("")
+        );
+    }
+
+    public void maximizeSelection(string selection)
     {
         GameObject robotSelectionPanel = robotSelectedPanel;
         foreach (Transform child in robotSelectionPanel.transform)
         {
-            GameObject.Destroy(child.gameObject);
+            Destroy(child.gameObject);
         }
         if (selection != "no selection")
         {
@@ -276,14 +278,6 @@ public class InitialController : MonoBehaviour {
             {
                 myStarCount += (byte)Robot.create(robotSelection).rating;
                 starText.text = myStarCount.ToString() + "/8";
-                if (myStarCount == 8)
-                {
-                    startGameButton.interactable = true;
-                }
-                else
-                {
-                    startGameButton.interactable = false;
-                }
             }
             maximizeSelection("no selection");
         }
@@ -295,16 +289,8 @@ public class InitialController : MonoBehaviour {
         {
             myStarCount -= (byte)Robot.create(robotName.name).rating;
             starText.text = myStarCount.ToString() + "/8";
-            if (myStarCount == 8)
-            {
-                startGameButton.interactable = true;
-            }
-            else
-            {
-                startGameButton.interactable = false;
-            }
         }
-        GameObject.Destroy(robotName);
+        Destroy(robotName);
     }
 
     void StartGame(string b, string[] mybots, string[] opbots, string myname, string opponentname)
