@@ -13,6 +13,7 @@ public class Interpreter {
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static Dictionary<short, RobotController> robotControllers;
+    internal static string ErrorString = "";
 
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
@@ -67,8 +68,7 @@ public class Interpreter {
 
     public static void ClientError(string s)
     {
-        initialController.statusText.color = Color.red;
-        initialController.statusText.text = s;
+        ErrorString = s;
     }
 
     public static void InitializeBoard(BoardController bc)

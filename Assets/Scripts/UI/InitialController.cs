@@ -156,6 +156,12 @@ public class InitialController : MonoBehaviour {
             mySquadPanelRobotHolder.transform.childCount <= 4 &&
             !myName.text.Equals("")
         );
+        if (!Interpreter.ErrorString.Equals(""))
+        {
+            statusText.transform.parent.gameObject.SetActive(true);
+            statusText.color = Color.red;
+            statusText.text = Interpreter.ErrorString;
+        }
     }
 
     public void maximizeSelection(string selection)
@@ -298,7 +304,8 @@ public class InitialController : MonoBehaviour {
 
         Interpreter.myRobotNames = mybots;
         Interpreter.opponentRobotNames = opbots;
-        statusText.color = Color.black;
+        statusText.transform.parent.gameObject.SetActive(true);
+        statusText.color = Color.white;
         statusText.text = "Loading...";
         Interpreter.ConnectToServer(myname, opponentname, b);
     }
