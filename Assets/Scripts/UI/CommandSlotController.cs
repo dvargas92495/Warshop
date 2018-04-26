@@ -59,6 +59,9 @@ public class CommandSlotController : MonoBehaviour {
             {
                 Interpreter.DeleteCommand(rid, p - i);
                 Interpreter.uiController.SetButtons(Interpreter.uiController.RobotButtonContainer, true);
+                Interpreter.robotControllers.Values.ToList().ForEach((RobotController otherR) => 
+                    Util.ChangeLayer(otherR.gameObject, Interpreter.uiController.BoardLayer)
+                );
                 Interpreter.uiController.SetButtons(Interpreter.uiController.CommandButtonContainer, false);
                 Interpreter.uiController.SetButtons(Interpreter.uiController.DirectionButtonContainer, false);
                 Interpreter.uiController.EachMenuItem(Interpreter.uiController.DirectionButtonContainer,
