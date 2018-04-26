@@ -178,9 +178,6 @@ public class Game
             Robot primaryRobot = GetRobot(c.robotId);
             if (!robotIdToTurnObject[c.robotId].isActive && !(c is Command.Spawn))
             {
-                GameEvent f = primaryRobot.Fail(c, "it's inactive", isPrimary);
-                f.primaryBattery = f.secondaryBattery = 0;
-                events.Add(f);
                 commands.Remove(c);
             }
         });

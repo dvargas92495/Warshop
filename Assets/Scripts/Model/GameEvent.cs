@@ -48,9 +48,6 @@ public abstract class GameEvent
             case Battery.EVENT_ID:
                 evt = Battery.Deserialize(reader);
                 break;
-            case Fail.EVENT_ID:
-                evt = Fail.Deserialize(reader);
-                break;
             case Death.EVENT_ID:
                 evt = Death.Deserialize(reader);
                 break;
@@ -304,29 +301,7 @@ public abstract class GameEvent
         }
     }
 
-    public class Fail : GameEvent
-    {
-        internal const byte EVENT_ID = 8;
-        internal string failedCmd;
-        internal string reason;
-        public override void Serialize(NetworkWriter writer)
-        {
-            writer.Write(EVENT_ID);
-            writer.Write(failedCmd);
-            writer.Write(reason);
-        }
-        public new static Fail Deserialize(NetworkReader reader)
-        {
-            Fail evt = new Fail();
-            evt.failedCmd = reader.ReadString();
-            evt.reason = reader.ReadString();
-            return evt;
-        }
-        public override string ToString()
-        {
-            return ToString("failed to execute " + failedCmd + " beacause " + reason);
-        }
-    }
+    // OPEN ID AT 8
 
     public class Death: GameEvent
     {

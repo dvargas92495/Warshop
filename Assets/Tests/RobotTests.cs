@@ -414,6 +414,7 @@ public class GruntTest : TestBase
             { primaryBronze.id, new Vector2Int(1,1) },
             { secondarySilver.id, new Vector2Int(1,2) }
         });
+        primaryBronze.health = secondarySilver.attack;
         List<GameEvent> events = SimulateCommands(
             AttackCommand(Command.DOWN, secondarySilver.id)
         );
@@ -434,15 +435,15 @@ public class GruntTest : TestBase
             { primaryBronze.id, new Vector2Int(1,1) },
             { secondarySilver.id, new Vector2Int(1,2) }
         });
+        primaryBronze.health = secondarySilver.attack;
         List<GameEvent> events = SimulateCommands(
             AttackCommand(Command.DOWN, secondarySilver.id),
             MoveCommand(Command.UP, primaryBronze.id)
         );
-        Assert.AreEqual(6, events.Count);
+        Assert.AreEqual(4, events.Count);
         Assert.IsInstanceOf<GameEvent.Attack>(events[0]);
         Assert.IsInstanceOf<GameEvent.Damage>(events[1]);
         Assert.IsInstanceOf<GameEvent.Death>(events[2]);
-        Assert.IsInstanceOf<GameEvent.Fail>(events[4]);
         Assert.AreEqual(primaryBronze.startingHealth, primaryBronze.health);
         Assert.AreEqual(Map.NULL_VEC, primaryBronze.position);
     }
