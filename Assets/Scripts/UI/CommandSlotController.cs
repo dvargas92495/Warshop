@@ -65,7 +65,11 @@ public class CommandSlotController : MonoBehaviour {
                 Interpreter.uiController.SetButtons(Interpreter.uiController.CommandButtonContainer, false);
                 Interpreter.uiController.SetButtons(Interpreter.uiController.DirectionButtonContainer, false);
                 Interpreter.uiController.EachMenuItem(Interpreter.uiController.DirectionButtonContainer,
-                    (MenuItemController m) => m.GetComponentInChildren<SpriteRenderer>().sprite = null);
+                    (MenuItemController m) => m.GetComponentInChildren<SpriteRenderer>().sprite = null
+                );
+                Interpreter.uiController.SubmitCommands.SetActive(
+                    Interpreter.robotControllers.Values.Any((RobotController r) => r.commands.Count > 0)
+                );
                 deletable = !Arrow.sprite.Equals(Interpreter.uiController.Default);
                 Delete.gameObject.SetActive(deletable);
             }

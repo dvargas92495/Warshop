@@ -274,7 +274,7 @@ public class Robot
         internal SilverGrunt() : base(
             _name,
             _description,
-            6, 10, 4,
+            6, 8, 3,
             Rating.SILVER
         )
         { }
@@ -287,7 +287,7 @@ public class Robot
         internal GoldenGrunt(): base(
             _name,
             _description,
-            7, 12, 5,
+            7, 8, 3,
             Rating.GOLD
         )
         { }
@@ -300,7 +300,7 @@ public class Robot
         internal PlatinumGrunt() : base(
             _name,
             _description,
-            8, 14, 6,
+            8, 8, 3,
             Rating.PLATINUM
         )
         { }

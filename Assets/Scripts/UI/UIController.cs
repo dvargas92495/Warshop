@@ -97,7 +97,7 @@ public class UIController : MonoBehaviour {
         }
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            Interpreter.SubmitActions();
+            SubmitCommands.Click();
         }
     }
 
@@ -141,7 +141,7 @@ public class UIController : MonoBehaviour {
         BackToPresent.SetCallback(Interpreter.BackToPresent);
         StepBackButton.SetCallback(Interpreter.StepBackward);
         StepForwardButton.SetCallback(Interpreter.StepForward);
-        SubmitCommands.Activate();
+        SubmitCommands.Deactivate();
         BackToPresent.Deactivate();
         StepBackButton.Deactivate();
         StepForwardButton.Deactivate();
@@ -321,6 +321,7 @@ public class UIController : MonoBehaviour {
               else if (child.Arrow.sprite.name.StartsWith(Command.Attack.DISPLAY)) powerConsumed += Command.power[typeof(Command.Attack)];
         }
         panel.parent.GetComponentInChildren<TextMesh>().text = powerConsumed.ToString();
+        SubmitCommands.Activate();
     }
 
     public Tuple<string, byte>[] getCommandsSerialized(short id)

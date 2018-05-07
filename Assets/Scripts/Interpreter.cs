@@ -148,7 +148,6 @@ public class Interpreter {
             {
                 m.gameObject.SetActive(!m.gameObject.activeInHierarchy);
             });
-            uiController.SubmitCommands.SetActive(myturn);
         } else
         {
             uiController.SetButtons(false);
@@ -156,7 +155,8 @@ public class Interpreter {
         }
         robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, uiController.BoardLayer));
         uiController.SetButtons(uiController.CommandButtonContainer, false);
-        uiController.SetButtons(uiController.DirectionButtonContainer, false);
+        uiController.SetButtons(uiController.DirectionButtonContainer, false); ;
+        uiController.SubmitCommands.Deactivate();
         myturn = false;
         GameClient.SendSubmitCommands(commands, username);
     }
@@ -186,14 +186,6 @@ public class Interpreter {
             uiController.SetButtons(uiController.CommandButtonContainer, false);
             uiController.SetButtons(uiController.DirectionButtonContainer, false);
             uiController.LightUpPanel(true, true);
-        }
-        foreach (RobotController robot in robotControllers.Values)
-        {
-            if (GameConstants.LOCAL_MODE || !robot.isOpponent)
-            {
-                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, robot.id));
-                uiController.ColorCommandsSubmitted(robot.id);
-            }
         }
         uiController.LightUpPanel(true, false);
         uiController.StartCoroutine(EventsRoutine(events));
@@ -315,7 +307,7 @@ public class Interpreter {
                 }
                 r.commands.Clear();
             });
-            uiController.SubmitCommands.Activate();
+            uiController.SubmitCommands.Deactivate();
             uiController.BackToPresent.Deactivate();
             uiController.StepForwardButton.Deactivate();
             uiController.StepBackButton.SetActive(History.Count != 0);
@@ -454,8 +446,8 @@ public class Interpreter {
             r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, r.id));
             r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
-        uiController.SubmitCommands.SetActive(true);
         uiController.SetButtons(uiController.RobotButtonContainer, true);
+        uiController.SubmitCommands.SetActive(robotControllers.Values.Any((RobotController r) => r.commands.Count > 0));
         uiController.BackToPresent.Deactivate();
         uiController.StepBackButton.Activate();
         uiController.StepForwardButton.Deactivate();
@@ -513,7 +505,7 @@ public class Interpreter {
                 }
             }
         }
-        uiController.SubmitCommands.SetActive(false);
+        uiController.SubmitCommands.Deactivate();
         robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, uiController.BoardLayer));
         uiController.SetButtons(uiController.RobotButtonContainer, false);
         uiController.SetButtons(uiController.CommandButtonContainer, false);
