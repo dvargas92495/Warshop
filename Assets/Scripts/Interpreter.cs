@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 
 public class Interpreter {
 
-    internal static InitialController initialController;
+    internal static SetupController setupController;
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static Dictionary<short, RobotController> robotControllers;
@@ -63,7 +63,7 @@ public class Interpreter {
         board = b;
         myturn = true;
         isPrimary = isP;
-        if (!loadedLocally) SceneManager.LoadScene("Prototype");
+        if (!loadedLocally) SceneManager.LoadScene("Match");
     }
 
     public static void ClientError(string s)

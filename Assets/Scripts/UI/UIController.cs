@@ -55,7 +55,7 @@ public class UIController : MonoBehaviour {
 #if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.B))
         {
-            BackToInitial();
+            BackToSetup();
         }
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -101,9 +101,9 @@ public class UIController : MonoBehaviour {
         }
     }
 
-    public void BackToInitial()
+    public void BackToSetup()
     {
-        SceneManager.LoadScene("Initial");
+        SceneManager.LoadScene("Setup");
     }
 
     //Loads the UICanvas and it's child components
