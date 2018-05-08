@@ -107,7 +107,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8db3f0a5568f4449946288f8248313a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  battery: {fileID: 1803105049764628, guid: 743fe102ffa4c9c4e8812be06e820384, type: 2}
+  battery: {fileID: 1056281129379870, guid: 9a3db92b6b120f8488d98c64b12fb5ff, type: 2}
   QueueMarker: {fileID: 1876748846819744, guid: 7d72de74c17c1bb45af234002e5af9e0,
     type: 2}
   queueSprites:
