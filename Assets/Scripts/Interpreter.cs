@@ -9,10 +9,11 @@ using UnityEngine.SceneManagement;
 
 public class Interpreter {
 
-    internal static InitialController initialController;
+    internal static SetupController setupController;
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static Dictionary<short, RobotController> robotControllers;
+    internal static string ErrorString = "";
 
     public static string[] myRobotNames = new string[0];
     public static string[] opponentRobotNames = new string[0];
@@ -62,13 +63,12 @@ public class Interpreter {
         board = b;
         myturn = true;
         isPrimary = isP;
-        if (!loadedLocally) SceneManager.LoadScene("Prototype");
+        if (!loadedLocally) SceneManager.LoadScene("Match");
     }
 
     public static void ClientError(string s)
     {
-        initialController.statusText.color = Color.red;
-        initialController.statusText.text = s;
+        ErrorString = s;
     }
 
     public static void InitializeBoard(BoardController bc)
@@ -148,14 +148,15 @@ public class Interpreter {
             {
                 m.gameObject.SetActive(!m.gameObject.activeInHierarchy);
             });
-            uiController.SubmitCommands.SetActive(myturn);
         } else
         {
             uiController.SetButtons(false);
             uiController.SetButtons(uiController.RobotButtonContainer, false);
         }
+        robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, uiController.BoardLayer));
         uiController.SetButtons(uiController.CommandButtonContainer, false);
-        uiController.SetButtons(uiController.DirectionButtonContainer, false);
+        uiController.SetButtons(uiController.DirectionButtonContainer, false); ;
+        uiController.SubmitCommands.Deactivate();
         myturn = false;
         GameClient.SendSubmitCommands(commands, username);
     }
@@ -178,7 +179,6 @@ public class Interpreter {
     public static void PlayEvents(List<GameEvent> events, byte t)
     {
         turnNumber = t;
-        DeserializeState(presentState);
         if (GameConstants.LOCAL_MODE)
         {
             uiController.SetButtons(false);
@@ -186,14 +186,6 @@ public class Interpreter {
             uiController.SetButtons(uiController.CommandButtonContainer, false);
             uiController.SetButtons(uiController.DirectionButtonContainer, false);
             uiController.LightUpPanel(true, true);
-        }
-        foreach (RobotController robot in robotControllers.Values)
-        {
-            if (GameConstants.LOCAL_MODE || !robot.isOpponent)
-            {
-                robot.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, robot.id));
-                uiController.ColorCommandsSubmitted(robot.id);
-            }
         }
         uiController.LightUpPanel(true, false);
         uiController.StartCoroutine(EventsRoutine(events));
@@ -226,6 +218,7 @@ public class Interpreter {
                 uiController.SetPriority(r.priority);
                 foreach (GameEvent evt in eventsThisPriority)
                 {
+                    if (!evt.success) continue;
                     RobotController primaryRobot = GetRobot(evt.primaryRobotId);
                     if (evt is GameEvent.Move)
                     {
@@ -234,6 +227,7 @@ public class Interpreter {
                     {
                         GameEvent.Death d = (GameEvent.Death)evt;
                         primaryRobot.displayHealth(d.returnHealth);
+                        boardController.UnplaceRobot(primaryRobot.transform);
                         primaryRobot.gameObject.SetActive(false);
                         bool isP = ((!primaryRobot.isOpponent && isPrimary) || (primaryRobot.isOpponent && !isPrimary));
                         Transform dock = isP ? boardController.primaryDock.transform : boardController.secondaryDock.transform;
@@ -313,7 +307,7 @@ public class Interpreter {
                 }
                 r.commands.Clear();
             });
-            uiController.SubmitCommands.Activate();
+            uiController.SubmitCommands.Deactivate();
             uiController.BackToPresent.Deactivate();
             uiController.StepForwardButton.Deactivate();
             uiController.StepBackButton.SetActive(History.Count != 0);
@@ -360,6 +354,14 @@ public class Interpreter {
                        bf.Serialize(ms, s.Item2);
                    });
                 }
+            }
+            foreach (TileController t in boardController.GetComponentsInChildren<TileController>())
+            {
+                Material m = t.GetComponent<MeshRenderer>().material;
+                if (m.name.StartsWith(t.BaseTile.name)) bf.Serialize(ms, 0);
+                else if (m.name.StartsWith(t.UserBaseTile.name)) bf.Serialize(ms, 1);
+                else if (m.name.StartsWith(t.OpponentBaseTile.name)) bf.Serialize(ms, 2);
+                else throw new Exception("Unknown material: " + m);
             }
             bf.Serialize(ms, uiController.GetUserBattery());
             bf.Serialize(ms, uiController.GetOpponentBattery());
@@ -420,6 +422,13 @@ public class Interpreter {
                     }
                 }
             }
+            foreach (TileController t in boardController.GetComponentsInChildren<TileController>())
+            {
+                int m = (int)bf.Deserialize(ms);
+                if (m == 0) t.GetComponent<MeshRenderer>().material = boardController.tile.BaseTile;
+                else if (m == 1) t.GetComponent<MeshRenderer>().material = boardController.tile.UserBaseTile;
+                else if (m == 2) t.GetComponent<MeshRenderer>().material = boardController.tile.OpponentBaseTile;
+            }
             int userBattery = (int)bf.Deserialize(ms);
             int opponentBattery = (int)bf.Deserialize(ms);
             uiController.SetBattery(userBattery, opponentBattery);
@@ -437,8 +446,8 @@ public class Interpreter {
             r.commands.ForEach((Command c) => uiController.addSubmittedCommand(c, r.id));
             r.canCommand = (!r.isOpponent && !GameConstants.LOCAL_MODE) || (GameConstants.LOCAL_MODE && ((r.isOpponent && !myturn) || (!r.isOpponent && myturn)));
         }
-        uiController.SubmitCommands.SetActive(true);
         uiController.SetButtons(uiController.RobotButtonContainer, true);
+        uiController.SubmitCommands.SetActive(robotControllers.Values.Any((RobotController r) => r.commands.Count > 0));
         uiController.BackToPresent.Deactivate();
         uiController.StepBackButton.Activate();
         uiController.StepForwardButton.Deactivate();
@@ -496,7 +505,8 @@ public class Interpreter {
                 }
             }
         }
-        uiController.SubmitCommands.SetActive(false);
+        uiController.SubmitCommands.Deactivate();
+        robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, uiController.BoardLayer));
         uiController.SetButtons(uiController.RobotButtonContainer, false);
         uiController.SetButtons(uiController.CommandButtonContainer, false);
         uiController.SetButtons(uiController.DirectionButtonContainer, false);

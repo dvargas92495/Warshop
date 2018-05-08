@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class RosterController {
 
-    internal static InitialController initialController;
+    internal static SetupController initialController;
 
-    public static void InitializeInitial(InitialController ic)
+    public static void InitializeInitial(SetupController ic)
     {
         initialController = ic;
     }

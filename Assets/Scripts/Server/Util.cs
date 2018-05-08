@@ -40,4 +40,14 @@ class Util
         if (c is Command.Attack) return Flip((Command.Attack)c);
         else return c;
     }
+
+    internal static void ChangeLayer(GameObject g, int l)
+    {
+        if (g.layer == l) return;
+        g.layer = l;
+        for (int i = 0; i < g.transform.childCount; i++)
+        {
+            ChangeLayer(g.transform.GetChild(i).gameObject, l);
+        }
+    }
 }

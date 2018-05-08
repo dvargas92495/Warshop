@@ -173,7 +173,7 @@ public class GameClient : MonoBehaviour {
     {
         Messages.ServerErrorMessage msg = netMsg.ReadMessage<Messages.ServerErrorMessage>();
         log.Fatal(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
-        Interpreter.uiController.BackToInitial();
+        Interpreter.uiController.BackToSetup();
         Interpreter.ClientError(msg.serverMessage);
     }
 

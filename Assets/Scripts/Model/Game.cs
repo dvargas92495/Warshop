@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
 
 public class Game
 {
@@ -177,9 +178,6 @@ public class Game
             Robot primaryRobot = GetRobot(c.robotId);
             if (!robotIdToTurnObject[c.robotId].isActive && !(c is Command.Spawn))
             {
-                GameEvent f = primaryRobot.Fail(c, "it's inactive", isPrimary);
-                f.primaryBattery = f.secondaryBattery = 0;
-                events.Add(f);
                 commands.Remove(c);
             }
         });
@@ -202,9 +200,12 @@ public class Game
             }
         });
 
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         bool valid = false;
         while (!valid)
         {
+            if (sw.ElapsedMilliseconds > 5000) throw new ZException("Commands to Events caught in Infinite loop");
             valid = true;
             idsToWantedEvents.Keys.ToList().ForEach((short id) =>
             {
@@ -307,15 +308,22 @@ public class Game
     {
         int index = events.IndexOf(g);
         if (events.Count > index + 1 && events[index + 1] is GameEvent.Push) return true;
+        if (!g.success) return true;
         Func<string, bool> generateBlockEvent = (string s) =>
         {
+            Robot r = GetRobot(g.primaryRobotId);
+            g.success = false;
             GameEvent.Block evt = new GameEvent.Block();
             evt.deniedPos = g.destinationPos;
             evt.Transfer(g);
             evt.blockingObject = s;
             board.UpdateObjectLocation(g.sourcePos.x, g.sourcePos.y, g.primaryRobotId);
-            events.RemoveAt(index);
-            events.Insert(index, evt);
+            events.Insert(index+1, evt);
+            GameEvent.Damage evt2 = new GameEvent.Damage();
+            evt2.damage = 1;
+            evt2.primaryRobotId = g.primaryRobotId;
+            evt2.remainingHealth = (short)(r.health - 1);
+            events.Insert(index + 2, evt2);
             return false;
         };
         if (board.IsVoid(g.destinationPos))
@@ -337,6 +345,16 @@ public class Game
                 push.victim = occupant.id;
                 push.direction = diff;
                 events.Add(push);
+                GameEvent.Damage d1 = new GameEvent.Damage();
+                d1.damage = 1;
+                d1.primaryRobotId = g.primaryRobotId;
+                d1.remainingHealth = (short)(GetRobot(g.primaryRobotId).health - 1);
+                events.Add(d1);
+                GameEvent.Damage d2 = new GameEvent.Damage();
+                d2.damage = 1;
+                d2.primaryRobotId = occupant.id;
+                d2.remainingHealth = (short)(occupant.health - 1);
+                events.Add(d2);
                 GameEvent.Move move = new GameEvent.Move();
                 move.primaryRobotId = occupant.id;
                 move.sourcePos = g.destinationPos;
@@ -347,7 +365,13 @@ public class Game
             }
             else
             {
-               return generateBlockEvent(occupant.name);
+                generateBlockEvent(occupant.name);
+                GameEvent.Damage d2 = new GameEvent.Damage();
+                d2.damage = 1;
+                d2.primaryRobotId = occupant.id;
+                d2.remainingHealth = (short)(occupant.health - 1);
+                events.Add(d2);
+                return false;
             }
         }
         return true;
@@ -356,15 +380,16 @@ public class Game
     private bool Validate(List<GameEvent> events, GameEvent.Push g)
     {
         int index = events.IndexOf(g);
-        if (events.Count > index + 1 && events[index + 1] is GameEvent.Block)
+        if (events.Count > index + 4 && events[index + 4] is GameEvent.Block && g.success)
         {
             GameEvent.Block block = new GameEvent.Block();
-            block.blockingObject = ((GameEvent.Block)events[index+1]).blockingObject;
+            block.blockingObject = ((GameEvent.Block)events[index+4]).blockingObject;
             GameEvent.Move original = (GameEvent.Move)events[index - 1];
+            original.success = false;
+            g.success = false;
             block.deniedPos = original.destinationPos;
-            block.Transfer(original);
+            block.primaryRobotId = original.primaryRobotId;
             board.UpdateObjectLocation(original.sourcePos.x, original.sourcePos.y, original.primaryRobotId);
-            events.RemoveRange(index - 1, 3);
             events.Add(block);
             return false;
         }
@@ -441,14 +466,26 @@ public class Game
                 (e is GameEvent.Spawn && ((GameEvent.Spawn)e).destinationPos.Equals(space))
             );
             block.deniedPos = original is GameEvent.Move ? ((GameEvent.Move)original).destinationPos : ((GameEvent.Spawn)original).destinationPos;
-            block.Transfer(original);
-            if (original is GameEvent.Move) board.UpdateObjectLocation(((GameEvent.Move)original).sourcePos.x, ((GameEvent.Move)original).sourcePos.y, original.primaryRobotId);
-            else board.RemoveObjectLocation(original.primaryRobotId);
+            block.primaryRobotId = original.primaryRobotId;
             int index = wanted.IndexOf(original);
             int size = wanted.Count - index;
             wanted.GetRange(index, size).ForEach(Invalidate);
-            wanted.RemoveRange(index, size);
+            wanted.RemoveRange(index + 1, size - 1);
             wanted.Add(block);
+            if (original is GameEvent.Move)
+            {
+                original.success = false;
+                board.UpdateObjectLocation(((GameEvent.Move)original).sourcePos.x, ((GameEvent.Move)original).sourcePos.y, original.primaryRobotId);
+                GameEvent.Damage d = new GameEvent.Damage();
+                d.damage = 1;
+                d.remainingHealth = (short)(GetRobot(original.primaryRobotId).health - 1);
+                d.primaryRobotId = original.primaryRobotId;
+                wanted.Add(d);
+            }
+            else
+            {
+                board.RemoveObjectLocation(original.primaryRobotId);
+            }
         });
 
         //First do swapping positions check
@@ -459,10 +496,10 @@ public class Game
                 Robot r1 = GetRobot(key1);
                 Robot r2 = GetRobot(key2);
                 GameEvent.Move m1 = idsToWantedEvents[key1].Find((GameEvent g) => {
-                    return g is GameEvent.Move && ((GameEvent.Move)g).destinationPos.Equals(r2.position);
+                    return g is GameEvent.Move && ((GameEvent.Move)g).destinationPos.Equals(r2.position) && g.success;
                 }) as GameEvent.Move;
                 GameEvent.Move m2 = idsToWantedEvents[key2].Find((GameEvent g) => {
-                    return g is GameEvent.Move && ((GameEvent.Move)g).destinationPos.Equals(r1.position);
+                    return g is GameEvent.Move && ((GameEvent.Move)g).destinationPos.Equals(r1.position) && g.success;
                 }) as GameEvent.Move;
                 if (m1 != null && m2 != null)
                 {
@@ -487,7 +524,7 @@ public class Game
                 {
                     newspace = ((GameEvent.Spawn)e).destinationPos;
                 }
-                if (!newspace.Equals(Map.NULL_VEC))
+                if (!newspace.Equals(Map.NULL_VEC) && e.success)
                 {
                     if (spaceToIds.ContainsKey(newspace)) spaceToIds[newspace].Add(key);
                     else spaceToIds[newspace] = new List<short>() { key };
@@ -500,8 +537,7 @@ public class Game
             if (idsWantSpace.Count > 1)
             {
                 valid = false;
-                string blocker = "Each Other"; //TODO: Better label
-                idsWantSpace.ForEach(generateBlockEvent(blocker, space));
+                idsWantSpace.ForEach(generateBlockEvent("Each Other", space));
             }
         });
 
@@ -558,6 +594,7 @@ public class Game
 
     private void Update(GameEvent.Move g)
     {
+        if (!g.success) return;
         Robot r = GetRobot(g.primaryRobotId);
         r.position = g.destinationPos;
         board.UpdateObjectLocation(r.position.x, r.position.y, r.id);

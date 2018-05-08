@@ -129,15 +129,6 @@ public class Robot
         evt.remainingHealth = (short)(victim.health - attack);
         return new List<GameEvent>() { evt };
     }
-    internal GameEvent Fail(Command c, string reason, bool isPrimary)
-    {
-        GameEvent.Fail fail = new GameEvent.Fail();
-        fail.failedCmd = c.GetType().ToString().Substring("Command.".Length);
-        fail.reason = reason;
-        fail.primaryRobotId = c.robotId;
-        fail.primaryBattery = (isPrimary ? Command.power[c.GetType()] : (byte)0);
-        return fail;
-    }
 
     private class Slinkbot : Robot
     {
@@ -270,7 +261,7 @@ public class Robot
         internal BronzeGrunt() : base(
             _name,
             _description,
-            5, 3, 2,
+            5, 8, 3,
             Rating.BRONZE
         )
         { }
@@ -296,7 +287,7 @@ public class Robot
         internal GoldenGrunt(): base(
             _name,
             _description,
-            7, 10, 5,
+            7, 8, 3,
             Rating.GOLD
         )
         { }
@@ -309,7 +300,7 @@ public class Robot
         internal PlatinumGrunt() : base(
             _name,
             _description,
-            8, 15, 6,
+            8, 8, 3,
             Rating.PLATINUM
         )
         { }
