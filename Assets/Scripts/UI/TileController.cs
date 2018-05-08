@@ -13,6 +13,7 @@ public class TileController : MonoBehaviour {
     public Material BaseTile;
     public Material UserBaseTile;
     public Material OpponentBaseTile;
+    public Material OpponentCore;
     public Sprite defaultSpace;
     //Not used for now:
     //internal static Color userQueueColor = new Color(0, 0.5f, 1.0f);
@@ -38,7 +39,13 @@ public class TileController : MonoBehaviour {
             GameObject Battery = Instantiate(battery, transform);
             Battery.transform.localRotation = Quaternion.Euler(Vector3.left * 90);
             Battery.transform.localPosition = Vector3.back * 0.5f;
-           //Battery.transform.localScale += Vector3.up * ((1 / transform.localScale.z) - 1);
+            //Battery.transform.localScale += Vector3.up * ((1 / transform.localScale.z) - 1);
+            Debug.Log(b.IsPrimary(v));
+            if (!b.IsPrimary(v))
+            {
+                Battery.transform.GetChild(0).GetComponent<Renderer>().material = OpponentCore;
+            }
+
             return BoardController.BATTERY_TYPE;
         }
         
