@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -114,5 +115,33 @@ public class Messages {
         public string serverMessage;
         public string exceptionType;
         public string exceptionMessage;
+    }
+
+    //Gateway Objects, TODO: Get rid of repeated classes
+    [Serializable]
+    public class CreateGameRequest
+    {
+        public string playerId;
+    }
+
+    [Serializable]
+    public class ZResponse
+    {
+        public bool IsError;
+        public string ErrorMessage;
+    }
+
+    [Serializable]
+    public class GetGamesResponse : ZResponse
+    {
+        public string[] gameSessionIds;
+    }
+
+    [Serializable]
+    public class CreateGameResponse : ZResponse
+    {
+        public string playerSessionId;
+        public string ipAddress;
+        public int port;
     }
 }

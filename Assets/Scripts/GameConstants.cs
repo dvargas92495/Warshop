@@ -20,14 +20,9 @@
     internal const string OPPONENT_WAITING = "Opponent is waiting for you to submit your moves...";
 
     internal const string APP_LOG_DIR = "/local/game/logs";
-    internal static string PRODUCTION_ALIAS = "Z8_App";
-    internal class GAME_SESSION_PROPERTIES {
-        internal const string BOARDFILE = "boardFile";
-    }
+    internal static string GATEWAY_URL = "https://p4r3td7ro8.execute-api.us-west-2.amazonaws.com/prod";
 
     //TODO: Bring these out to a config file
     internal static bool LOCAL_MODE = true;
     internal static bool USE_SERVER = false;
-    internal static string AWS_PUBLIC_KEY = "public key";
-    internal static string AWS_SECRET_KEY = "secret key";
 }

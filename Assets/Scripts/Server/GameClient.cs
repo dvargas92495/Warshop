@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Net;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using Amazon.GameLift;
-using Amazon.GameLift.Model;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 
 public class GameClient : MonoBehaviour {
 
     private static NetworkClient client;
-    private static AmazonGameLiftClient amazonClient;
     private static string playerSessionId;
+    private static string ip;
+    private static int port = 0;
     private static Logger log = new Logger(typeof(GameClient));
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
@@ -26,73 +23,9 @@ public class GameClient : MonoBehaviour {
     public static void Initialize(string playerId, string boardFile) {
         if (GameConstants.USE_SERVER)
         {
-            ServicePointManager.ServerCertificateValidationCallback = MyRemoteCertificateValidationCallback; //DO NOT REMOVE THIS
-            amazonClient = new AmazonGameLiftClient(GameConstants.AWS_PUBLIC_KEY, GameConstants.AWS_SECRET_KEY, Amazon.RegionEndpoint.USWest2);
-            ListAliasesRequest aliasReq = new ListAliasesRequest();
-            aliasReq.Name = GameConstants.PRODUCTION_ALIAS;
-            Alias aliasRes = amazonClient.ListAliases(aliasReq).Aliases[0];
-            DescribeAliasRequest describeAliasReq = new DescribeAliasRequest();
-            describeAliasReq.AliasId = aliasRes.AliasId;
-            string fleetId = amazonClient.DescribeAlias(describeAliasReq.AliasId).Alias.RoutingStrategy.FleetId;
-            DescribeGameSessionsRequest describeReq = new DescribeGameSessionsRequest();
-            describeReq.FleetId = fleetId;
-            describeReq.StatusFilter = GameSessionStatus.ACTIVE;
-            DescribeGameSessionsResponse describeRes = amazonClient.DescribeGameSessions(describeReq);
-            log.Info("Game Sessions found: " + describeRes.GameSessions.Count);
-            GameSession gameSession = describeRes.GameSessions.Find((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount);
-            if (gameSession == null)
-            {
-                log.Info("No Game Session Available, creating one...");
-                GameProperty gp = new GameProperty();
-                gp.Key = GameConstants.GAME_SESSION_PROPERTIES.BOARDFILE;
-                gp.Value = boardFile;
-                CreateGameSessionRequest req = new CreateGameSessionRequest();
-                req.MaximumPlayerSessionCount = (GameConstants.LOCAL_MODE ? 1 : 2);
-                req.FleetId = fleetId;
-                req.GameProperties.Add(gp);
-                try
-                {
-                    CreateGameSessionResponse res = amazonClient.CreateGameSession(req);
-                    gameSession = res.GameSession;
-                    int retries = 0;
-                    while (gameSession.Status.Equals(GameSessionStatus.ACTIVATING) && retries < 100)
-                    {
-                        describeReq = new DescribeGameSessionsRequest();
-                        describeReq.GameSessionId = res.GameSession.GameSessionId;
-                        gameSession = amazonClient.DescribeGameSessions(describeReq).GameSessions[0];
-                        retries++;
-                    }
-                    if (!gameSession.Status.Equals(GameSessionStatus.ACTIVE))
-                    {
-                        log.Info(gameSession.Status);
-                        return;
-                    }
-                } catch (NotFoundException e) {
-                    log.Fatal(e);
-                    Interpreter.ClientError("Your game is out of date! Download the newest version");
-                    return;
-                } catch (FleetCapacityExceededException) {
-                    log.Error("No more processes available to reserve a fleet");
-                    Interpreter.ClientError("There's no more room to create a new game. Come back later.");
-                    return;
-                } catch (Exception e)
-                {
-                    log.Fatal(e);
-                    Interpreter.ClientError("An unexpected error occurred! Please notify the developers.");
-                    return;
-                }
-            }
-            log.Info("Game Session - " + gameSession.GameSessionId);
-            CreatePlayerSessionRequest playerSessionRequest = new CreatePlayerSessionRequest();
-            playerSessionRequest.PlayerId = playerId;
-            playerSessionRequest.GameSessionId = gameSession.GameSessionId;
+
             try
             {
-                CreatePlayerSessionResponse playerSessionResponse = amazonClient.CreatePlayerSession(playerSessionRequest);
-                playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId;
-                log.Info("Player Session - " + playerSessionResponse.PlayerSession.PlayerSessionId);
-                string ip = playerSessionResponse.PlayerSession.IpAddress;
-                int port = playerSessionResponse.PlayerSession.Port;
                 client = new NetworkClient();
                 foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
                 {
@@ -111,11 +44,6 @@ public class GameClient : MonoBehaviour {
             msg.boardFile = boardFile;
             App.Receive(MsgType.Connect, msg);
         }
-    }
-
-    private static bool MyRemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-    {
-        return true; //DO NOT REMOVE THIS FUNCTION
     }
 
     private static void Send(short msgType, MessageBase message)
@@ -175,6 +103,43 @@ public class GameClient : MonoBehaviour {
         log.Fatal(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
         Interpreter.uiController.BackToSetup();
         Interpreter.ClientError(msg.serverMessage);
+    }
+
+    public static IEnumerator SendCreateGameRequest(string pId, Action callback)
+    {
+        Messages.CreateGameRequest request = new Messages.CreateGameRequest
+        {
+            playerId = pId
+        };
+        UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
+        yield return www.SendWebRequest();
+        if (www.isNetworkError || www.isHttpError)
+        {
+            Debug.LogError("Error creating available games: " + www.uploadHandler.contentType + "\n" + www.downloadHandler.text);
+        }
+        else
+        {
+            Debug.Log(www.downloadHandler.text);
+            Messages.CreateGameResponse res = JsonUtility.FromJson<Messages.CreateGameResponse>(www.downloadHandler.text);
+            playerSessionId = res.playerSessionId;
+            ip = res.ipAddress;
+            port = res.port;
+            callback();
+        }
+    }
+
+    public static IEnumerator SendFindAvailableGamesRequest(Action<string[]> callback)
+    {
+        UnityWebRequest www = UnityWebRequest.Get(GameConstants.GATEWAY_URL + "/games");
+        yield return www.SendWebRequest();
+        if (www.isNetworkError || www.isHttpError)
+        {
+           Debug.LogError("Error finding available games: " + www.uploadHandler.contentType + "\n" + www.downloadHandler.text);
+        } else
+        {
+            Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse>(www.downloadHandler.text);
+            callback(res.gameSessionIds);
+        }
     }
 
     public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String myname, String opponentname)

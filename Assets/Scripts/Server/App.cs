@@ -99,7 +99,7 @@ public class App {
     static void OnGameSession(GameSession gameSession)
     {
         appgame = new Game();
-        string boardContent = boardFiles[Get(gameSession, GameConstants.GAME_SESSION_PROPERTIES.BOARDFILE)];
+        string boardContent = boardFiles[Get(gameSession, "boardFile")];
         appgame.board = new Map(boardContent);
         GameLiftServerAPI.ActivateGameSession();
     }
@@ -125,7 +125,7 @@ public class App {
             Messages.FakeConnectMessage msg = netMsg.ReadMessage<Messages.FakeConnectMessage>();
             GameSession gs = new GameSession();
             GameProperty gp = new GameProperty();
-            gp.Key = GameConstants.GAME_SESSION_PROPERTIES.BOARDFILE;
+            gp.Key = "boardFile";
             gp.Value = msg.boardFile;
             gs.GameProperties.Add(gp);
             OnGameSession(gs);
