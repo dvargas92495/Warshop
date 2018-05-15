@@ -15,9 +15,6 @@ public class Interpreter {
     internal static Dictionary<short, RobotController> robotControllers;
     internal static string ErrorString = "";
 
-    public static string[] myRobotNames = new string[0];
-    public static string[] opponentRobotNames = new string[0];
-
     private const int eventDelay = 1;
     private static bool loadedLocally = false;
     private static Game.Player[] playerTurnObjectArray;
@@ -32,19 +29,12 @@ public class Interpreter {
     //[turnNumber, priority, commandtype, State]
     private static List<Tuple<byte, byte, byte, byte[]>> History = new List<Tuple<byte, byte, byte, byte[]>>();
 
-    public static void ConnectToServer(string playerId, string opponentId, string boardFile)
+    public static void SendPlayerInfo(string playerId, string opponentId, string[] myRobotNames, string[] opponentRobotNames)
     {
-        if (playerId == "") playerId = "player";
-        if (opponentId == "") opponentId = "opponent";
         playerTurnObjectArray = new Game.Player[] {
             new Game.Player(new Robot[0], playerId),
             new Game.Player(new Robot[0], opponentId)
         };
-        GameClient.Initialize(playerId, boardFile);
-    }
-
-    public static void SendPlayerInfo()
-    {
         if (GameConstants.LOCAL_MODE)
         {
             GameClient.SendLocalGameRequest(myRobotNames, opponentRobotNames, playerTurnObjectArray[0].name, playerTurnObjectArray[1].name);
@@ -79,10 +69,10 @@ public class Interpreter {
         {
             //We are loading from Prototype scene
             loadedLocally = true;
-            App.LinkAssets(new TextAsset[] { bc.DefaultBoard });
-            myRobotNames = new string[] { "Bronze Grunt", "Silver Grunt", "Bronze Grunt", "Platinum Grunt" };
-            opponentRobotNames = new string[] { "Silver Grunt", "Golden Grunt", "Silver Grunt", "Bronze Grunt" };
-            ConnectToServer("", "", bc.DefaultBoard.name);
+            App.LinkAssets(bc.DefaultBoard);
+            string[] myRobotNames = new string[] { "Bronze Grunt", "Silver Grunt", "Bronze Grunt", "Platinum Grunt" };
+            string[] opponentRobotNames = new string[] { "Silver Grunt", "Golden Grunt", "Silver Grunt", "Bronze Grunt" };
+            SendPlayerInfo("me", "opponent", myRobotNames, opponentRobotNames);
             while (board == null) { }
         }
 #endif

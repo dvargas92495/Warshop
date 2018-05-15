@@ -2,26 +2,18 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-using UnityEngine.Rendering;
-using UnityEngine.Networking;
 using TMPro;
 using System.Linq;
 using System.Collections.Specialized;
 
 public class SetupController : MonoBehaviour {
 
-    private bool isServer;
     private byte myStarCount = 0;
     public Button loadBoardButton;
     public Button startGameButton;
-    public InputField myName;
     public InputField opponentName;
     public Text statusText;
-    public TextAsset keys;
-    public Toggle localModeToggle;
-    public Toggle useServerToggle;
     public TextAsset playtest;
-    public TextAsset[] boardfiles;
     public Sprite[] robotDir;
     public Sprite[] squadSpriteDir;
     public GameObject robotRosterImage;
@@ -41,31 +33,13 @@ public class SetupController : MonoBehaviour {
     private Transform opponentSquadPanelRobotHolder;
     public Text starText;
 
-    public void Awake()
-    {
-        isServer = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null);
-    }
-
     // Use this for initialization
     void Start ()
     {
-        Logger.Setup(isServer);
-        App.LinkAssets(boardfiles);
-        if (isServer)
-        {
-            GameConstants.USE_SERVER = true;
-            App.StartServer();
-            return;
-        }
-        //GameConstants.LOCAL_MODE = true;
-        //GameConstants.USE_SERVER = false;
-        //localModeToggle.gameObject.SetActive(false);
-        //useServerToggle.gameObject.SetActive(false);
-        if (Application.isEditor && playtest != null)
+        if (GameConstants.LOCAL_MODE && playtest != null)
         {
             string[] lines = playtest.text.Split('\n');
             StartGame(
-                lines[0].Trim(),
                 lines[1].Trim().Split(','),
                 lines[2].Trim().Split(','),
                 lines[3].Trim(),
@@ -73,24 +47,7 @@ public class SetupController : MonoBehaviour {
             );
             return;
         }
-
-        UnityAction<bool> awsToggle = (bool val) =>
-        {
-            GameConstants.USE_SERVER = val;
-        };
-        if (Application.isEditor)
-        {
-            //localModeToggle.onValueChanged.AddListener(opponentToggle);
-            useServerToggle.onValueChanged.AddListener(awsToggle);
-        } else
-        {
-            //opponentToggle(false);
-            GameConstants.LOCAL_MODE = false;
-            GameConstants.USE_SERVER = true;
-            awsToggle(true);
-            localModeToggle.gameObject.SetActive(false);
-            useServerToggle.gameObject.SetActive(false);
-        }
+        
         Interpreter.setupController = this;
         RosterController.InitializeInitial(this);
 
@@ -115,10 +72,9 @@ public class SetupController : MonoBehaviour {
 
 
                 StartGame(
-                      "Battery",
                       (myRosterStrings),
                       (GameConstants.LOCAL_MODE && opponentRosterStrings.Length > 0 ? opponentRosterStrings : new string[0]),
-                      myName.text,
+                      GameClient.username,
                       (opponentName.IsActive() ? opponentName.text : "")
                 );
             }
@@ -137,15 +93,14 @@ public class SetupController : MonoBehaviour {
 
 
         squadPanelsCreate(GameConstants.LOCAL_MODE);
-
+        GameClient.ConnectToGameServer();
     }
 
     void Update()
     {
         startGameButton.interactable = (
             myStarCount == 8 &&
-            mySquadPanelRobotHolder.transform.childCount <= 4 &&
-            !myName.text.Equals("")
+            mySquadPanelRobotHolder.transform.childCount <= 4
         );
         if (!Interpreter.ErrorString.Equals(""))
         {
@@ -290,14 +245,13 @@ public class SetupController : MonoBehaviour {
         Destroy(robotName);
     }
 
-    void StartGame(string b, string[] mybots, string[] opbots, string myname, string opponentname)
+    void StartGame(string[] mybots, string[] opbots, string myname, string opponentname)
     {
-
-        Interpreter.myRobotNames = mybots;
-        Interpreter.opponentRobotNames = opbots;
+        string op = opponentname.Equals("") ? "opponent" : opponentname;
+        op = op.Equals(myname) ? myname + "opponent" : op;
         statusText.transform.parent.gameObject.SetActive(true);
         statusText.color = Color.white;
         statusText.text = "Loading...";
-        Interpreter.ConnectToServer(myname, opponentname, b);
+        Interpreter.SendPlayerInfo(myname, op, mybots, opbots);
     }
 }

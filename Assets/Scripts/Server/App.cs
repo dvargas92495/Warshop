@@ -14,7 +14,7 @@ public class App {
     private static int MIN_PORT = 12350;
     private static int MAX_PORT = 12360;
     private static Game appgame;
-    private static Dictionary<string,string> boardFiles;
+    private static string boardFile;
     private static readonly Logger log = new Logger(typeof(App));
 
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
@@ -26,10 +26,9 @@ public class App {
         { Messages.SUBMIT_COMMANDS, OnSubmitCommands}
     };
 
-    public static void LinkAssets(TextAsset[] boards)
+    public static void LinkAssets(TextAsset board)
     {
-        boardFiles = new Dictionary<string, string>();
-        Array.ForEach(boards, (TextAsset t) => boardFiles[t.name] = t.text);
+        boardFile = board.text;
     }
 
     // Use this for initialization
@@ -99,8 +98,7 @@ public class App {
     static void OnGameSession(GameSession gameSession)
     {
         appgame = new Game();
-        string boardContent = boardFiles[Get(gameSession, "boardFile")];
-        appgame.board = new Map(boardContent);
+        appgame.board = new Map(boardFile);
         GameLiftServerAPI.ActivateGameSession();
     }
 
@@ -122,13 +120,7 @@ public class App {
         log.Info(netMsg, "Client Connected");
         if (!GameConstants.USE_SERVER)
         {
-            Messages.FakeConnectMessage msg = netMsg.ReadMessage<Messages.FakeConnectMessage>();
-            GameSession gs = new GameSession();
-            GameProperty gp = new GameProperty();
-            gp.Key = "boardFile";
-            gp.Value = msg.boardFile;
-            gs.GameProperties.Add(gp);
-            OnGameSession(gs);
+            OnGameSession(new GameSession());
             GameClient.Receive(MsgType.Connect, Messages.EMPTY);
         }
     }

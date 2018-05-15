@@ -34,7 +34,7 @@ namespace Lambda
 
         public ZResponse CreateGame(CreateGameRequest input, ILambdaContext context)
         {
-            GameProperty gp = new GameProperty();
+            GameProperty gp = new GameProperty(); //TODO: delete this once redeploy happens
             gp.Key = "boardFile";
             gp.Value = "Battery";
             CreateGameSessionRequest req = new CreateGameSessionRequest();
@@ -55,10 +55,7 @@ namespace Lambda
                     retries++;
                 }
 
-                CreatePlayerSessionRequest playerSessionRequest = new CreatePlayerSessionRequest();
-                playerSessionRequest.PlayerId = input.playerId;
-                playerSessionRequest.GameSessionId = gameSession.GameSessionId;
-                CreatePlayerSessionResponse playerSessionResponse = amazonClient.CreatePlayerSessionAsync(playerSessionRequest).Result;
+                CreatePlayerSessionResponse playerSessionResponse = CreatePlayerSession(input.playerId, gameSession.GameSessionId);
                 return new CreateGameResponse {
                     playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId,
                     ipAddress = playerSessionResponse.PlayerSession.IpAddress,
@@ -91,40 +88,80 @@ namespace Lambda
             }
         }
 
+        public ZResponse JoinGame(JoinGameRequest input, ILambdaContext context)
+        {
+            ConfigureClient();
+            CreatePlayerSessionResponse playerSessionResponse = CreatePlayerSession(input.playerId, input.gameSessionId);
+            return new JoinGameResponse
+            {
+                playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId,
+                ipAddress = playerSessionResponse.PlayerSession.IpAddress,
+                port = playerSessionResponse.PlayerSession.Port
+            };
+        }
+
+        [Serializable]
         public class CreateGameRequest
         {
-            public string playerId { get; set; }
+            public string playerId;
         }
 
+        [Serializable]
+        public class JoinGameRequest
+        {
+            public string playerId;
+            public string gameSessionId;
+        }
+
+        [Serializable]
         public class ZResponse
         {
-            public bool IsError { get; set; }
-            public string ErrorMessage { get; set; }
+            public bool IsError;
+            public string ErrorMessage;
         }
 
+        [Serializable]
         public class GetGamesResponse : ZResponse
         {
-            public string[] gameSessionIds { get; set; }
+            public string[] gameSessionIds;
         }
 
-        public class CreateGameResponse : ZResponse
+        [Serializable]
+        public class GameSessionResponse : ZResponse
         {
-            public string playerSessionId { get; set; }
-            public string ipAddress { get; set; }
-            public int port { get; set; }
+            public string playerSessionId;
+            public string ipAddress;
+            public int port;
         }
+        [Serializable]
+        public class CreateGameResponse : GameSessionResponse { }
+        [Serializable]
+        public class JoinGameResponse : GameSessionResponse { }
 
-        private string GetFleetId()
+        private void ConfigureClient()
         {
             string publicKey = Environment.GetEnvironmentVariable("AWSPUBLIC");
             string secretKey = Environment.GetEnvironmentVariable("AWSSECRET");
             amazonClient = new AmazonGameLiftClient(publicKey, secretKey, Amazon.RegionEndpoint.USWest2);
+        }
+
+        private string GetFleetId()
+        {
+            ConfigureClient();
             ListAliasesRequest aliasReq = new ListAliasesRequest();
             aliasReq.Name = "Z8_App";
             Alias aliasRes = amazonClient.ListAliasesAsync(aliasReq).Result.Aliases[0];
             DescribeAliasRequest describeAliasReq = new DescribeAliasRequest();
             describeAliasReq.AliasId = aliasRes.AliasId;
             return amazonClient.DescribeAliasAsync(describeAliasReq.AliasId).Result.Alias.RoutingStrategy.FleetId;
+        }
+
+        private CreatePlayerSessionResponse CreatePlayerSession(string playerId, string gameSessionId)
+        {
+            CreatePlayerSessionRequest playerSessionRequest = new CreatePlayerSessionRequest();
+            playerSessionRequest.PlayerId = playerId;
+            playerSessionRequest.GameSessionId = gameSessionId;
+            return amazonClient.CreatePlayerSessionAsync(playerSessionRequest).Result;
         }
     }
 

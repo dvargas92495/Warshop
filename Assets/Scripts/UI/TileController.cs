@@ -40,7 +40,6 @@ public class TileController : MonoBehaviour {
             Battery.transform.localRotation = Quaternion.Euler(Vector3.left * 90);
             Battery.transform.localPosition = Vector3.back * 0.5f;
             //Battery.transform.localScale += Vector3.up * ((1 / transform.localScale.z) - 1);
-            Debug.Log(b.IsPrimary(v));
             if (!b.IsPrimary(v))
             {
                 Battery.transform.GetChild(0).GetComponent<Renderer>().material = OpponentCore;

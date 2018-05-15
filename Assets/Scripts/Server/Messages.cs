@@ -13,10 +13,6 @@ public class Messages {
     public const short SERVER_ERROR = MsgType.Highest + 7;
     public class EmptyMessage : MessageBase { }
     public static EmptyMessage EMPTY = new EmptyMessage();
-    public class FakeConnectMessage : MessageBase
-    {
-        public string boardFile;
-    }
     public class StartLocalGameMessage : MessageBase
     {
         public String playerSessionId;
@@ -125,6 +121,13 @@ public class Messages {
     }
 
     [Serializable]
+    public class JoinGameRequest
+    {
+        public string playerId;
+        public string gameSessionId;
+    }
+
+    [Serializable]
     public class ZResponse
     {
         public bool IsError;
@@ -138,10 +141,14 @@ public class Messages {
     }
 
     [Serializable]
-    public class CreateGameResponse : ZResponse
+    public class GameSessionResponse : ZResponse
     {
         public string playerSessionId;
         public string ipAddress;
         public int port;
     }
+    [Serializable]
+    public class CreateGameResponse : GameSessionResponse { }
+    [Serializable]
+    public class JoinGameResponse : GameSessionResponse { }
 }

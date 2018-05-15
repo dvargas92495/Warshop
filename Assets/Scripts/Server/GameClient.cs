@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 
 public class GameClient : MonoBehaviour {
 
+    public static string username;
     private static NetworkClient client;
     private static string playerSessionId;
     private static string ip;
@@ -20,10 +21,9 @@ public class GameClient : MonoBehaviour {
         { Messages.SERVER_ERROR, OnServerError }
     };
 
-    public static void Initialize(string playerId, string boardFile) {
+    public static void ConnectToGameServer() {
         if (GameConstants.USE_SERVER)
         {
-
             try
             {
                 client = new NetworkClient();
@@ -40,9 +40,7 @@ public class GameClient : MonoBehaviour {
             }
         } else
         {
-            Messages.FakeConnectMessage msg = new Messages.FakeConnectMessage();
-            msg.boardFile = boardFile;
-            App.Receive(MsgType.Connect, msg);
+            App.Receive(MsgType.Connect, Messages.EMPTY);
         }
     }
 
@@ -75,7 +73,6 @@ public class GameClient : MonoBehaviour {
     private static void OnConnect(NetworkMessage netMsg)
     {
         log.Info("Connected");
-        Interpreter.SendPlayerInfo();
     }
 
     private static void OnGameReady(NetworkMessage netMsg)
@@ -107,6 +104,7 @@ public class GameClient : MonoBehaviour {
 
     public static IEnumerator SendCreateGameRequest(string pId, Action callback)
     {
+        username = pId;
         Messages.CreateGameRequest request = new Messages.CreateGameRequest
         {
             playerId = pId
@@ -115,12 +113,36 @@ public class GameClient : MonoBehaviour {
         yield return www.SendWebRequest();
         if (www.isNetworkError || www.isHttpError)
         {
-            Debug.LogError("Error creating available games: " + www.uploadHandler.contentType + "\n" + www.downloadHandler.text);
+            log.Fatal("Error creating new game: \n" + www.downloadHandler.text);
         }
         else
         {
-            Debug.Log(www.downloadHandler.text);
             Messages.CreateGameResponse res = JsonUtility.FromJson<Messages.CreateGameResponse>(www.downloadHandler.text);
+            playerSessionId = res.playerSessionId;
+            ip = res.ipAddress;
+            port = res.port;
+            callback();
+        }
+    }
+
+    public static IEnumerator SendJoinGameRequest(string pId, string gId, Action callback)
+    {
+        username = pId;
+        Messages.JoinGameRequest request = new Messages.JoinGameRequest
+        {
+            playerId = pId,
+            gameSessionId = gId
+        };
+        UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
+        www.method = "POST"; //LOL you freaking suck Unity
+        yield return www.SendWebRequest();
+        if (www.isNetworkError || www.isHttpError)
+        {
+            log.Fatal("Error joining available game: \n" + www.downloadHandler.text);
+        }
+        else
+        {
+            Messages.JoinGameResponse res = JsonUtility.FromJson<Messages.JoinGameResponse>(www.downloadHandler.text);
             playerSessionId = res.playerSessionId;
             ip = res.ipAddress;
             port = res.port;
@@ -134,7 +156,7 @@ public class GameClient : MonoBehaviour {
         yield return www.SendWebRequest();
         if (www.isNetworkError || www.isHttpError)
         {
-           Debug.LogError("Error finding available games: " + www.uploadHandler.contentType + "\n" + www.downloadHandler.text);
+           log.Fatal("Error finding available games: " + www.uploadHandler.contentType + "\n" + www.downloadHandler.text);
         } else
         {
             Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse>(www.downloadHandler.text);
