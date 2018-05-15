@@ -118,10 +118,17 @@ public class GameClient : MonoBehaviour {
         else
         {
             Messages.CreateGameResponse res = JsonUtility.FromJson<Messages.CreateGameResponse>(www.downloadHandler.text);
-            playerSessionId = res.playerSessionId;
-            ip = res.ipAddress;
-            port = res.port;
-            callback();
+            if (res.IsError)
+            {
+                log.Fatal(res.ErrorMessage);
+            }
+            else
+            {
+                playerSessionId = res.playerSessionId;
+                ip = res.ipAddress;
+                port = res.port;
+                callback();
+            }
         }
     }
 

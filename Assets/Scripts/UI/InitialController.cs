@@ -73,10 +73,12 @@ public class InitialController : MonoBehaviour {
             Button match = Instantiate(EnterMatchButton, MatchButtons.transform);
             match.GetComponentInChildren<Text>().text = id.Substring(id.IndexOf("gsess-")+6);
             match.onClick.AddListener(JoinGame(id));
+            match.interactable = true;
         }
         Button newGame = Instantiate(EnterMatchButton, MatchButtons.transform);
         newGame.GetComponentInChildren<Text>().text = "New Game";
         newGame.onClick.AddListener(NewGame);
+        newGame.interactable = true;
         EnterMatchButton.gameObject.SetActive(false);
     }
 
