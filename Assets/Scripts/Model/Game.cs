@@ -8,6 +8,7 @@ public class Game
 {
     internal Player primary = new Player();
     internal Player secondary = new Player();
+    internal string gameSessionId;
     Robot[] allRobots = new Robot[0];
     internal List<GameEvent> endOfTurnEvents = new List<GameEvent>();
     internal Map board;
@@ -18,7 +19,7 @@ public class Game
 
     internal void Join(string[] t, string n, int cid)
     {
-        bool isPrimary = !primary.ready;
+        bool isPrimary = !primary.joined;
         Robot[] robots = new Robot[t.Length];
         for (byte i = 0; i < t.Length; i++)
         {
@@ -69,17 +70,15 @@ public class Game
         internal short battery = GameConstants.POINTS_TO_WIN;
         internal Robot[] team;
         internal bool ready;
+        internal bool joined;
         internal List<Command> commands;
         internal int connectionId;
-        internal Player()
-        {
-            ready = false;
-        }
+        internal Player(){}
         internal Player(Robot[] t, string n)
         {
             team = t;
             name = n;
-            ready = true;
+            joined = true;
         }
         internal void StoreCommands(List<Command> cmds)
         {
@@ -315,7 +314,7 @@ public class Game
             g.success = false;
             GameEvent.Block evt = new GameEvent.Block();
             evt.deniedPos = g.destinationPos;
-            evt.Transfer(g);
+            evt.primaryRobotId = g.primaryRobotId;
             evt.blockingObject = s;
             board.UpdateObjectLocation(g.sourcePos.x, g.sourcePos.y, g.primaryRobotId);
             events.Insert(index+1, evt);

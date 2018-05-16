@@ -23,7 +23,8 @@ public class App {
         { MsgType.Disconnect, OnDisconnect },
         { Messages.START_LOCAL_GAME, OnStartLocalGame },
         { Messages.START_GAME, OnStartGame },
-        { Messages.SUBMIT_COMMANDS, OnSubmitCommands}
+        { Messages.SUBMIT_COMMANDS, OnSubmitCommands},
+        { Messages.END_GAME, OnEndGame}
     };
 
     public static void LinkAssets(TextAsset board)
@@ -97,8 +98,10 @@ public class App {
 
     static void OnGameSession(GameSession gameSession)
     {
+        Logger.ConfigureNewGame(gameSession.GameSessionId);
         appgame = new Game();
         appgame.board = new Map(boardFile);
+        appgame.gameSessionId = gameSession.GameSessionId;
         GameLiftServerAPI.ActivateGameSession();
     }
 
@@ -110,7 +113,30 @@ public class App {
 
     static bool OnHealthCheck()
     {
+        log.Info("Heartbeat");
+        DescribePlayerSessionsOutcome result =  GameLiftServerAPI.DescribePlayerSessions(new DescribePlayerSessionsRequest
+        {
+            GameSessionId = appgame.gameSessionId
+        });
+        bool timedOut = true;
+        foreach (PlayerSession ps in result.Result.PlayerSessions)
+        {
+            timedOut = timedOut && (ps.Status == PlayerSessionStatus.TIMEDOUT);
+        }
+        if (timedOut) EndGame();
         return true;
+    }
+
+    static void EndGame()
+    {
+        Logger.RemoveGame();
+        GameLiftServerAPI.TerminateGameSession();
+    }
+
+    static void OnEndGame(NetworkMessage netMsg)
+    {
+        log.Info(netMsg, "End Game");
+        EndGame();
     }
 
     // end GameLift callbacks
@@ -128,7 +154,6 @@ public class App {
     private static void OnDisconnect(NetworkMessage netMsg)
     {
         log.Info(netMsg, "Client Disconnected");
-        GameLiftServerAPI.TerminateGameSession();
     }
 
     private static void OnStartLocalGame(NetworkMessage netMsg)
@@ -157,7 +182,7 @@ public class App {
             return;
         }
         appgame.Join(msg.myRobots, msg.myName, netMsg.conn.connectionId);
-        if (appgame.primary.ready && appgame.secondary.ready)
+        if (appgame.primary.joined && appgame.secondary.joined)
         {
             Send(appgame.primary.connectionId, Messages.GAME_READY, appgame.GetGameReadyMessage(true));
             Send(appgame.secondary.connectionId, Messages.GAME_READY, appgame.GetGameReadyMessage(false));
@@ -193,13 +218,14 @@ public class App {
         {
             log.Fatal(e);
             Messages.ServerErrorMessage errorMsg = new Messages.ServerErrorMessage();
-            errorMsg.serverMessage = "Exception thrown when submitting commands";
+            errorMsg.serverMessage = "Game server crashed when processing your submitted commands";
             errorMsg.exceptionType = e.GetType().ToString();
             errorMsg.exceptionMessage = e.Message;
             foreach (int cid in appgame.connectionIds())
             {
                 Send(cid, Messages.SERVER_ERROR, errorMsg);
             }
+            EndGame();
         }
     }
 

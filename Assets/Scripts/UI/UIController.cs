@@ -34,6 +34,7 @@ public class UIController : MonoBehaviour {
     public TMP_Text UserPlayerName;
     public TMP_Text OpponentsPlayerName;
     public GameObject DirectionButtonContainer;
+    public Text StatusText;
     // public Image SplashScreen;
 
     public Sprite Default;
@@ -99,6 +100,8 @@ public class UIController : MonoBehaviour {
         {
             SubmitCommands.Click();
         }
+        StatusText.text = Interpreter.ErrorString;
+        StatusText.transform.parent.gameObject.SetActive(!Interpreter.ErrorString.Equals(""));
     }
 
     public void BackToSetup()
@@ -112,11 +115,10 @@ public class UIController : MonoBehaviour {
         SetPlayerPanel(playerObjects[1], true);
         SetPlayerPanel(playerObjects[0], false);
 
-        //userScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(isPrimary).transform);
         userScore = Instantiate(ScoreModel, (isPrimary ? Interpreter.boardController.primaryBatteryLocation : 
             Interpreter.boardController.secondaryBatteryLocation).transform);
         userScore.GetComponent<MeshRenderer>().sortingOrder = 1;
-        //opponentScore = Instantiate(ScoreModel, Interpreter.boardController.GetVoidTile(!isPrimary).transform);
+
         opponentScore = Instantiate(ScoreModel, (!isPrimary ? Interpreter.boardController.primaryBatteryLocation : 
             Interpreter.boardController.secondaryBatteryLocation).transform);
         opponentScore.GetComponent<MeshRenderer>().sortingOrder = 1;
@@ -409,6 +411,7 @@ public class UIController : MonoBehaviour {
 
     public void Splash(bool win)
     {
+        Interpreter.ClientError(win ? "You win!" : "You lose!"); //TODO REMOVE
         //SplashScreen.GetComponentInChildren<Text>().text = win ? "YOU WIN!" : "YOU LOSE!";
         //SplashScreen.gameObject.SetActive(true);
         //SetButtons(false);

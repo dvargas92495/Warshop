@@ -79,7 +79,7 @@ class Logger {
             fileLayout.ActivateOptions();
             RollingFileAppender appender = new RollingFileAppender
             {
-                AppendToFile = false,
+                AppendToFile = true,
                 File = GameConstants.APP_LOG_DIR + (isServer ? "/server.log" : "/client.log"),
                 Layout = fileLayout,
                 MaxSizeRollBackups = 5,
@@ -92,6 +92,33 @@ class Logger {
             BasicConfigurator.Configure(appender);
         }
         configured = true;
+    }
+
+    internal static void ConfigureNewGame(string gameSessionId)
+    {
+        PatternLayout layout = new PatternLayout
+        {
+            ConversionPattern = "%date %-5level %12logger - %message%newline"
+        };
+        layout.ActivateOptions();
+        FileAppender appender = new FileAppender
+        {
+            AppendToFile = true,
+            File = GameConstants.APP_LOG_DIR + "/"+ gameSessionId +".log",
+            Layout = layout,
+            Threshold = Level.Info
+        };
+        appender.ActivateOptions();
+        BasicConfigurator.Configure(appender);
+    }
+
+    internal static void RemoveGame()
+    {
+        IAppender[] apps = LogManager.GetRepository().GetAppenders();
+        foreach(IAppender app in apps)
+        {
+            if (app is FileAppender) app.Close();
+        }
     }
 
     private class UnityAppender : AppenderSkeleton

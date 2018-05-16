@@ -32,6 +32,7 @@ public class SetupController : MonoBehaviour {
     private Transform mySquadPanelRobotHolder;
     private Transform opponentSquadPanelRobotHolder;
     public Text starText;
+    private bool loading;
 
     // Use this for initialization
     void Start ()
@@ -102,12 +103,10 @@ public class SetupController : MonoBehaviour {
             myStarCount == 8 &&
             mySquadPanelRobotHolder.transform.childCount <= 4
         );
-        if (!Interpreter.ErrorString.Equals(""))
-        {
-            statusText.transform.parent.gameObject.SetActive(true);
-            statusText.color = Color.red;
-            statusText.text = Interpreter.ErrorString;
-        }
+        bool isError = !Interpreter.ErrorString.Equals("");
+        statusText.transform.parent.gameObject.SetActive(isError || loading);
+        statusText.color = isError ? Color.red : Color.white;
+        statusText.text = isError ? Interpreter.ErrorString : statusText.text;
     }
 
     public void maximizeSelection(string selection)
@@ -249,8 +248,7 @@ public class SetupController : MonoBehaviour {
     {
         string op = opponentname.Equals("") ? "opponent" : opponentname;
         op = op.Equals(myname) ? myname + "opponent" : op;
-        statusText.transform.parent.gameObject.SetActive(true);
-        statusText.color = Color.white;
+        loading = true;
         statusText.text = "Loading...";
         Interpreter.SendPlayerInfo(myname, op, mybots, opbots);
     }

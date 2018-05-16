@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.Rendering;
@@ -27,8 +25,6 @@ public class InitialController : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        EnterMatchButton.onClick.AddListener(EnterMatch);
-        ProfileButton.onClick.AddListener(Profile);
         Logger.Setup(isServer);
         App.LinkAssets(boardfile);
         if (isServer)
@@ -37,6 +33,8 @@ public class InitialController : MonoBehaviour {
             App.StartServer();
             return;
         }
+        EnterMatchButton.onClick.AddListener(EnterMatch);
+        ProfileButton.onClick.AddListener(Profile);
 
         GameConstants.LOCAL_MODE = Application.isEditor;
         GameConstants.USE_SERVER = !Application.isEditor;

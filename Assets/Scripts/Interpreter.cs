@@ -14,6 +14,7 @@ public class Interpreter {
     internal static BoardController boardController;
     internal static Dictionary<short, RobotController> robotControllers;
     internal static string ErrorString = "";
+    internal static bool gameOver;
 
     private const int eventDelay = 1;
     private static bool loadedLocally = false;
@@ -31,6 +32,7 @@ public class Interpreter {
 
     public static void SendPlayerInfo(string playerId, string opponentId, string[] myRobotNames, string[] opponentRobotNames)
     {
+        gameOver = false;
         playerTurnObjectArray = new Game.Player[] {
             new Game.Player(new Robot[0], playerId),
             new Game.Player(new Robot[0], opponentId)
@@ -183,7 +185,6 @@ public class Interpreter {
 
     public static IEnumerator EventsRoutine(List<GameEvent> events)
     {
-        bool gameOver = false;
         int currentUserBattery;
         int currentOpponentBattery;
         int userBattery = uiController.GetUserBattery();
@@ -236,8 +237,8 @@ public class Interpreter {
             else if (e is GameEvent.End)
             {
                 GameEvent.End evt = (GameEvent.End)e;
-                if (evt.primaryLost) boardController.primaryBatteryLocation.GetComponent<SpriteRenderer>().sprite = uiController.GetArrow("Damage");
-                if (evt.secondaryLost) boardController.secondaryBatteryLocation.GetComponent<SpriteRenderer>().sprite = uiController.GetArrow("Damage");
+                if (evt.primaryLost) boardController.primaryBatteryLocation.transform.Rotate(Vector3.down * 90);
+                if (evt.secondaryLost) boardController.secondaryBatteryLocation.transform.Rotate(Vector3.down * 90);
                 uiController.Splash(!((isPrimary && evt.primaryLost) || (!isPrimary && evt.secondaryLost)));
                 Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.canCommand = false);
                 myturn = false;
@@ -305,6 +306,9 @@ public class Interpreter {
             uiController.LightUpPanel(false, true);
             uiController.LightUpPanel(false, false);
             presentState = SerializeState(-1);
+        } else
+        {
+            GameClient.SendEndGameRequest();
         }
     }
 

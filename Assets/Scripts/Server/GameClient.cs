@@ -15,6 +15,8 @@ public class GameClient : MonoBehaviour {
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
     {
         { MsgType.Connect, OnConnect },
+        { MsgType.Disconnect, OnDisconnect },
+        { MsgType.Error, OnNetworkError },
         { Messages.GAME_READY, OnGameReady },
         { Messages.TURN_EVENTS, OnTurnEvents },
         { Messages.WAITING_COMMANDS, OnOpponentWaiting },
@@ -73,6 +75,19 @@ public class GameClient : MonoBehaviour {
     private static void OnConnect(NetworkMessage netMsg)
     {
         log.Info("Connected");
+        Interpreter.ClientError("");
+    }
+
+    private static void OnDisconnect(NetworkMessage netMsg)
+    {
+        log.Info("Disconnected");
+        Interpreter.ClientError("Disconnected, attempting to reconnect");
+        client.Connect(ip, port);
+    }
+
+    private static void OnNetworkError(NetworkMessage netMsg)
+    {
+        log.Info("Network Error");
     }
 
     private static void OnGameReady(NetworkMessage netMsg)
@@ -98,7 +113,6 @@ public class GameClient : MonoBehaviour {
     {
         Messages.ServerErrorMessage msg = netMsg.ReadMessage<Messages.ServerErrorMessage>();
         log.Fatal(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
-        Interpreter.uiController.BackToSetup();
         Interpreter.ClientError(msg.serverMessage);
     }
 
@@ -196,5 +210,10 @@ public class GameClient : MonoBehaviour {
         msg.commands = commands.ToArray();
         msg.owner = owner;
         Send(Messages.SUBMIT_COMMANDS, msg);
+    }
+
+    public static void SendEndGameRequest ()
+    {
+        Send(Messages.END_GAME, new Messages.EndGameMessage());
     }
 }

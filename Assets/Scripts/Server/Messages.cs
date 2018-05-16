@@ -11,6 +11,7 @@ public class Messages {
     public const short TURN_EVENTS = MsgType.Highest + 5;
     public const short WAITING_COMMANDS = MsgType.Highest + 6;
     public const short SERVER_ERROR = MsgType.Highest + 7;
+    public const short END_GAME = MsgType.Highest + 8;
     public class EmptyMessage : MessageBase { }
     public static EmptyMessage EMPTY = new EmptyMessage();
     public class StartLocalGameMessage : MessageBase
@@ -112,6 +113,7 @@ public class Messages {
         public string exceptionType;
         public string exceptionMessage;
     }
+    public class EndGameMessage : MessageBase { }
 
     //Gateway Objects, TODO: Get rid of repeated classes
     [Serializable]
