@@ -76,6 +76,7 @@ public class GameClient : MonoBehaviour {
     {
         log.Info("Connected");
         Interpreter.ClientError("");
+        SendAcceptPlayerSessionRequest();
     }
 
     private static void OnDisconnect(NetworkMessage netMsg)
@@ -185,10 +186,17 @@ public class GameClient : MonoBehaviour {
         }
     }
 
+    public static void SendAcceptPlayerSessionRequest()
+    {
+        Messages.AcceptPlayerSessionMessage msg = new Messages.AcceptPlayerSessionMessage();
+        msg.playerSessionId = playerSessionId;
+        Send(Messages.ACCEPT_PLAYER_SESSION, msg);
+
+    }
+
     public static void SendLocalGameRequest(String[] myRobots, String[] opponentRobots, String myname, String opponentname)
     {
         Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
-        msg.playerSessionId = playerSessionId;
         msg.myRobots = myRobots;
         msg.opponentRobots = opponentRobots;
         msg.myName = myname;
@@ -199,7 +207,6 @@ public class GameClient : MonoBehaviour {
     public static void SendGameRequest(String[] myRobots, String myname)
     {   
         Messages.StartGameMessage msg = new Messages.StartGameMessage();
-        msg.playerSessionId = playerSessionId;
         msg.myName = myname;
         msg.myRobots = myRobots;
         Send(Messages.START_GAME, msg);

@@ -21,6 +21,7 @@ public class App {
     {
         { MsgType.Connect, OnConnect },
         { MsgType.Disconnect, OnDisconnect },
+        { Messages.ACCEPT_PLAYER_SESSION, OnAcceptPlayerSession },
         { Messages.START_LOCAL_GAME, OnStartLocalGame },
         { Messages.START_GAME, OnStartGame },
         { Messages.SUBMIT_COMMANDS, OnSubmitCommands},
@@ -118,7 +119,7 @@ public class App {
         {
             GameSessionId = appgame.gameSessionId
         });
-        bool timedOut = true;
+        bool timedOut = result.Result.PlayerSessions.Count > 0;
         foreach (PlayerSession ps in result.Result.PlayerSessions)
         {
             timedOut = timedOut && (ps.Status == PlayerSessionStatus.TIMEDOUT);
@@ -156,16 +157,21 @@ public class App {
         log.Info(netMsg, "Client Disconnected");
     }
 
-    private static void OnStartLocalGame(NetworkMessage netMsg)
+    private static void OnAcceptPlayerSession(NetworkMessage netMsg)
     {
-        log.Info(netMsg, "Client Starting Local Game");
-        Messages.StartLocalGameMessage msg = netMsg.ReadMessage<Messages.StartLocalGameMessage>();
+        Messages.AcceptPlayerSessionMessage msg = netMsg.ReadMessage<Messages.AcceptPlayerSessionMessage>();
         GenericOutcome outcome = GameLiftServerAPI.AcceptPlayerSession(msg.playerSessionId);
         if (!outcome.Success && GameConstants.USE_SERVER)
         {
             log.Error(outcome);
             return;
         }
+    }
+
+    private static void OnStartLocalGame(NetworkMessage netMsg)
+    {
+        log.Info(netMsg, "Client Starting Local Game");
+        Messages.StartLocalGameMessage msg = netMsg.ReadMessage<Messages.StartLocalGameMessage>();
         appgame.Join(msg.myRobots, msg.myName, netMsg.conn.connectionId);
         appgame.Join(msg.opponentRobots, msg.opponentName, netMsg.conn.connectionId);
         Send(netMsg.conn.connectionId, Messages.GAME_READY, appgame.GetGameReadyMessage(true));
@@ -175,12 +181,6 @@ public class App {
     {
         log.Info(netMsg, "Client Starting Game");
         Messages.StartGameMessage msg = netMsg.ReadMessage<Messages.StartGameMessage>();
-        GenericOutcome outcome = GameLiftServerAPI.AcceptPlayerSession(msg.playerSessionId);
-        if (!outcome.Success && GameConstants.USE_SERVER)
-        {
-            log.Error(outcome);
-            return;
-        }
         appgame.Join(msg.myRobots, msg.myName, netMsg.conn.connectionId);
         if (appgame.primary.joined && appgame.secondary.joined)
         {

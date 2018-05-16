@@ -12,11 +12,15 @@ public class Messages {
     public const short WAITING_COMMANDS = MsgType.Highest + 6;
     public const short SERVER_ERROR = MsgType.Highest + 7;
     public const short END_GAME = MsgType.Highest + 8;
+    public const short ACCEPT_PLAYER_SESSION = MsgType.Highest + 9;
     public class EmptyMessage : MessageBase { }
     public static EmptyMessage EMPTY = new EmptyMessage();
+    public class AcceptPlayerSessionMessage : MessageBase
+    {
+        public string playerSessionId;
+    }
     public class StartLocalGameMessage : MessageBase
     {
-        public String playerSessionId;
         public String myName;
         public String opponentName;
         public String[] myRobots;
@@ -24,7 +28,6 @@ public class Messages {
     }
     public class StartGameMessage : MessageBase
     {
-        public String playerSessionId;
         public String myName;
         public String[] myRobots;
     }
