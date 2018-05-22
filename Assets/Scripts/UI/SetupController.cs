@@ -50,8 +50,6 @@ public class SetupController : MonoBehaviour {
         }
         
         Interpreter.setupController = this;
-        RosterController.InitializeInitial(this);
-
 
         startGameButton.onClick.AddListener(() =>
             {                           
@@ -80,16 +78,13 @@ public class SetupController : MonoBehaviour {
                 );
             }
         );
-
-        
-
        
         foreach (Sprite r in robotDir)
         {
             GameObject rosterRobot = Instantiate(robotRosterImage, robotRosterPanel.transform);
             rosterRobot.name = r.name;
             rosterRobot.GetComponent<Image>().sprite = r;
-            rosterRobot.GetComponent<Button>().onClick.AddListener(() => RosterController.maximizeRobot(rosterRobot.name));
+            rosterRobot.GetComponent<Button>().onClick.AddListener(() => maximizeSelection(rosterRobot.name));
         }
 
 
@@ -111,30 +106,30 @@ public class SetupController : MonoBehaviour {
 
     public void maximizeSelection(string selection)
     {
-        GameObject robotSelectionPanel = robotSelectedPanel;
-        foreach (Transform child in robotSelectionPanel.transform)
-        {
-            Destroy(child.gameObject);
-        }
         if (selection != "no selection")
         {
             foreach (Sprite r in robotDir)
             {
                 if (selection == r.name)
                 {
-                    GameObject selectedRobot = Instantiate(maximizedRosterRobot, robotSelectedPanel.transform);
-                    selectedRobot.name = selection;
-                    selectedRobot.GetComponent<Image>().sprite = r;
-                    robotSelection = selectedRobot.name;
-
-                    GameObject selectedRobotInfo = Instantiate(maximizedRosterRobotInfoPanel, robotSelectedPanel.transform);
-                    TMP_Text[] fields = selectedRobotInfo.GetComponentsInChildren<TMP_Text>();
+                    robotSelectedPanel.SetActive(true);
+                    maximizedRosterRobot.name = selection;
+                    maximizedRosterRobot.GetComponent<Image>().sprite = r;
+                    robotSelection = maximizedRosterRobot.name;
+                    
+                    TMP_Text[] fields = maximizedRosterRobotInfoPanel.GetComponentsInChildren<TMP_Text>();
                     fields[0].SetText(robotSelection);
                     Robot selected = Robot.create(robotSelection);
-                    fields[1].SetText("Rating: " + selected.rating);
-                    fields[2].SetText("Attack: " + selected.attack);
-                    fields[3].SetText("Health: " + selected.health);
-                    fields[4].SetText("Ability: " + selected.description);
+                    fields[1].SetText(selected.attack.ToString());
+                    fields[2].SetText(selected.health.ToString());
+                    fields[3].SetText(selected.description);
+
+                    byte rating = (byte)selected.rating;
+                    HorizontalLayoutGroup ratingGroup = maximizedRosterRobotInfoPanel.GetComponentInChildren<HorizontalLayoutGroup>();
+                    for (int i = 0; i < ratingGroup.transform.childCount; i++)
+                    {
+                        ratingGroup.transform.GetChild(i).gameObject.SetActive(i < rating);
+                    }
 
                     mySquadsAddButton.interactable = true;
                     if (GameConstants.LOCAL_MODE)
@@ -148,6 +143,7 @@ public class SetupController : MonoBehaviour {
         }
         else
         {
+            robotSelectedPanel.SetActive(false);
             robotSelection = "no selection";
             mySquadsAddButton.interactable = false;
             if (GameConstants.LOCAL_MODE)
@@ -187,7 +183,7 @@ public class SetupController : MonoBehaviour {
             {
                 mySquadPanelRobotHolder = currentSquadPanel.transform.GetChild(1);
                 mySquadsAddButton = currentSquadButton.GetComponent<Button>();
-                mySquadsAddButton.onClick.AddListener(() => RosterController.addToSquad(squadsOwner, currentSquadPanel.name));
+                mySquadsAddButton.onClick.AddListener(() => addSelectedToSquad(squadsOwner, currentSquadPanel.name));
                 mySquadsAddButton.GetComponent<Button>().interactable = false;
                 mySquadsAddButton.GetComponent<Image>().sprite = squadSpriteDir[i];
             }
@@ -195,7 +191,7 @@ public class SetupController : MonoBehaviour {
             {
                 opponentSquadPanelRobotHolder = currentSquadPanel.transform.GetChild(1);
                 opponentSquadsAddButton = currentSquadButton.GetComponent<Button>();
-                opponentSquadsAddButton.onClick.AddListener(() => RosterController.addToSquad(squadsOwner, currentSquadPanel.name));
+                opponentSquadsAddButton.onClick.AddListener(() => addSelectedToSquad(squadsOwner, currentSquadPanel.name));
                 opponentSquadsAddButton.GetComponent<Button>().interactable = false;
                 opponentSquadsAddButton.GetComponent<Image>().sprite = squadSpriteDir[i];
             }
@@ -217,7 +213,7 @@ public class SetupController : MonoBehaviour {
                  addedRobot = Instantiate(robotSquadImage, opponentSquadPanelRobotHolder.transform);
             }
             addedRobot.name = robotSelection;
-            addedRobot.GetComponent<Button>().onClick.AddListener(() => RosterController.removeFromSquad(squadOwner, squadName, addedRobot));
+            addedRobot.GetComponent<Button>().onClick.AddListener(() => removeAddedFromSquad(squadOwner, squadName, addedRobot));
             foreach (Sprite r in robotDir)
             {
                 if (robotSelection == r.name)

@@ -15,11 +15,6 @@ public class RosterController {
     {
         initialController.maximizeSelection(name);
     }
-
-    public static void addToSquad(string squadOwner, string squadName)
-    {
-        initialController.addSelectedToSquad(squadOwner, squadName);
-    }
     public static void removeFromSquad(string squadOwner, string squadName, GameObject robotName)
     {
         initialController.removeAddedFromSquad(squadOwner, squadName, robotName);

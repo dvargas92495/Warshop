@@ -71,7 +71,6 @@ public class Interpreter {
         {
             //We are loading from Prototype scene
             loadedLocally = true;
-            App.LinkAssets(bc.DefaultBoard);
             string[] myRobotNames = new string[] { "Bronze Grunt", "Silver Grunt", "Bronze Grunt", "Platinum Grunt" };
             string[] opponentRobotNames = new string[] { "Silver Grunt", "Golden Grunt", "Silver Grunt", "Bronze Grunt" };
             SendPlayerInfo("me", "opponent", myRobotNames, opponentRobotNames);

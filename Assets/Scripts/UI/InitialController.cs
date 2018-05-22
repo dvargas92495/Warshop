@@ -26,7 +26,6 @@ public class InitialController : MonoBehaviour {
     // Use this for initialization
     void Start () {
         Logger.Setup(isServer);
-        App.LinkAssets(boardfile);
         if (isServer)
         {
             GameConstants.USE_SERVER = true;

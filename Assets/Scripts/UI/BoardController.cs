@@ -6,7 +6,6 @@ using System.Linq;
 public class BoardController : MonoBehaviour {
 
     //Area board is allowed to be in
-    public TextAsset DefaultBoard;
     public int boardCellsWide;
     public int boardCellsHeight;
     public TileController tile;

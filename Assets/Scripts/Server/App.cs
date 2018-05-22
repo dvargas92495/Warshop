@@ -28,11 +28,6 @@ public class App {
         { Messages.END_GAME, OnEndGame}
     };
 
-    public static void LinkAssets(TextAsset board)
-    {
-        boardFile = board.text;
-    }
-
     // Use this for initialization
     public static void StartServer()
     {
@@ -101,6 +96,7 @@ public class App {
     {
         Logger.ConfigureNewGame(gameSession.GameSessionId);
         appgame = new Game();
+        string boardFile = "8 5\nA W W W W W W a\nB W W W W W W b\nW P W W W W p W\nC W W W W W W c\nD W W W W W W d";
         appgame.board = new Map(boardFile);
         appgame.gameSessionId = gameSession.GameSessionId;
         GameLiftServerAPI.ActivateGameSession();
