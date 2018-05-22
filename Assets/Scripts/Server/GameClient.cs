@@ -117,12 +117,11 @@ public class GameClient : MonoBehaviour {
         Interpreter.ClientError(msg.serverMessage);
     }
 
-    public static IEnumerator SendCreateGameRequest(string pId, Action callback)
+    public static IEnumerator SendCreateGameRequest(Action callback)
     {
-        username = pId;
         Messages.CreateGameRequest request = new Messages.CreateGameRequest
         {
-            playerId = pId
+            playerId = username
         };
         UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
         yield return www.SendWebRequest();
@@ -147,12 +146,11 @@ public class GameClient : MonoBehaviour {
         }
     }
 
-    public static IEnumerator SendJoinGameRequest(string pId, string gId, Action callback)
+    public static IEnumerator SendJoinGameRequest(string gId, Action callback)
     {
-        username = pId;
         Messages.JoinGameRequest request = new Messages.JoinGameRequest
         {
-            playerId = pId,
+            playerId = username,
             gameSessionId = gId
         };
         UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));

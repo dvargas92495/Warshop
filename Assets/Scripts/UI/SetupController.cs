@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using TMPro;
 using System.Linq;
 using System.Collections.Specialized;
@@ -11,6 +11,7 @@ public class SetupController : MonoBehaviour {
     private byte myStarCount = 0;
     public Button loadBoardButton;
     public Button startGameButton;
+    public Button backButton;
     public InputField opponentName;
     public Text statusText;
     public TextAsset playtest;
@@ -78,6 +79,11 @@ public class SetupController : MonoBehaviour {
                 );
             }
         );
+
+        backButton.onClick.AddListener(() => {
+            SceneManager.LoadScene("Lobby");
+        });
+        backButton.interactable = GameConstants.LOCAL_MODE; //TODO: Temp until backend disconnection works
        
         foreach (Sprite r in robotDir)
         {
