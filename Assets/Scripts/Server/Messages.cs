@@ -123,6 +123,8 @@ public class Messages {
     public class CreateGameRequest
     {
         public string playerId;
+        public bool isPrivate;
+        public string password;
     }
 
     [Serializable]
@@ -130,6 +132,7 @@ public class Messages {
     {
         public string playerId;
         public string gameSessionId;
+        public string password;
     }
 
     [Serializable]
@@ -144,6 +147,7 @@ public class Messages {
     {
         public string[] gameSessionIds;
         public string[] creatorIds;
+        public bool[] isPrivate;
     }
 
     [Serializable]

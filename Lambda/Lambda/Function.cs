@@ -23,22 +23,37 @@ namespace Lambda
             describeReq.FleetId = fleetId;
             describeReq.StatusFilter = GameSessionStatus.ACTIVE;
             DescribeGameSessionsResponse describeRes = amazonClient.DescribeGameSessionsAsync(describeReq).Result;
-            List<Tuple<string,string>> gameSessions = describeRes.GameSessions
+            List<Tuple<string,string,string>> gameSessions = describeRes.GameSessions
                 .FindAll((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount)
-                .ConvertAll((GameSession g) => new Tuple<string,string>(g.GameSessionId,g.CreatorId));
+                .ConvertAll((GameSession g) => new Tuple<string,string,string>(
+                    g.GameSessionId,
+                    g.CreatorId,
+                    g.GameProperties.Find((GameProperty gp) => gp.Key.Equals("IsPrivate")).Value
+                 ));
             return new GetGamesResponse
             {
-                gameSessionIds = gameSessions.ConvertAll((Tuple<string,string> pair) => pair.Item1).ToArray(),
-                creatorIds = gameSessions.ConvertAll((Tuple<string, string> pair) => pair.Item2).ToArray()
+                gameSessionIds = gameSessions.ConvertAll((Tuple<string,string,string> pair) => pair.Item1).ToArray(),
+                creatorIds = gameSessions.ConvertAll((Tuple<string, string,string> pair) => pair.Item2).ToArray(),
+                isPrivate = gameSessions.ConvertAll((Tuple<string, string, string> pair) => pair.Item3.Equals("True")).ToArray()
             };
         }
 
-        public ZResponse CreateGame(CreateGameRequest input, ILambdaContext context)
+        public CreateGameResponse CreateGame(CreateGameRequest input, ILambdaContext context)
         {
             CreateGameSessionRequest req = new CreateGameSessionRequest();
             req.MaximumPlayerSessionCount = 2;
             req.FleetId = GetFleetId();
             req.CreatorId = input.playerId;
+            req.GameProperties.Add(new GameProperty()
+            {
+                Key = "IsPrivate",
+                Value = input.isPrivate.ToString()
+            });
+            req.GameProperties.Add(new GameProperty()
+            {
+                Key = "Password",
+                Value = input.password
+            });
             try
             {
                 CreateGameSessionResponse res = amazonClient.CreateGameSessionAsync(req).Result;
@@ -86,22 +101,39 @@ namespace Lambda
             }
         }
 
-        public ZResponse JoinGame(JoinGameRequest input, ILambdaContext context)
+        public JoinGameResponse JoinGame(JoinGameRequest input, ILambdaContext context)
         {
-            ConfigureClient();
-            CreatePlayerSessionResponse playerSessionResponse = CreatePlayerSession(input.playerId, input.gameSessionId);
-            return new JoinGameResponse
+            string fleetId = GetFleetId();
+            DescribeGameSessionsResponse gameSession = amazonClient.DescribeGameSessionsAsync(new DescribeGameSessionsRequest() {
+                GameSessionId = input.gameSessionId
+            }).Result;
+            bool IsPrivate = gameSession.GameSessions[0].GameProperties.Find((GameProperty gp) => gp.Key.Equals("IsPrivate")).Value.Equals("True");
+            string Password = gameSession.GameSessions[0].GameProperties.Find((GameProperty gp) => gp.Key.Equals("Password")).Value;
+            if (!IsPrivate || input.password.Equals(Password))
             {
-                playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId,
-                ipAddress = playerSessionResponse.PlayerSession.IpAddress,
-                port = playerSessionResponse.PlayerSession.Port
-            };
+                CreatePlayerSessionResponse playerSessionResponse = CreatePlayerSession(input.playerId, input.gameSessionId);
+                return new JoinGameResponse
+                {
+                    playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId,
+                    ipAddress = playerSessionResponse.PlayerSession.IpAddress,
+                    port = playerSessionResponse.PlayerSession.Port
+                };
+            } else
+            {
+                return new JoinGameResponse
+                {
+                    IsError = true,
+                    ErrorMessage = "Incorrect password for private game"
+                };
+            }
         }
 
         [Serializable]
         public class CreateGameRequest
         {
             public string playerId;
+            public bool isPrivate;
+            public string password;
         }
 
         [Serializable]
@@ -109,6 +141,7 @@ namespace Lambda
         {
             public string playerId;
             public string gameSessionId;
+            public string password;
         }
 
         [Serializable]
@@ -123,6 +156,7 @@ namespace Lambda
         {
             public string[] gameSessionIds;
             public string[] creatorIds;
+            public bool[] isPrivate;
         }
 
         [Serializable]

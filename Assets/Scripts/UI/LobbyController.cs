@@ -7,49 +7,76 @@ using UnityEngine.SceneManagement;
 
 public class LobbyController : MonoBehaviour {
 
+    public GameObject newgameSessionUI;
     public GameObject gameSessionUI;
     public Button backButton;
+    public Text statusText;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
         if (GameConstants.USE_SERVER)
         {
             StartCoroutine(GameClient.SendFindAvailableGamesRequest(FindAvailableGamesCallback));
         }
-        gameSessionUI.GetComponentInChildren<Button>().onClick.AddListener(NewGame);
+        newgameSessionUI.GetComponentInChildren<Button>().onClick.AddListener(NewGame);
         backButton.onClick.AddListener(() => SceneManager.LoadScene("Initial"));
     }
 
-    void FindAvailableGamesCallback(string[] gameSessionIds, string[] creatorIds)
+    void Update()
+    {
+        bool isPrivate = newgameSessionUI.GetComponentInChildren<Dropdown>().value == 1;
+        InputField passwordField = newgameSessionUI.GetComponentInChildren<InputField>(true);
+        passwordField.gameObject.SetActive(isPrivate);
+        newgameSessionUI.GetComponentInChildren<Button>().interactable = !isPrivate || !passwordField.text.Equals("");
+        statusText.transform.parent.gameObject.SetActive(!Interpreter.ErrorString.Equals(""));
+        statusText.text = Interpreter.ErrorString;
+        if (Input.GetMouseButtonUp(0) && !Interpreter.ErrorString.Equals(""))
+        {
+            Interpreter.ErrorString = "";
+            foreach (Button b in newgameSessionUI.transform.parent.GetComponentsInChildren<Button>()) b.interactable = true;
+        }
+    }
+
+    void FindAvailableGamesCallback(string[] gameSessionIds, string[] creatorIds, bool[] isPrivate)
     {
         for(int i=0;i<gameSessionIds.Length; i++)
         {
-            GameObject match = Instantiate(gameSessionUI, gameSessionUI.transform.parent);
+            GameObject match = Instantiate(gameSessionUI, newgameSessionUI.transform.parent);
             match.GetComponentsInChildren<Text>()[1].text = creatorIds[i];
-            match.GetComponentInChildren<Button>().onClick.AddListener(JoinGame(gameSessionIds[i]));
+            match.GetComponentsInChildren<Text>()[2].text = isPrivate[i] ? "Private" : "Public";
+            match.GetComponentInChildren<InputField>(true).gameObject.SetActive(isPrivate[i]);
+            match.GetComponentInChildren<Button>().onClick.AddListener(JoinGame(gameSessionIds[i], i+1));
         }
     }
 
     void NewGame()
     {
-        foreach (Button b in gameSessionUI.transform.parent.GetComponentsInChildren<Button>()) b.interactable = false;
+        DeactivateButtons();
+        bool isPrivate = newgameSessionUI.GetComponentInChildren<Dropdown>().value == 1;
+        string password = newgameSessionUI.GetComponentInChildren<InputField>(true).text;
         if (GameConstants.USE_SERVER)
         {
-            StartCoroutine(GameClient.SendCreateGameRequest(() => SceneManager.LoadScene("Setup")));
+            StartCoroutine(GameClient.SendCreateGameRequest(isPrivate, password, () => SceneManager.LoadScene("Setup")));
         } else
         {
             SceneManager.LoadScene("Setup");
         }
     }
 
-    UnityAction JoinGame(string gameSessionId)
+    UnityAction JoinGame(string gameSessionId, int i)
     {
         return () =>
         {
-            foreach (Button b in gameSessionUI.transform.parent.GetComponentsInChildren<Button>()) b.interactable = false;
-            StartCoroutine(GameClient.SendJoinGameRequest(gameSessionId,
+            DeactivateButtons();
+            string pass = newgameSessionUI.transform.parent.GetChild(i).GetComponentInChildren<InputField>(true).text;
+            StartCoroutine(GameClient.SendJoinGameRequest(gameSessionId, pass,
                 () => SceneManager.LoadScene("Setup"))
             );
         };
+    }
+
+    void DeactivateButtons()
+    {
+        foreach (Button b in newgameSessionUI.transform.parent.GetComponentsInChildren<Button>()) b.interactable = false;
     }
 }

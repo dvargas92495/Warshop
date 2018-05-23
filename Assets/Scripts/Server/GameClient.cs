@@ -117,11 +117,13 @@ public class GameClient : MonoBehaviour {
         Interpreter.ClientError(msg.serverMessage);
     }
 
-    public static IEnumerator SendCreateGameRequest(Action callback)
+    public static IEnumerator SendCreateGameRequest(bool isPriv, string pass, Action callback)
     {
         Messages.CreateGameRequest request = new Messages.CreateGameRequest
         {
-            playerId = username
+            playerId = username,
+            isPrivate = isPriv,
+            password = isPriv ? pass : "NONE"
         };
         UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
         yield return www.SendWebRequest();
@@ -134,7 +136,7 @@ public class GameClient : MonoBehaviour {
             Messages.CreateGameResponse res = JsonUtility.FromJson<Messages.CreateGameResponse>(www.downloadHandler.text);
             if (res.IsError)
             {
-                log.Fatal(res.ErrorMessage);
+                Interpreter.ErrorString = res.ErrorMessage;
             }
             else
             {
@@ -146,12 +148,13 @@ public class GameClient : MonoBehaviour {
         }
     }
 
-    public static IEnumerator SendJoinGameRequest(string gId, Action callback)
+    public static IEnumerator SendJoinGameRequest(string gId, string pass, Action callback)
     {
         Messages.JoinGameRequest request = new Messages.JoinGameRequest
         {
             playerId = username,
-            gameSessionId = gId
+            gameSessionId = gId,
+            password = pass
         };
         UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
         www.method = "POST"; //LOL you freaking suck Unity
@@ -163,14 +166,21 @@ public class GameClient : MonoBehaviour {
         else
         {
             Messages.JoinGameResponse res = JsonUtility.FromJson<Messages.JoinGameResponse>(www.downloadHandler.text);
-            playerSessionId = res.playerSessionId;
-            ip = res.ipAddress;
-            port = res.port;
-            callback();
+            if (res.IsError)
+            {
+                Interpreter.ErrorString = res.ErrorMessage;
+            }
+            else
+            {
+                playerSessionId = res.playerSessionId;
+                ip = res.ipAddress;
+                port = res.port;
+                callback();
+            }
         }
     }
 
-    public static IEnumerator SendFindAvailableGamesRequest(Action<string[], string[]> callback)
+    public static IEnumerator SendFindAvailableGamesRequest(Action<string[], string[], bool[]> callback)
     {
         UnityWebRequest www = UnityWebRequest.Get(GameConstants.GATEWAY_URL + "/games");
         yield return www.SendWebRequest();
@@ -180,7 +190,14 @@ public class GameClient : MonoBehaviour {
         } else
         {
             Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse>(www.downloadHandler.text);
-            callback(res.gameSessionIds, res.creatorIds);
+            if (res.IsError)
+            {
+                Interpreter.ErrorString = res.ErrorMessage;
+            }
+            else
+            {
+                callback(res.gameSessionIds, res.creatorIds, res.isPrivate);
+            }
         }
     }
 
