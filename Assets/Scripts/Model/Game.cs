@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Diagnostics;
+using UnityEngine.Networking;
 
 public class Game
 {
@@ -69,6 +70,7 @@ public class Game
         internal string name;
         internal short battery = GameConstants.POINTS_TO_WIN;
         internal Robot[] team;
+        internal Dictionary<short, RobotStat> teamStats = new Dictionary<short, RobotStat>();
         internal bool ready;
         internal bool joined;
         internal List<Command> commands;
@@ -77,6 +79,7 @@ public class Game
         internal Player(Robot[] t, string n)
         {
             team = t;
+            team.ToList().ForEach((Robot r) => teamStats[r.id] = new RobotStat() { name = r.name });
             name = n;
             joined = true;
         }
@@ -109,6 +112,25 @@ public class Game
         {
             priority = p;
         }
+    }
+
+    internal class RobotStat : MessageBase
+    {
+        internal string name;
+        internal short spawns;
+        internal short moves;
+        internal short attacks;
+        internal short specials;
+        internal short successAttackOnRobots;
+        internal short successAttackOnBattery;
+        internal short successMoves;
+        internal short successSpecials;
+        internal short successPushes;
+        internal short damageTakenFromAttacks;
+        internal short damageTakenFromCollision;
+        internal short damageTakenFromSpecial;
+        internal short numberOfKills;
+        internal short numberOfDeaths;
     }
 
     public byte GetTurn()
@@ -160,6 +182,12 @@ public class Game
                 GameEvent.End e = new GameEvent.End();
                 e.primaryLost = primary.battery <= 0;
                 e.secondaryLost = secondary.battery <= 0;
+                e.primaryBattery = Math.Max(primary.battery, (short)0);
+                e.secondaryBattery = Math.Max(secondary.battery, (short)0);
+                e.turnCount = turn;
+                e.timeTaken = 0;
+                e.primaryTeamStats = primary.teamStats;
+                e.secondaryTeamStats = secondary.teamStats;
                 events.Add(e);
                 break;
             }

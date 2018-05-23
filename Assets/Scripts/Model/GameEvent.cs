@@ -392,18 +392,56 @@ public abstract class GameEvent
         internal const byte EVENT_ID = 13;
         internal bool primaryLost;
         internal bool secondaryLost;
+        internal short turnCount;
+        internal int timeTaken;
+        internal Dictionary<short, Game.RobotStat> primaryTeamStats = new Dictionary<short, Game.RobotStat>();
+        internal Dictionary<short, Game.RobotStat> secondaryTeamStats = new Dictionary<short, Game.RobotStat>();
 
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
             writer.Write(primaryLost);
             writer.Write(secondaryLost);
+            writer.Write(turnCount);
+            writer.Write(timeTaken);
+            writer.Write(primaryTeamStats.Count);
+            primaryTeamStats.Keys.ToList().ForEach((short k) =>
+            {
+                writer.Write(k);
+                Game.RobotStat stat = primaryTeamStats[k];
+                stat.Serialize(writer);
+            });
+            writer.Write(secondaryTeamStats.Count);
+            secondaryTeamStats.Keys.ToList().ForEach((short k) =>
+            {
+                writer.Write(k);
+                Game.RobotStat stat = secondaryTeamStats[k];
+                stat.Serialize(writer);
+            });
+
+
         }
         public new static End Deserialize(NetworkReader reader)
         {
             End evt = new End();
             evt.primaryLost = reader.ReadBoolean();
             evt.secondaryLost = reader.ReadBoolean();
+            evt.turnCount = reader.ReadInt16();
+            evt.timeTaken = reader.ReadInt32();
+            int pc = reader.ReadInt32();
+            for (int i = 0; i < pc; i++)
+            {
+                short k = reader.ReadInt16();
+                evt.primaryTeamStats[k] = new Game.RobotStat();
+                evt.primaryTeamStats[k].Deserialize(reader);
+            }
+            int sc = reader.ReadInt32();
+            for (int i = 0; i < sc; i++)
+            {
+                short k = reader.ReadInt16();
+                evt.secondaryTeamStats[k] = new Game.RobotStat();
+                evt.secondaryTeamStats[k].Deserialize(reader);
+            }
             return evt;
         }
     }

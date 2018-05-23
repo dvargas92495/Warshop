@@ -69,7 +69,7 @@ public class Interpreter {
 #if UNITY_EDITOR
         if (board == null && GameConstants.LOCAL_MODE)
         {
-            //We are loading from Prototype scene
+            //We are loading from Match scene
             loadedLocally = true;
             string[] myRobotNames = new string[] { "Bronze Grunt", "Silver Grunt", "Bronze Grunt", "Platinum Grunt" };
             string[] opponentRobotNames = new string[] { "Silver Grunt", "Golden Grunt", "Silver Grunt", "Bronze Grunt" };
@@ -240,6 +240,7 @@ public class Interpreter {
                 if (evt.secondaryLost) boardController.secondaryBatteryLocation.transform.Rotate(Vector3.down * 90);
                 uiController.Splash(!((isPrimary && evt.primaryLost) || (!isPrimary && evt.secondaryLost)));
                 Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.canCommand = false);
+                uiController.statsInterface.Initialize(evt, isPrimary);
                 myturn = false;
                 gameOver = true;
             }

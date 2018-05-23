@@ -166,6 +166,7 @@ public class App {
     private static void OnStartLocalGame(NetworkMessage netMsg)
     {
         log.Info(netMsg, "Client Starting Local Game");
+        if (appgame == null) OnGameSession(new GameSession());
         Messages.StartLocalGameMessage msg = netMsg.ReadMessage<Messages.StartLocalGameMessage>();
         appgame.Join(msg.myRobots, msg.myName, netMsg.conn.connectionId);
         appgame.Join(msg.opponentRobots, msg.opponentName, netMsg.conn.connectionId);

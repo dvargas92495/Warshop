@@ -35,6 +35,7 @@ public class UIController : MonoBehaviour {
     public TMP_Text OpponentsPlayerName;
     public GameObject DirectionButtonContainer;
     public Text StatusText;
+    public StatsController statsInterface;
     // public Image SplashScreen;
 
     public Sprite Default;
