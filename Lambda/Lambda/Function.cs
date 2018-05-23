@@ -23,24 +23,22 @@ namespace Lambda
             describeReq.FleetId = fleetId;
             describeReq.StatusFilter = GameSessionStatus.ACTIVE;
             DescribeGameSessionsResponse describeRes = amazonClient.DescribeGameSessionsAsync(describeReq).Result;
-            List<string> gameSessionIds = describeRes.GameSessions
+            List<Tuple<string,string>> gameSessions = describeRes.GameSessions
                 .FindAll((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount)
-                .ConvertAll((GameSession g) => g.GameSessionId);
+                .ConvertAll((GameSession g) => new Tuple<string,string>(g.GameSessionId,g.CreatorId));
             return new GetGamesResponse
             {
-                gameSessionIds = gameSessionIds.ToArray()
+                gameSessionIds = gameSessions.ConvertAll((Tuple<string,string> pair) => pair.Item1).ToArray(),
+                creatorIds = gameSessions.ConvertAll((Tuple<string, string> pair) => pair.Item2).ToArray()
             };
         }
 
         public ZResponse CreateGame(CreateGameRequest input, ILambdaContext context)
         {
-            GameProperty gp = new GameProperty(); //TODO: delete this once redeploy happens
-            gp.Key = "boardFile";
-            gp.Value = "Battery";
             CreateGameSessionRequest req = new CreateGameSessionRequest();
             req.MaximumPlayerSessionCount = 2;
             req.FleetId = GetFleetId();
-            req.GameProperties.Add(gp);
+            req.CreatorId = input.playerId;
             try
             {
                 CreateGameSessionResponse res = amazonClient.CreateGameSessionAsync(req).Result;
@@ -124,6 +122,7 @@ namespace Lambda
         public class GetGamesResponse : ZResponse
         {
             public string[] gameSessionIds;
+            public string[] creatorIds;
         }
 
         [Serializable]

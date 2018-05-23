@@ -14,7 +14,6 @@ public class App {
     private static int MIN_PORT = 12350;
     private static int MAX_PORT = 12360;
     private static Game appgame;
-    private static string boardFile;
     private static readonly Logger log = new Logger(typeof(App));
 
     private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
@@ -222,18 +221,6 @@ public class App {
                 Send(cid, Messages.SERVER_ERROR, errorMsg);
             }
             EndGame();
-        }
-    }
-
-    private static string Get(GameSession g, string k)
-    {
-        GameProperty p = g.GameProperties.Find((GameProperty gp) => gp.Key.Equals(k));
-        if (p == null)
-        {
-            return "";
-        } else
-        {
-            return p.Value;
         }
     }
 }

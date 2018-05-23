@@ -170,7 +170,7 @@ public class GameClient : MonoBehaviour {
         }
     }
 
-    public static IEnumerator SendFindAvailableGamesRequest(Action<string[]> callback)
+    public static IEnumerator SendFindAvailableGamesRequest(Action<string[], string[]> callback)
     {
         UnityWebRequest www = UnityWebRequest.Get(GameConstants.GATEWAY_URL + "/games");
         yield return www.SendWebRequest();
@@ -180,7 +180,7 @@ public class GameClient : MonoBehaviour {
         } else
         {
             Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse>(www.downloadHandler.text);
-            callback(res.gameSessionIds);
+            callback(res.gameSessionIds, res.creatorIds);
         }
     }
 

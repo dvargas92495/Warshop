@@ -19,19 +19,14 @@ public class LobbyController : MonoBehaviour {
         gameSessionUI.GetComponentInChildren<Button>().onClick.AddListener(NewGame);
         backButton.onClick.AddListener(() => SceneManager.LoadScene("Initial"));
     }
-	
-	// Update is called once per frame
-	void Update () {
 
-    }
-
-    void FindAvailableGamesCallback(string[] gameSessionIds)
+    void FindAvailableGamesCallback(string[] gameSessionIds, string[] creatorIds)
     {
-        foreach (string id in gameSessionIds)
+        for(int i=0;i<gameSessionIds.Length; i++)
         {
             GameObject match = Instantiate(gameSessionUI, gameSessionUI.transform.parent);
-            match.GetComponentInChildren<Text>().text = id.Substring(id.IndexOf("gsess-") + 6);
-            match.GetComponentInChildren<Button>().onClick.AddListener(JoinGame(id));
+            match.GetComponentsInChildren<Text>()[1].text = creatorIds[i];
+            match.GetComponentInChildren<Button>().onClick.AddListener(JoinGame(gameSessionIds[i]));
         }
     }
 

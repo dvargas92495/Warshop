@@ -143,6 +143,7 @@ public class Messages {
     public class GetGamesResponse : ZResponse
     {
         public string[] gameSessionIds;
+        public string[] creatorIds;
     }
 
     [Serializable]
