@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 public class Interpreter {
 
@@ -24,7 +25,7 @@ public class Interpreter {
     private static bool myturn;
     private static bool isPrimary;
     private static byte turnNumber = 1;
-    private static Tuple<byte, byte, byte> currentHistory = new Tuple<byte, byte, byte> ( 1, GameConstants.MAX_PRIORITY, 0 );
+    private static Tuple<byte, byte, byte> currentHistory = new Tuple<byte, byte, byte>(1, GameConstants.MAX_PRIORITY, 0);
     private static byte[] presentState;
 
     //[turnNumber, priority, commandtype, State]
@@ -93,7 +94,7 @@ public class Interpreter {
         Transform[] docks = isPrimary ? new Transform[] { boardController.primaryDock.transform, boardController.secondaryDock.transform } :
             new Transform[] { boardController.secondaryDock.transform, boardController.primaryDock.transform };
         robotControllers = new Dictionary<short, RobotController>();
-        for (int p = 0; p < playerTurns.Length;p++)
+        for (int p = 0; p < playerTurns.Length; p++)
         {
             Game.Player player = playerTurns[p];
             Transform dock = docks[p];
@@ -179,136 +180,123 @@ public class Interpreter {
             uiController.LightUpPanel(true, true);
         }
         uiController.LightUpPanel(true, false);
-        uiController.StartCoroutine(EventsRoutine(events));
+        NextEvent(events, new InfoThisPriority(), 0);
     }
 
-    public static IEnumerator EventsRoutine(List<GameEvent> events)
+    private class InfoThisPriority {
+        internal List<GameEvent> events = new List<GameEvent>();
+        internal int userBattery = uiController.GetUserBattery();
+        internal int opponentBattery = uiController.GetOpponentBattery();
+        internal int animationsToPlay = 0;
+    }
+
+    private static void NextEvent(List<GameEvent> events, InfoThisPriority infoThisPriority, int i)
     {
-        int currentUserBattery;
-        int currentOpponentBattery;
-        int userBattery = uiController.GetUserBattery();
-        int opponentBattery = uiController.GetOpponentBattery();
-        List<GameEvent> eventsThisPriority = new List<GameEvent>();
-        foreach(GameEvent e in events)
+        if (i >= events.Count)
         {
-            if (!eventsThisPriority.Any())
+            if (!gameOver)
             {
-                userBattery = uiController.GetUserBattery();
-                opponentBattery = uiController.GetOpponentBattery();
-            }
-            if (e is GameEvent.Resolve)
-            {
-                GameEvent.Resolve r = (GameEvent.Resolve)e;
-                uiController.HighlightCommands(r.commandType, r.priority);
-                currentUserBattery = uiController.GetUserBattery();
-                currentOpponentBattery = uiController.GetOpponentBattery();
-                uiController.SetBattery(userBattery, opponentBattery);
-                History.Add(new Tuple<byte, byte, byte, byte[]>(turnNumber, r.priority, GameEvent.Resolve.GetByte(r.commandType), SerializeState(r.priority)));
-                uiController.SetBattery(currentUserBattery, currentOpponentBattery);
-                uiController.SetPriority(r.priority);
-                foreach (GameEvent evt in eventsThisPriority)
+                currentHistory = new Tuple<byte, byte, byte>((byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0);
+                myturn = true;
+                Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) =>
                 {
-                    if (!evt.success) continue;
-                    RobotController primaryRobot = GetRobot(evt.primaryRobotId);
-                    if (evt is GameEvent.Move)
+                    r.canCommand = !r.isOpponent;
+                    r.gameObject.SetActive(true);
+                    if (GameConstants.LOCAL_MODE || !r.isOpponent)
                     {
-                        primaryRobot.displayMove(((GameEvent.Move)evt).destinationPos);
-                    } else if (evt is GameEvent.Death)
-                    {
-                        GameEvent.Death d = (GameEvent.Death)evt;
-                        primaryRobot.displayHealth(d.returnHealth);
-                        boardController.UnplaceRobot(primaryRobot.transform);
-                        primaryRobot.gameObject.SetActive(false);
-                        bool isP = ((!primaryRobot.isOpponent && isPrimary) || (primaryRobot.isOpponent && !isPrimary));
-                        Transform dock = isP ? boardController.primaryDock.transform : boardController.secondaryDock.transform;
-                        primaryRobot.transform.parent = dock;
-                        primaryRobot.transform.localPosition = boardController.PlaceInBelt(isP);
-                    } else if (evt is GameEvent.Spawn)
-                    {
-                        boardController.RemoveFromBelt(primaryRobot.transform.localPosition, ((!primaryRobot.isOpponent && isPrimary) || (primaryRobot.isOpponent && !isPrimary)));
-                        primaryRobot.transform.parent = boardController.transform;
-                        primaryRobot.displayMove(((GameEvent.Spawn)evt).destinationPos);
+                        uiController.ClearCommands(r.id);
                     }
-                    primaryRobot.clearEvents();
-                }
-                eventsThisPriority.Clear();
-            }
-            else if (e is GameEvent.End)
-            {
-                GameEvent.End evt = (GameEvent.End)e;
-                if (evt.primaryLost) boardController.primaryBatteryLocation.transform.Rotate(Vector3.down * 90);
-                if (evt.secondaryLost) boardController.secondaryBatteryLocation.transform.Rotate(Vector3.down * 90);
-                uiController.Splash(!((isPrimary && evt.primaryLost) || (!isPrimary && evt.secondaryLost)));
-                Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.canCommand = false);
-                uiController.statsInterface.Initialize(evt, isPrimary);
-                myturn = false;
-                gameOver = true;
+                    r.commands.Clear();
+                });
+                uiController.SubmitCommands.Deactivate();
+                uiController.BackToPresent.Deactivate();
+                uiController.StepForwardButton.Deactivate();
+                uiController.StepBackButton.SetActive(History.Count != 0);
+                uiController.SetButtons(uiController.RobotButtonContainer, true);
+                uiController.LightUpPanel(false, true);
+                uiController.LightUpPanel(false, false);
+                presentState = SerializeState(-1);
             }
             else
             {
-                uiController.SetPriority(e.priority);
-                RobotController primaryRobot = GetRobot(e.primaryRobotId);
-                if (e is GameEvent.Move)
-                {
-                    primaryRobot.displayEvent("Move Arrow", ((GameEvent.Move)e).destinationPos);
-                }
-                else if (e is GameEvent.Attack)
-                {
-                    Array.ForEach(((GameEvent.Attack)e).locs, (Vector2Int v) => primaryRobot.displayEvent("Attack Arrow", v));
-                } else if (e is GameEvent.Block)
-                {
-                    primaryRobot.displayEvent("Collision", ((GameEvent.Block)e).deniedPos);
-                } else if (e is GameEvent.Push)
-                {
-                    primaryRobot.displayEvent("Push", new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y) + ((GameEvent.Push)e).direction);
-                } else if (e is GameEvent.Damage)
-                {
-                    primaryRobot.displayEvent("Damage", new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y));
-                    primaryRobot.displayHealth(((GameEvent.Damage)e).remainingHealth);
-                }
-                else if (e is GameEvent.Miss)
-                {
-                    Array.ForEach(((GameEvent.Miss)e).locs, (Vector2Int v) => primaryRobot.displayEvent("Missed Attack", v, false));
-                }
-                else if (e is GameEvent.Battery)
-                {
-                    Vector3 pos = (((GameEvent.Battery)e).isPrimary ? boardController.primaryBatteryLocation : boardController.secondaryBatteryLocation).transform.position;
-                    primaryRobot.displayEvent("Damage", new Vector2Int((int)pos.x, (int)pos.y), false);
-                } else if (e is GameEvent.Spawn)
-                {
-                    primaryRobot.displayEvent("", new Vector2Int(((GameEvent.Spawn)e).destinationPos.x, ((GameEvent.Spawn)e).destinationPos.y), false);
-                }
-                log.Info(e.ToString());
-                uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
-                eventsThisPriority.Add(e);
+                GameClient.SendEndGameRequest();
             }
-            yield return new WaitForSeconds(eventDelay);
+            return;
         }
-        if (!gameOver)
+        GameEvent e = events[i];
+        if (!infoThisPriority.events.Any())
         {
-            currentHistory = new Tuple<byte, byte, byte> ((byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0 );
-            myturn = true;
-            Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) =>
+            infoThisPriority.userBattery = uiController.GetUserBattery();
+            infoThisPriority.opponentBattery = uiController.GetOpponentBattery();
+        }
+        Action<int> Next = (int j) => NextEvent(events, infoThisPriority, j); 
+        if (e is GameEvent.Resolve)
+        {
+            GameEvent.Resolve r = (GameEvent.Resolve)e;
+            uiController.HighlightCommands(r.commandType, r.priority);
+            int currentUserBattery = uiController.GetUserBattery();
+            int currentOpponentBattery = uiController.GetOpponentBattery();
+            uiController.SetBattery(infoThisPriority.userBattery, infoThisPriority.opponentBattery);
+            History.Add(new Tuple<byte, byte, byte, byte[]>(turnNumber, r.priority, GameEvent.Resolve.GetByte(r.commandType), SerializeState(r.priority)));
+            uiController.SetBattery(currentUserBattery, currentOpponentBattery);
+            uiController.SetPriority(r.priority);
+            Action callback = () =>
             {
-                r.canCommand = !r.isOpponent;
-                r.gameObject.SetActive(true);
-                if (GameConstants.LOCAL_MODE || !r.isOpponent)
+                if (--infoThisPriority.animationsToPlay == 0) Next(i + 1);
+            };
+            foreach (GameEvent evt in infoThisPriority.events)
+            {
+                if (!evt.success) continue;
+                RobotController primaryRobot = GetRobot(evt.primaryRobotId);
+                infoThisPriority.animationsToPlay++;
+                if (evt is GameEvent.Move) primaryRobot.displayMove(((GameEvent.Move)evt).destinationPos, callback);
+                else if (evt is GameEvent.Death) primaryRobot.displayDeath(((GameEvent.Death)evt).returnHealth, isPrimary, callback);
+                else if (evt is GameEvent.Spawn) primaryRobot.displaySpawn(((GameEvent.Spawn)evt).destinationPos, isPrimary, callback);
+                else
                 {
-                    uiController.ClearCommands(r.id);
+                    primaryRobot.displayDefault(callback);
+                    Debug.Log(evt.GetType());
                 }
-                r.commands.Clear();
-            });
-            uiController.SubmitCommands.Deactivate();
-            uiController.BackToPresent.Deactivate();
-            uiController.StepForwardButton.Deactivate();
-            uiController.StepBackButton.SetActive(History.Count != 0);
-            uiController.SetButtons(uiController.RobotButtonContainer, true);
-            uiController.LightUpPanel(false, true);
-            uiController.LightUpPanel(false, false);
-            presentState = SerializeState(-1);
-        } else
+                primaryRobot.clearEvents();
+            }
+            infoThisPriority.events.Clear();
+        }
+        else if (e is GameEvent.End)
         {
-            GameClient.SendEndGameRequest();
+            GameEvent.End evt = (GameEvent.End)e;
+            if (evt.primaryLost) boardController.primaryBatteryLocation.transform.Rotate(Vector3.down * 90);
+            if (evt.secondaryLost) boardController.secondaryBatteryLocation.transform.Rotate(Vector3.down * 90);
+            uiController.Splash(!((isPrimary && evt.primaryLost) || (!isPrimary && evt.secondaryLost)));
+            Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.canCommand = false);
+            uiController.statsInterface.Initialize(evt, isPrimary);
+            myturn = false;
+            gameOver = true;
+            Next(i + 1);
+        }
+        else
+        {
+            uiController.SetPriority(e.priority);
+            RobotController primaryRobot = GetRobot(e.primaryRobotId);
+            UnityAction callback = () => Next(i + 1);
+            if (e is GameEvent.Move) primaryRobot.displayEvent("Move Arrow", ((GameEvent.Move)e).destinationPos, callback);
+            else if (e is GameEvent.Attack) Array.ForEach(((GameEvent.Attack)e).locs, (Vector2Int v) => primaryRobot.displayEvent("Attack Arrow", v, callback));
+            else if (e is GameEvent.Block) primaryRobot.displayEvent("Collision", ((GameEvent.Block)e).deniedPos, callback);
+            else if (e is GameEvent.Push) primaryRobot.displayEvent("Push", new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y) + ((GameEvent.Push)e).direction, callback);
+            else if (e is GameEvent.Damage)
+            {
+                primaryRobot.displayEvent("Damage", new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y), callback);
+                primaryRobot.displayHealth(((GameEvent.Damage)e).remainingHealth);
+            }
+            else if (e is GameEvent.Miss) Array.ForEach(((GameEvent.Miss)e).locs, (Vector2Int v) => primaryRobot.displayEvent("Missed Attack", v, callback, false));
+            else if (e is GameEvent.Battery)
+            {
+                Vector3 pos = (((GameEvent.Battery)e).isPrimary ? boardController.primaryBatteryLocation : boardController.secondaryBatteryLocation).transform.position;
+                primaryRobot.displayEvent("Damage", new Vector2Int((int)pos.x, (int)pos.y), callback, false);
+            }
+            else if (e is GameEvent.Spawn) primaryRobot.displayEvent("", new Vector2Int(((GameEvent.Spawn)e).destinationPos.x, ((GameEvent.Spawn)e).destinationPos.y), callback, false);
+            log.Info(e.ToString());
+            uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
+            infoThisPriority.events.Add(e);
         }
     }
 

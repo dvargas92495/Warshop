@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class RobotController : MonoBehaviour
@@ -34,8 +35,7 @@ public class RobotController : MonoBehaviour
     {
         GameObject model = Array.Find(Interpreter.boardController.RobotModels, (GameObject g) => g.name.Equals(n));
         if (model == null) model = DefaultModel;
-        GameObject baseModel = Instantiate(model, transform);
-        baseModel.transform.Rotate(Vector3.left * 90);
+        GameObject baseModel = Instantiate(model, transform.GetComponentInChildren<Animator>().transform);
     }
     
     /***********************************
@@ -102,11 +102,55 @@ public class RobotController : MonoBehaviour
      * Robot UI During Turn Methods *
      ********************************/
 
-    public void displayMove(Vector2Int v)
+    public void animate(string name, Action interpreterCallback, Action robotCallback)
     {
-        Interpreter.boardController.PlaceRobot(transform, v.x, v.y);
+        GetComponentInChildren<Animator>().Play(name);
+        GetComponentInChildren<AnimatorHelper>().animatorCallback = () =>
+        {
+            robotCallback();
+            interpreterCallback();
+        };
     }
-    
+
+    public void displayMove(Vector2Int v, Action callback)
+    {
+        string dir = "Empty";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.left) dir = "MoveLeft";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.right) dir = "MoveRight";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.up) dir = "MoveUp";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.down) dir = "MoveDown";
+        animate(dir, callback, () => {
+            Interpreter.boardController.PlaceRobot(transform, v.x, v.y);
+        });
+    }
+
+    public void displaySpawn(Vector2Int v, bool isPrimary, Action callback)
+    {
+        animate("Default", callback, () => {
+            Interpreter.boardController.RemoveFromBelt(transform.localPosition, ((!isOpponent && isPrimary) || (isOpponent && !isPrimary)));
+            transform.parent = Interpreter.boardController.transform;
+            Interpreter.boardController.PlaceRobot(transform, v.x, v.y);
+        });
+    }
+
+    public void displayDeath(short health, bool isPrimary, Action callback)
+    {
+        animate("Default", callback, () => {
+            displayHealth(health);
+            Interpreter.boardController.UnplaceRobot(transform);
+            gameObject.SetActive(false);
+            bool isP = ((!isOpponent && isPrimary) || (isOpponent && !isPrimary));
+            Transform dock = isP ? Interpreter.boardController.primaryDock.transform : Interpreter.boardController.secondaryDock.transform;
+            transform.parent = dock;
+            transform.localPosition = Interpreter.boardController.PlaceInBelt(isP);
+        });
+    }
+
+    public void displayDefault(Action callback)
+    {
+        animate("Default", callback, () => {});
+    }
+
     public void displayHealth(short health)
     {
         HealthLabel.text = health.ToString();
@@ -127,7 +171,7 @@ public class RobotController : MonoBehaviour
         return short.Parse(AttackLabel.text);
     }
 
-    public void displayEvent(string eventName, Vector2Int targetLoc, bool relative = true)
+    public SpriteRenderer displayEvent(string eventName, Vector2Int targetLoc, bool relative = true)
     {
         Sprite eventType = eventName.Length == 0 ? GetComponentInChildren<SpriteRenderer>().sprite : Interpreter.uiController.GetArrow(eventName);
         Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
@@ -137,6 +181,14 @@ public class RobotController : MonoBehaviour
         addedEvent.sprite = eventType;
         addedEvent.sortingOrder += currentEvents.Count;
         currentEvents.Add(addedEvent);
+        return addedEvent;
+    }
+
+    public void displayEvent(string eventName, Vector2Int targetLoc, UnityAction callback, bool relative = true)
+    {
+        SpriteRenderer addedEvent = displayEvent(eventName, targetLoc, relative);
+        addedEvent.GetComponent<Animator>().Play("EventIndicator");
+        addedEvent.GetComponent<AnimatorHelper>().animatorCallback = callback;
     }
 
     public void clearEvents()
