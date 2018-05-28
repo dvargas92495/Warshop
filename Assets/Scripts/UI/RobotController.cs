@@ -114,14 +114,14 @@ public class RobotController : MonoBehaviour
 
     public void displayMove(Vector2Int v, Action callback)
     {
-        string dir = "Empty";
-        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.left) dir = "MoveLeft";
-        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.right) dir = "MoveRight";
-        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.up) dir = "MoveUp";
-        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.down) dir = "MoveDown";
-        animate(dir, callback, () => {
+        animate("Move" + getDir(v), callback, () => {
             Interpreter.boardController.PlaceRobot(transform, v.x, v.y);
         });
+    }
+
+    public void displayAttack(Vector2Int v, Action callback)
+    {
+        animate("Attack" + getDir(v), callback, () => {});
     }
 
     public void displaySpawn(Vector2Int v, bool isPrimary, Action callback)
@@ -135,7 +135,8 @@ public class RobotController : MonoBehaviour
 
     public void displayDeath(short health, bool isPrimary, Action callback)
     {
-        animate("Default", callback, () => {
+        Debug.Log(id);
+        animate("Death", callback, () => {
             displayHealth(health);
             Interpreter.boardController.UnplaceRobot(transform);
             gameObject.SetActive(false);
@@ -144,11 +145,6 @@ public class RobotController : MonoBehaviour
             transform.parent = dock;
             transform.localPosition = Interpreter.boardController.PlaceInBelt(isP);
         });
-    }
-
-    public void displayDefault(Action callback)
-    {
-        animate("Default", callback, () => {});
     }
 
     public void displayHealth(short health)
@@ -169,6 +165,16 @@ public class RobotController : MonoBehaviour
     public short GetAttack()
     {
         return short.Parse(AttackLabel.text);
+    }
+
+    private string getDir(Vector2Int v)
+    {
+        string dir = "Reset";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.left) dir = "Left";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.right) dir = "Right";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.up) dir = "Up";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.down) dir = "Down";
+        return dir;
     }
 
     public SpriteRenderer displayEvent(string eventName, Vector2Int targetLoc, bool relative = true)

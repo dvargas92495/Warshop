@@ -224,6 +224,7 @@ public class Interpreter {
             return;
         }
         GameEvent e = events[i];
+        Debug.Log(e);
         if (!infoThisPriority.events.Any())
         {
             infoThisPriority.userBattery = uiController.GetUserBattery();
@@ -250,16 +251,14 @@ public class Interpreter {
                 RobotController primaryRobot = GetRobot(evt.primaryRobotId);
                 infoThisPriority.animationsToPlay++;
                 if (evt is GameEvent.Move) primaryRobot.displayMove(((GameEvent.Move)evt).destinationPos, callback);
+                else if (evt is GameEvent.Attack) primaryRobot.displayAttack(((GameEvent.Attack)evt).locs[0], callback);
                 else if (evt is GameEvent.Death) primaryRobot.displayDeath(((GameEvent.Death)evt).returnHealth, isPrimary, callback);
                 else if (evt is GameEvent.Spawn) primaryRobot.displaySpawn(((GameEvent.Spawn)evt).destinationPos, isPrimary, callback);
-                else
-                {
-                    primaryRobot.displayDefault(callback);
-                    Debug.Log(evt.GetType());
-                }
+                else infoThisPriority.animationsToPlay--;
                 primaryRobot.clearEvents();
             }
             infoThisPriority.events.Clear();
+            if (infoThisPriority.animationsToPlay == 0) Next(i + 1);
         }
         else if (e is GameEvent.End)
         {
@@ -278,6 +277,7 @@ public class Interpreter {
             uiController.SetPriority(e.priority);
             RobotController primaryRobot = GetRobot(e.primaryRobotId);
             UnityAction callback = () => Next(i + 1);
+            bool goNext = false;
             if (e is GameEvent.Move) primaryRobot.displayEvent("Move Arrow", ((GameEvent.Move)e).destinationPos, callback);
             else if (e is GameEvent.Attack) Array.ForEach(((GameEvent.Attack)e).locs, (Vector2Int v) => primaryRobot.displayEvent("Attack Arrow", v, callback));
             else if (e is GameEvent.Block) primaryRobot.displayEvent("Collision", ((GameEvent.Block)e).deniedPos, callback);
@@ -294,9 +294,11 @@ public class Interpreter {
                 primaryRobot.displayEvent("Damage", new Vector2Int((int)pos.x, (int)pos.y), callback, false);
             }
             else if (e is GameEvent.Spawn) primaryRobot.displayEvent("", new Vector2Int(((GameEvent.Spawn)e).destinationPos.x, ((GameEvent.Spawn)e).destinationPos.y), callback, false);
+            else goNext = true;
             log.Info(e.ToString());
             uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
             infoThisPriority.events.Add(e);
+            if (goNext) callback();
         }
     }
 
