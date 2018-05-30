@@ -20,7 +20,7 @@
     internal const string OPPONENT_WAITING = "Opponent is waiting for you to submit your moves...";
 
     internal const string APP_LOG_DIR = "/local/game/logs";
-    internal static string GATEWAY_URL = "https://p4r3td7ro8.execute-api.us-west-2.amazonaws.com/prod";
+    internal static string GATEWAY_URL = "https://o29y7usfvd.execute-api.us-west-2.amazonaws.com/PROD";
 
     //TODO: Bring these out to a config file
     internal static bool LOCAL_MODE = true;
