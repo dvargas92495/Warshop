@@ -16,16 +16,27 @@ ModelImporter:
     400008: Cylinder_004
     400010: //RootNode
     2100000: unnamed
+    2100002: Black
+    2100004: Red
+    2100006: Yellow
+    2100008: Steel
+    2100010: Material
+    2100012: Orange
+    2100014: Bright_Blue
+    2100016: White
+    2100018: Green
     2300000: Cylinder
     2300002: Cylinder_001
     2300004: Cylinder_002
     2300006: Cylinder_003
     2300008: Cylinder_004
+    2300010: //RootNode
     3300000: Cylinder
     3300002: Cylinder_001
     3300004: Cylinder_002
     3300006: Cylinder_003
     3300008: Cylinder_004
+    3300010: //RootNode
     4300000: Cylinder_004
     4300002: Cylinder_003
     4300004: Cylinder_002
