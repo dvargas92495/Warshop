@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -224,7 +223,6 @@ public class Interpreter {
             return;
         }
         GameEvent e = events[i];
-        Debug.Log(e);
         if (!infoThisPriority.events.Any())
         {
             infoThisPriority.userBattery = uiController.GetUserBattery();

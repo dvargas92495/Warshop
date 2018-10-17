@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -12,7 +10,6 @@ public class LobbyController : MonoBehaviour {
     public Button backButton;
     public Text statusText;
 
-    // Use this for initialization
     void Start () {
         if (GameConstants.USE_SERVER)
         {

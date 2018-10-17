@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Net;
-using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using Aws.GameLift;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
-using System.Net.Sockets;
 
 public class App {
 

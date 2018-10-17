@@ -29,8 +29,8 @@ public class InitialController : MonoBehaviour {
             App.StartServer();
             return;
         }
-        EnterMatchButton.onClick.AddListener(EnterMatch);
-        ProfileButton.onClick.AddListener(Profile);
+        EnterMatchButton.onClick.AddListener(EnterLobby);
+        ProfileButton.onClick.AddListener(EnterProfile);
 
         GameConstants.LOCAL_MODE = Application.isEditor;
         GameConstants.USE_SERVER = !Application.isEditor;
@@ -46,7 +46,7 @@ public class InitialController : MonoBehaviour {
         EnterMatchButton.interactable = !UsernameField.text.Equals("") && !entered;
     }
 
-    void EnterMatch()
+    void EnterLobby()
     {
         entered = true;
         UsernameField.interactable = false;
@@ -54,7 +54,7 @@ public class InitialController : MonoBehaviour {
         SceneManager.LoadScene("Lobby");
     }
 
-    void Profile()
+    void EnterProfile()
     {
         SceneManager.LoadScene("Profile");
     }

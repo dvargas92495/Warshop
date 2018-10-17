@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
-using System.Linq;
-using System.Collections.Specialized;
 
-public class SetupController : MonoBehaviour {
-
+public class SetupController : MonoBehaviour
+{
     private byte myStarCount = 0;
     public Button loadBoardButton;
     public Button startGameButton;
