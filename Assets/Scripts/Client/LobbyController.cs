@@ -51,13 +51,8 @@ public class LobbyController : MonoBehaviour {
         DeactivateButtons();
         bool isPrivate = newgameSessionUI.GetComponentInChildren<Dropdown>().value == 1;
         string password = newgameSessionUI.GetComponentInChildren<InputField>(true).text;
-        if (GameConstants.USE_SERVER)
-        {
-            StartCoroutine(GameClient.SendCreateGameRequest(isPrivate, password, () => SceneManager.LoadScene("Setup")));
-        } else
-        {
-            SceneManager.LoadScene("Setup");
-        }
+        BaseGameManager.InitializeStandard();
+        StartCoroutine(GameClient.SendCreateGameRequest(isPrivate, password, () => SceneManager.LoadScene("Setup")));
     }
 
     UnityAction JoinGame(string gameSessionId, int i)

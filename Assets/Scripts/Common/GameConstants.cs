@@ -15,14 +15,15 @@
 
     internal const byte MAX_PRIORITY = 8;
     internal const int POINTS_TO_WIN = 256;
+
     internal const string FINISHED_EVENTS = "Finished Events, Submit Your Moves!";
     internal const string IM_WAITING = "Waiting for opponent to submit moves...";
     internal const string OPPONENT_WAITING = "Opponent is waiting for you to submit your moves...";
 
     internal const string APP_LOG_DIR = "/local/game/logs";
-    internal static string GATEWAY_URL = "https://o29y7usfvd.execute-api.us-west-2.amazonaws.com/PROD";
+    internal const string GATEWAY_URL = "https://o29y7usfvd.execute-api.us-west-2.amazonaws.com/PROD";
 
-    //TODO: Bring these out to a config file
+    //TODO: delete
     internal static bool LOCAL_MODE = true;
     internal static bool USE_SERVER = false;
 }

@@ -6,14 +6,15 @@ using UnityEngine.SceneManagement;
 public class InitialController : MonoBehaviour {
 
     public InputField UsernameField;
-    public Button EnterMatchButton;
+    public Button EnterLobbyButton;
+    public Button EnterLocalMatchButton;
     public Button ProfileButton;
 
-    public Toggle localModeToggle;
     public Toggle useServerToggle;
 
     private bool isServer;
     private bool entered;
+    private bool localMode;
 
     public void Awake()
     {
@@ -29,29 +30,37 @@ public class InitialController : MonoBehaviour {
             App.StartServer();
             return;
         }
-        EnterMatchButton.onClick.AddListener(EnterLobby);
+
+        EnterLobbyButton.onClick.AddListener(EnterLobby);
+        EnterLocalMatchButton.onClick.AddListener(EnterLocalMatch);
         ProfileButton.onClick.AddListener(EnterProfile);
 
-        GameConstants.LOCAL_MODE = Application.isEditor;
         GameConstants.USE_SERVER = !Application.isEditor;
-        localModeToggle.gameObject.SetActive(Application.isEditor);
         useServerToggle.gameObject.SetActive(Application.isEditor);
-        localModeToggle.onValueChanged.AddListener((bool val) => GameConstants.LOCAL_MODE = val);
         useServerToggle.onValueChanged.AddListener((bool val) => GameConstants.USE_SERVER = val);
         UsernameField.text = GameClient.username;
     }
 
     void Update()
     {
-        EnterMatchButton.interactable = !UsernameField.text.Equals("") && !entered;
+        EnterLobbyButton.interactable = !UsernameField.text.Equals("") && !entered;
     }
 
     void EnterLobby()
     {
+        GameClient.username = UsernameField.text;
+
         entered = true;
         UsernameField.interactable = false;
-        GameClient.username = UsernameField.text;
+
         SceneManager.LoadScene("Lobby");
+    }
+
+    void EnterLocalMatch()
+    {
+        BaseGameManager.InitializeLocal();
+
+        SceneManager.LoadScene("Setup");
     }
 
     void EnterProfile()

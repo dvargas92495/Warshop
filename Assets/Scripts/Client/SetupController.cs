@@ -32,22 +32,9 @@ public class SetupController : MonoBehaviour
     public Text starText;
     private bool loading;
 
-    // Use this for initialization
     void Start ()
     {
-        if (GameConstants.LOCAL_MODE && playtest != null)
-        {
-            string[] lines = playtest.text.Split('\n');
-            StartGame(
-                lines[1].Trim().Split(','),
-                lines[2].Trim().Split(','),
-                lines[3].Trim(),
-                lines[4].Trim()
-            );
-            return;
-        }
-        
-        BaseGameManager.setupController = this;
+        BaseGameManager.get.InitializeSetup(this);
 
         startGameButton.onClick.AddListener(() =>
             {                           
@@ -80,7 +67,6 @@ public class SetupController : MonoBehaviour
         backButton.onClick.AddListener(() => {
             SceneManager.LoadScene("Lobby");
         });
-        backButton.interactable = GameConstants.LOCAL_MODE; //TODO: Temp until backend disconnection works
        
         foreach (Sprite r in robotDir)
         {
@@ -243,12 +229,17 @@ public class SetupController : MonoBehaviour
         Destroy(robotName);
     }
 
+    public void ShowLoading()
+    {
+        loading = true;
+        statusText.text = "Loading...";
+    }
+
     void StartGame(string[] mybots, string[] opbots, string myname, string opponentname)
     {
         string op = opponentname.Equals("") ? "opponent" : opponentname;
         op = op.Equals(myname) ? myname + "opponent" : op;
-        loading = true;
-        statusText.text = "Loading...";
+        ShowLoading();
         BaseGameManager.SendPlayerInfo(myname, op, mybots, opbots);
     }
 }

@@ -7,16 +7,19 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 
-public class BaseGameManager {
+public class BaseGameManager
+{
+    internal static BaseGameManager get;
 
-    internal static SetupController setupController;
+    protected SetupController setupController;
+
+    // region deprecate
     internal static UIController uiController;
     internal static BoardController boardController;
     internal static Dictionary<short, RobotController> robotControllers;
     internal static string ErrorString = "";
     internal static bool gameOver;
 
-    private const int eventDelay = 1;
     private static bool loadedLocally = false;
     private static Game.Player[] playerTurnObjectArray;
     private static Map board;
@@ -27,8 +30,30 @@ public class BaseGameManager {
     private static Tuple<byte, byte, byte> currentHistory = new Tuple<byte, byte, byte>(1, GameConstants.MAX_PRIORITY, 0);
     private static byte[] presentState;
 
-    //[turnNumber, priority, commandtype, State]
+    // [turnNumber, priority, commandtype, State]
     private static List<Tuple<byte, byte, byte, byte[]>> History = new List<Tuple<byte, byte, byte, byte[]>>();
+    // endregion deprecate
+
+    internal static void InitializeLocal()
+    {
+        get = new LocalGameManager();
+    }
+
+    internal static void InitializeStandard()
+    {
+        get = new StandardGameManager();
+    }
+
+    internal void InitializeSetup(SetupController sc)
+    {
+        setupController = sc;
+    }
+
+
+
+
+
+
 
     public static void SendPlayerInfo(string playerId, string opponentId, string[] myRobotNames, string[] opponentRobotNames)
     {
