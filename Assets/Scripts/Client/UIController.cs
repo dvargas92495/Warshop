@@ -49,7 +49,7 @@ public class UIController : MonoBehaviour {
 
     void Start()
     {
-        Interpreter.InitializeUI(this);
+        BaseGameManager.InitializeUI(this);
     }
 
     void Update()
@@ -101,8 +101,8 @@ public class UIController : MonoBehaviour {
         {
             SubmitCommands.Click();
         }
-        StatusText.text = Interpreter.ErrorString;
-        StatusText.transform.parent.gameObject.SetActive(!Interpreter.ErrorString.Equals(""));
+        StatusText.text = BaseGameManager.ErrorString;
+        StatusText.transform.parent.gameObject.SetActive(!BaseGameManager.ErrorString.Equals(""));
     }
 
     public void BackToSetup()
@@ -116,34 +116,34 @@ public class UIController : MonoBehaviour {
         SetPlayerPanel(playerObjects[1], true);
         SetPlayerPanel(playerObjects[0], false);
 
-        userScore = Instantiate(ScoreModel, (isPrimary ? Interpreter.boardController.primaryBatteryLocation : 
-            Interpreter.boardController.secondaryBatteryLocation).transform);
+        userScore = Instantiate(ScoreModel, (isPrimary ? BaseGameManager.boardController.primaryBatteryLocation : 
+            BaseGameManager.boardController.secondaryBatteryLocation).transform);
         userScore.GetComponent<MeshRenderer>().sortingOrder = 1;
 
-        opponentScore = Instantiate(ScoreModel, (!isPrimary ? Interpreter.boardController.primaryBatteryLocation : 
-            Interpreter.boardController.secondaryBatteryLocation).transform);
+        opponentScore = Instantiate(ScoreModel, (!isPrimary ? BaseGameManager.boardController.primaryBatteryLocation : 
+            BaseGameManager.boardController.secondaryBatteryLocation).transform);
         opponentScore.GetComponent<MeshRenderer>().sortingOrder = 1;
         SetBattery(playerObjects[0].battery, playerObjects[1].battery);
-        Interpreter.boardController.ColorQueueBelt(isPrimary);
+        BaseGameManager.boardController.ColorQueueBelt(isPrimary);
         if (!isPrimary)
         {
-            Interpreter.boardController.cam.transform.Rotate(new Vector3(60, 0, 180));
-            Interpreter.boardController.cam.transform.position += Vector3.up * 16; //TODO: Magic Number?
-            Interpreter.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
+            BaseGameManager.boardController.cam.transform.Rotate(new Vector3(60, 0, 180));
+            BaseGameManager.boardController.cam.transform.position += Vector3.up * 16; //TODO: Magic Number?
+            BaseGameManager.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
             {
                 TMP_Text s = t.transform.GetComponentInChildren<TMP_Text>();
                 s.transform.Rotate(new Vector3(0, 0, 180));
-                s.fontSharedMaterial = s.fontSharedMaterial.Equals(Interpreter.boardController.tile.userSpawnTileTextMaterial) ?
-                    Interpreter.boardController.tile.opponentSpawnTileTextMaterial : 
-                    Interpreter.boardController.tile.userSpawnTileTextMaterial;
+                s.fontSharedMaterial = s.fontSharedMaterial.Equals(BaseGameManager.boardController.tile.userSpawnTileTextMaterial) ?
+                    BaseGameManager.boardController.tile.opponentSpawnTileTextMaterial : 
+                    BaseGameManager.boardController.tile.userSpawnTileTextMaterial;
             });
             userScore.transform.Rotate(Vector3.forward, 180);
             opponentScore.transform.Rotate(Vector3.forward, 180);
         }
-        SubmitCommands.SetCallback(Interpreter.SubmitActions);
-        BackToPresent.SetCallback(Interpreter.BackToPresent);
-        StepBackButton.SetCallback(Interpreter.StepBackward);
-        StepForwardButton.SetCallback(Interpreter.StepForward);
+        SubmitCommands.SetCallback(BaseGameManager.SubmitActions);
+        BackToPresent.SetCallback(BaseGameManager.BackToPresent);
+        StepBackButton.SetCallback(BaseGameManager.StepBackward);
+        StepForwardButton.SetCallback(BaseGameManager.StepForward);
         SubmitCommands.Deactivate();
         BackToPresent.Deactivate();
         StepBackButton.Deactivate();
@@ -191,10 +191,10 @@ public class UIController : MonoBehaviour {
                 Action robotButtonSelect = () =>
                 {
                     SetButtons(RobotButtonContainer, true);
-                    Interpreter.robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, BoardLayer));
+                    BaseGameManager.robotControllers.Values.ToList().ForEach((RobotController otherR) => Util.ChangeLayer(otherR.gameObject, BoardLayer));
                     robotButton.Select();
-                    Util.ChangeLayer(Interpreter.robotControllers[r.id].gameObject, SelectedLayer);
-                    Interpreter.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
+                    Util.ChangeLayer(BaseGameManager.robotControllers[r.id].gameObject, SelectedLayer);
+                    BaseGameManager.robotControllers[r.id].ShowMenuOptions(CommandButtonContainer);
                 };
                 robotButtonSelect();
                 SetButtons(DirectionButtonContainer, false);
@@ -208,9 +208,9 @@ public class UIController : MonoBehaviour {
                     EachMenuItem(DirectionButtonContainer, (MenuItemController d) => {
                         byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> pair) => pair.Value.Equals(d.name)).Key;
                         d.GetComponentInChildren<SpriteRenderer>().sprite = isSpawn ?
-                            Interpreter.boardController.tile.queueSprites[dir] : Interpreter.uiController.GetArrow(m + " Arrow");
+                            BaseGameManager.boardController.tile.queueSprites[dir] : BaseGameManager.uiController.GetArrow(m + " Arrow");
                         d.SetCallback(() => {
-                            Interpreter.robotControllers[r.id].addRobotCommand(m, dir);
+                            BaseGameManager.robotControllers[r.id].addRobotCommand(m, dir);
                             EachMenuItem(DirectionButtonContainer, (MenuItemController d2) => d2.GetComponentInChildren<SpriteRenderer>().sprite = null);
                             robotButtonSelect();
                             SetButtons(DirectionButtonContainer, false);
@@ -305,7 +305,7 @@ public class UIController : MonoBehaviour {
                 child.Open();
                 if (cmd is Command.Spawn)
                 {
-                    child.Arrow.sprite = Interpreter.boardController.tile.queueSprites[cmd.direction];
+                    child.Arrow.sprite = BaseGameManager.boardController.tile.queueSprites[cmd.direction];
                     child.Arrow.transform.localRotation = Quaternion.identity;
                 } else
                 {
@@ -338,7 +338,7 @@ public class UIController : MonoBehaviour {
             if (child.Arrow.sprite.Equals(Default)) break;
             string name = child.Arrow.sprite.name;
             byte d = name.StartsWith(Command.Spawn.DISPLAY) ? 
-                (byte)Interpreter.boardController.tile.queueSprites.ToList().IndexOf(child.Arrow.sprite) : 
+                (byte)BaseGameManager.boardController.tile.queueSprites.ToList().IndexOf(child.Arrow.sprite) : 
                 (byte)(child.Arrow.transform.localRotation.eulerAngles.z / 90);
             content.Add(new Tuple<string, byte>(child.Arrow.sprite.name, d));
         }
@@ -412,7 +412,7 @@ public class UIController : MonoBehaviour {
 
     public void Splash(bool win)
     {
-        Interpreter.ClientError(win ? "You win!" : "You lose!"); //TODO REMOVE
+        BaseGameManager.ClientError(win ? "You win!" : "You lose!"); //TODO REMOVE
         //SplashScreen.GetComponentInChildren<Text>().text = win ? "YOU WIN!" : "YOU LOSE!";
         //SplashScreen.gameObject.SetActive(true);
         //SetButtons(false);

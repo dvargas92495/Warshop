@@ -20,7 +20,7 @@ public class RobotController : MonoBehaviour
 
     public static RobotController Load(Robot robot, Transform dock)
     {
-        RobotController r = Instantiate(Interpreter.boardController.robotBase, dock);
+        RobotController r = Instantiate(BaseGameManager.boardController.robotBase, dock);
         r.LoadModel(robot.name);
         r.name = robot.name;
         r.id = robot.id;
@@ -33,7 +33,7 @@ public class RobotController : MonoBehaviour
 
     public void LoadModel(string n)
     {
-        GameObject model = Array.Find(Interpreter.boardController.RobotModels, (GameObject g) => g.name.Equals(n));
+        GameObject model = Array.Find(BaseGameManager.boardController.RobotModels, (GameObject g) => g.name.Equals(n));
         if (model == null) model = DefaultModel;
         GameObject baseModel = Instantiate(model, transform.GetComponentInChildren<Animator>().transform);
     }
@@ -48,7 +48,7 @@ public class RobotController : MonoBehaviour
         if (num < Command.limit[cmd.GetType()])
         {
             commands.Add(cmd);
-            Interpreter.uiController.addSubmittedCommand(cmd, id);
+            BaseGameManager.uiController.addSubmittedCommand(cmd, id);
         }
     }
 
@@ -60,8 +60,8 @@ public class RobotController : MonoBehaviour
     internal void ShowMenuOptions(GameObject m)
     {
         if (
-            (transform.parent.Equals(Interpreter.boardController.primaryDock.transform) ||
-            transform.parent.Equals(Interpreter.boardController.secondaryDock.transform)) &&
+            (transform.parent.Equals(BaseGameManager.boardController.primaryDock.transform) ||
+            transform.parent.Equals(BaseGameManager.boardController.secondaryDock.transform)) &&
             commands.Count == 0
         )
         {
@@ -115,7 +115,7 @@ public class RobotController : MonoBehaviour
     public void displayMove(Vector2Int v, Action callback)
     {
         animate("Move" + getDir(v), callback, () => {
-            Interpreter.boardController.PlaceRobot(transform, v.x, v.y);
+            BaseGameManager.boardController.PlaceRobot(transform, v.x, v.y);
         });
     }
 
@@ -127,9 +127,9 @@ public class RobotController : MonoBehaviour
     public void displaySpawn(Vector2Int v, bool isPrimary, Action callback)
     {
         animate("Default", callback, () => {
-            Interpreter.boardController.RemoveFromBelt(transform.localPosition, ((!isOpponent && isPrimary) || (isOpponent && !isPrimary)));
-            transform.parent = Interpreter.boardController.transform;
-            Interpreter.boardController.PlaceRobot(transform, v.x, v.y);
+            BaseGameManager.boardController.RemoveFromBelt(transform.localPosition, ((!isOpponent && isPrimary) || (isOpponent && !isPrimary)));
+            transform.parent = BaseGameManager.boardController.transform;
+            BaseGameManager.boardController.PlaceRobot(transform, v.x, v.y);
         });
     }
 
@@ -138,12 +138,12 @@ public class RobotController : MonoBehaviour
         Debug.Log(id);
         animate("Death", callback, () => {
             displayHealth(health);
-            Interpreter.boardController.UnplaceRobot(transform);
+            BaseGameManager.boardController.UnplaceRobot(transform);
             gameObject.SetActive(false);
             bool isP = ((!isOpponent && isPrimary) || (isOpponent && !isPrimary));
-            Transform dock = isP ? Interpreter.boardController.primaryDock.transform : Interpreter.boardController.secondaryDock.transform;
+            Transform dock = isP ? BaseGameManager.boardController.primaryDock.transform : BaseGameManager.boardController.secondaryDock.transform;
             transform.parent = dock;
-            transform.localPosition = Interpreter.boardController.PlaceInBelt(isP);
+            transform.localPosition = BaseGameManager.boardController.PlaceInBelt(isP);
         });
     }
 
@@ -179,7 +179,7 @@ public class RobotController : MonoBehaviour
 
     public SpriteRenderer displayEvent(string eventName, Vector2Int targetLoc, bool relative = true)
     {
-        Sprite eventType = eventName.Length == 0 ? GetComponentInChildren<SpriteRenderer>().sprite : Interpreter.uiController.GetArrow(eventName);
+        Sprite eventType = eventName.Length == 0 ? GetComponentInChildren<SpriteRenderer>().sprite : BaseGameManager.uiController.GetArrow(eventName);
         Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
         loc.z = -1;
         Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;

@@ -57,20 +57,20 @@ public class CommandSlotController : MonoBehaviour {
         {
             if (deletable)
             {
-                Interpreter.DeleteCommand(rid, p - i);
-                Interpreter.uiController.SetButtons(Interpreter.uiController.RobotButtonContainer, true);
-                Interpreter.robotControllers.Values.ToList().ForEach((RobotController otherR) => 
-                    Util.ChangeLayer(otherR.gameObject, Interpreter.uiController.BoardLayer)
+                BaseGameManager.DeleteCommand(rid, p - i);
+                BaseGameManager.uiController.SetButtons(BaseGameManager.uiController.RobotButtonContainer, true);
+                BaseGameManager.robotControllers.Values.ToList().ForEach((RobotController otherR) => 
+                    Util.ChangeLayer(otherR.gameObject, BaseGameManager.uiController.BoardLayer)
                 );
-                Interpreter.uiController.SetButtons(Interpreter.uiController.CommandButtonContainer, false);
-                Interpreter.uiController.SetButtons(Interpreter.uiController.DirectionButtonContainer, false);
-                Interpreter.uiController.EachMenuItem(Interpreter.uiController.DirectionButtonContainer,
+                BaseGameManager.uiController.SetButtons(BaseGameManager.uiController.CommandButtonContainer, false);
+                BaseGameManager.uiController.SetButtons(BaseGameManager.uiController.DirectionButtonContainer, false);
+                BaseGameManager.uiController.EachMenuItem(BaseGameManager.uiController.DirectionButtonContainer,
                     (MenuItemController m) => m.GetComponentInChildren<SpriteRenderer>().sprite = null
                 );
-                Interpreter.uiController.SubmitCommands.SetActive(
-                    Interpreter.robotControllers.Values.Any((RobotController r) => r.commands.Count > 0)
+                BaseGameManager.uiController.SubmitCommands.SetActive(
+                    BaseGameManager.robotControllers.Values.Any((RobotController r) => r.commands.Count > 0)
                 );
-                deletable = !Arrow.sprite.Equals(Interpreter.uiController.Default);
+                deletable = !Arrow.sprite.Equals(BaseGameManager.uiController.Default);
                 Delete.gameObject.SetActive(deletable);
             }
         };

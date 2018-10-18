@@ -47,7 +47,7 @@ public class SetupController : MonoBehaviour
             return;
         }
         
-        Interpreter.setupController = this;
+        BaseGameManager.setupController = this;
 
         startGameButton.onClick.AddListener(() =>
             {                           
@@ -101,10 +101,10 @@ public class SetupController : MonoBehaviour
             myStarCount == 8 &&
             mySquadPanelRobotHolder.transform.childCount <= 4
         );
-        bool isError = !Interpreter.ErrorString.Equals("");
+        bool isError = !BaseGameManager.ErrorString.Equals("");
         statusText.transform.parent.gameObject.SetActive(isError || loading);
         statusText.color = isError ? Color.red : Color.white;
-        statusText.text = isError ? Interpreter.ErrorString : statusText.text;
+        statusText.text = isError ? BaseGameManager.ErrorString : statusText.text;
     }
 
     public void maximizeSelection(string selection)
@@ -249,6 +249,6 @@ public class SetupController : MonoBehaviour
         op = op.Equals(myname) ? myname + "opponent" : op;
         loading = true;
         statusText.text = "Loading...";
-        Interpreter.SendPlayerInfo(myname, op, mybots, opbots);
+        BaseGameManager.SendPlayerInfo(myname, op, mybots, opbots);
     }
 }

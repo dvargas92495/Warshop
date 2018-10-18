@@ -38,7 +38,7 @@ public class GameClient : MonoBehaviour {
             } catch (Exception e)
             {
                 log.Fatal(e);
-                Interpreter.ClientError("An unexpected error occurred! Please notify the developers.");
+                BaseGameManager.ClientError("An unexpected error occurred! Please notify the developers.");
             }
         } else
         {
@@ -75,14 +75,14 @@ public class GameClient : MonoBehaviour {
     private static void OnConnect(NetworkMessage netMsg)
     {
         log.Info("Connected");
-        Interpreter.ClientError("");
+        BaseGameManager.ClientError("");
         SendAcceptPlayerSessionRequest();
     }
 
     private static void OnDisconnect(NetworkMessage netMsg)
     {
         log.Info("Disconnected");
-        Interpreter.ClientError("Disconnected, attempting to reconnect");
+        BaseGameManager.ClientError("Disconnected, attempting to reconnect");
         client.Connect(ip, port);
     }
 
@@ -95,26 +95,26 @@ public class GameClient : MonoBehaviour {
     {
         Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
         log.Info("Received Game Information");
-        Interpreter.LoadBoard(msg.myTeam, msg.opponentTeam, msg.opponentname, msg.board, msg.isPrimary);
+        BaseGameManager.LoadBoard(msg.myTeam, msg.opponentTeam, msg.opponentname, msg.board, msg.isPrimary);
     }
 
     private static void OnTurnEvents(NetworkMessage netMsg)
     {
         Messages.TurnEventsMessage msg = netMsg.ReadMessage<Messages.TurnEventsMessage>();
         List<GameEvent> events = new List<GameEvent>(msg.events);
-        Interpreter.PlayEvents(events, msg.turn);
+        BaseGameManager.PlayEvents(events, msg.turn);
     }
 
     private static void OnOpponentWaiting(NetworkMessage netMsg)
     {
-        Interpreter.uiController.LightUpPanel(!GameConstants.LOCAL_MODE, false);
+        BaseGameManager.uiController.LightUpPanel(!GameConstants.LOCAL_MODE, false);
     }
 
     private static void OnServerError(NetworkMessage netMsg)
     {
         Messages.ServerErrorMessage msg = netMsg.ReadMessage<Messages.ServerErrorMessage>();
         log.Fatal(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
-        Interpreter.ClientError(msg.serverMessage);
+        BaseGameManager.ClientError(msg.serverMessage);
     }
 
     public static IEnumerator SendCreateGameRequest(bool isPriv, string pass, Action callback)
@@ -136,7 +136,7 @@ public class GameClient : MonoBehaviour {
             Messages.CreateGameResponse res = JsonUtility.FromJson<Messages.CreateGameResponse>(www.downloadHandler.text);
             if (res.IsError)
             {
-                Interpreter.ErrorString = res.ErrorMessage;
+                BaseGameManager.ErrorString = res.ErrorMessage;
             }
             else
             {
@@ -168,7 +168,7 @@ public class GameClient : MonoBehaviour {
             Messages.JoinGameResponse res = JsonUtility.FromJson<Messages.JoinGameResponse>(www.downloadHandler.text);
             if (res.IsError)
             {
-                Interpreter.ErrorString = res.ErrorMessage;
+                BaseGameManager.ErrorString = res.ErrorMessage;
             }
             else
             {
@@ -192,7 +192,7 @@ public class GameClient : MonoBehaviour {
             Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse>(www.downloadHandler.text);
             if (res.IsError)
             {
-                Interpreter.ErrorString = res.ErrorMessage;
+                BaseGameManager.ErrorString = res.ErrorMessage;
             }
             else
             {

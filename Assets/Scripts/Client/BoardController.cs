@@ -33,7 +33,7 @@ public class BoardController : MonoBehaviour {
     // Use this for initialization
     void Awake()
     {
-        Interpreter.InitializeBoard(this);
+        BaseGameManager.InitializeBoard(this);
     }
 
     public void InitializeBoard(Map board)
@@ -85,7 +85,7 @@ public class BoardController : MonoBehaviour {
     {
         int oldy = (int)robot.position.y;
         int oldx = (int)robot.position.x;
-        foreach (RobotController other in Interpreter.robotControllers.Values)
+        foreach (RobotController other in BaseGameManager.robotControllers.Values)
         {
             if (other.transform.position.x == oldx && other.transform.position.y== oldy && !other.transform.Equals(robot))
             {

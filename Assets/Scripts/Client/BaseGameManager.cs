@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 
-public class Interpreter {
+public class BaseGameManager {
 
     internal static SetupController setupController;
     internal static UIController uiController;
@@ -20,7 +20,7 @@ public class Interpreter {
     private static bool loadedLocally = false;
     private static Game.Player[] playerTurnObjectArray;
     private static Map board;
-    private static Logger log = new Logger(typeof(Interpreter));
+    private static Logger log = new Logger(typeof(BaseGameManager));
     private static bool myturn;
     private static bool isPrimary;
     private static byte turnNumber = 1;

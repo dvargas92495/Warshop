@@ -25,11 +25,11 @@ public class LobbyController : MonoBehaviour {
         InputField passwordField = newgameSessionUI.GetComponentInChildren<InputField>(true);
         passwordField.gameObject.SetActive(isPrivate);
         newgameSessionUI.GetComponentInChildren<Button>().interactable = !isPrivate || !passwordField.text.Equals("");
-        statusText.transform.parent.gameObject.SetActive(!Interpreter.ErrorString.Equals(""));
-        statusText.text = Interpreter.ErrorString;
-        if (Input.GetMouseButtonUp(0) && !Interpreter.ErrorString.Equals(""))
+        statusText.transform.parent.gameObject.SetActive(!BaseGameManager.ErrorString.Equals(""));
+        statusText.text = BaseGameManager.ErrorString;
+        if (Input.GetMouseButtonUp(0) && !BaseGameManager.ErrorString.Equals(""))
         {
-            Interpreter.ErrorString = "";
+            BaseGameManager.ErrorString = "";
             foreach (Button b in newgameSessionUI.transform.parent.GetComponentsInChildren<Button>()) b.interactable = true;
         }
     }
