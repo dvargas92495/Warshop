@@ -9,7 +9,7 @@ using UnityEngine.Events;
 
 public class BaseGameManager
 {
-    internal static BaseGameManager get;
+    private static BaseGameManager instance;
 
     protected SetupController setupController;
 
@@ -36,15 +36,20 @@ public class BaseGameManager
 
     internal static void InitializeLocal()
     {
-        get = new LocalGameManager();
+        instance = new LocalGameManager();
     }
 
     internal static void InitializeStandard()
     {
-        get = new StandardGameManager();
+        instance = new StandardGameManager();
     }
 
-    internal void InitializeSetup(SetupController sc)
+    internal static void InitializeSetup(SetupController sc)
+    {
+        instance.InitializeSetupController(sc);
+    }
+
+    protected void InitializeSetupController(SetupController sc)
     {
         setupController = sc;
     }

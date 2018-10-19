@@ -1,8 +1,11 @@
 ﻿public class LocalGameManager : BaseGameManager
 {
-    internal new void InitializeSetup(SetupController sc)
+    internal new void InitializeSetupController(SetupController sc)
     {
-        base.InitializeSetup(sc);
+        base.InitializeSetupController(sc);
+        sc.opponentSquadPanel.gameObject.SetActive(true);
+        sc.opponentSquadPanel.SetAddCallback(sc.addSelectedToSquad);
+
         if (sc.playtest != null)
         {
             string[] lines = sc.playtest.text.Split('\n');
