@@ -5,7 +5,7 @@ public class RobotRosterPanelController : MonoBehaviour
 {
     public RobotRosterImageController robotRosterImage;
 
-    private UnityAction<string> maximizeCallback;
+    private UnityAction<Sprite> maximizeCallback;
 
     public void AddRobotImage(Sprite robotImage)
     {
@@ -13,7 +13,7 @@ public class RobotRosterPanelController : MonoBehaviour
         newRobotRosterImage.Initialize(robotImage, maximizeCallback);
     }
 
-    public void SetMaximizeCallback(UnityAction<string> callback)
+    public void SetMaximizeCallback(UnityAction<Sprite> callback)
     {
         maximizeCallback = callback;
     }

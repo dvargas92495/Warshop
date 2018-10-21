@@ -4,7 +4,7 @@
     {
         base.InitializeSetupController(sc);
         sc.opponentSquadPanel.gameObject.SetActive(true);
-        sc.opponentSquadPanel.SetAddCallback(sc.addSelectedToSquad);
+        sc.opponentSquadPanel.SetAddCallback(sc.AddSelectedToSquad);
 
         if (sc.playtest != null)
         {

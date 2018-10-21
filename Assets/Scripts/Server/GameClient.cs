@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Networking;
 
 public class GameClient : MonoBehaviour {
@@ -23,7 +24,7 @@ public class GameClient : MonoBehaviour {
         { Messages.SERVER_ERROR, OnServerError }
     };
 
-    public static void ConnectToGameServer() {
+    public static void ConnectToGameServer(UnityAction<string> errorCallback) {
         if (GameConstants.USE_SERVER)
         {
             try
@@ -38,7 +39,7 @@ public class GameClient : MonoBehaviour {
             } catch (Exception e)
             {
                 log.Fatal(e);
-                BaseGameManager.ClientError("An unexpected error occurred! Please notify the developers.");
+                errorCallback("An unexpected error occurred! Please notify the developers.");
             }
         } else
         {

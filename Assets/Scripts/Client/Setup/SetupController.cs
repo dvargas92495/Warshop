@@ -7,9 +7,13 @@ public class SetupController : MonoBehaviour
 {
     public Button backButton;
     public Button startGameButton;
+    public MaximizedRosterRobotController maximizedRosterRobot;
     public RobotRosterPanelController robotRosterPanel;
+    public Sprite[] robotDir;
     public SquadPanelController mySquadPanel;
     public SquadPanelController opponentSquadPanel;
+    public Text statusText;
+    public TextAsset playtest;
 
     private byte myStarCount = 0;
 
@@ -17,24 +21,14 @@ public class SetupController : MonoBehaviour
 
 
     public InputField opponentName;
-    public Text statusText;
-    public TextAsset playtest;
-    public Sprite[] robotDir;
-    public GameObject maximizedRosterRobot;
-    public GameObject robotSquadImage;
-    public GameObject robotSelectedPanel;
-    public GameObject squadPanelHolder;
-    public GameObject maximizedRosterRobotInfoPanel;
-    public string robotSelection;
 
     public Text starText;
-    private bool loading;
 
     void Start ()
     {
         BaseGameManager.InitializeSetup(this);
         
-        mySquadPanel.SetAddCallback(addSelectedToSquad);
+        mySquadPanel.SetAddCallback(AddSelectedToMySquad);
 
         startGameButton.onClick.AddListener(StartGame);
         backButton.onClick.AddListener(EnterLobby);
@@ -45,108 +39,52 @@ public class SetupController : MonoBehaviour
             robotRosterPanel.AddRobotImage(r);
         }
 
-        GameClient.ConnectToGameServer();
+        GameClient.ConnectToGameServer(DisplayError);
     }
 
-    void Update()
+    void EnterLobby()
     {
-        startGameButton.interactable = (
-            myStarCount == 8 &&
-            mySquadPanel.squadPanelRobotHolder.transform.childCount <= 4
-        );
-        bool isError = !BaseGameManager.ErrorString.Equals("");
-        statusText.transform.parent.gameObject.SetActive(isError || loading);
-        statusText.color = isError ? Color.red : Color.white;
-        statusText.text = isError ? BaseGameManager.ErrorString : statusText.text;
+        SceneManager.LoadScene("Lobby");
     }
 
-    public void maximizeSelection(string selection)
+    public void maximizeSelection(Sprite selectedRobot)
     {
-        if (selection != "no selection")
-        {
-            foreach (Sprite r in robotDir)
-            {
-                if (selection == r.name)
-                {
-                    robotSelectedPanel.SetActive(true);
-                    maximizedRosterRobot.name = selection;
-                    maximizedRosterRobot.GetComponent<Image>().sprite = r;
-                    robotSelection = maximizedRosterRobot.name;
-                    
-                    TMP_Text[] fields = maximizedRosterRobotInfoPanel.GetComponentsInChildren<TMP_Text>();
-                    fields[0].SetText(robotSelection);
-                    Robot selected = Robot.create(robotSelection);
-                    fields[1].SetText(selected.attack.ToString());
-                    fields[2].SetText(selected.health.ToString());
-                    fields[3].SetText(selected.description);
-
-                    byte rating = (byte)selected.rating;
-                    HorizontalLayoutGroup ratingGroup = maximizedRosterRobotInfoPanel.GetComponentInChildren<HorizontalLayoutGroup>();
-                    for (int i = 0; i < ratingGroup.transform.childCount; i++)
-                    {
-                        ratingGroup.transform.GetChild(i).gameObject.SetActive(i < rating);
-                    }
-
-                    mySquadPanel.squadPanelButton.interactable = true;
-                    if (GameConstants.LOCAL_MODE)
-                    {
-                        opponentSquadPanel.squadPanelButton.interactable = true;
-                    }
-                    
-
-                }
-            }
-        }
-        else
-        {
-            robotSelectedPanel.SetActive(false);
-            robotSelection = "no selection";
-            mySquadPanel.squadPanelButton.interactable = false;
-            if (GameConstants.LOCAL_MODE)
-            {
-                opponentSquadPanel.squadPanelButton.interactable = false;
-            }
-        }
-
-
+        maximizedRosterRobot.Select(selectedRobot);
+        mySquadPanel.squadPanelButton.interactable = opponentSquadPanel.squadPanelButton.interactable = true;
     }
 
-    public void addSelectedToSquad(SquadPanelController squadPanel)
+    public void AddSelectedToMySquad(SquadPanelController squadPanel)
     {
-        if (robotSelection != "no selection")
-        {
-            GameObject addedRobot = Instantiate(robotSquadImage, squadPanel.squadPanelRobotHolder.transform);
-            addedRobot.name = robotSelection;
-            addedRobot.GetComponent<Button>().onClick.AddListener(() => removeAddedFromSquad(squadPanel, addedRobot));
-            foreach (Sprite r in robotDir)
-            {
-                if (robotSelection == r.name)
-                {
-                    addedRobot.GetComponent<Image>().sprite = r;
-                }
-            }
-            if (squadPanel == mySquadPanel)
-            {
-                myStarCount += (byte)Robot.create(robotSelection).rating;
-                starText.text = myStarCount.ToString() + "/8";
-            }
-            maximizeSelection("no selection");
-        }
+        myStarCount += maximizedRosterRobot.GetRating();
+        UpdateStarText();
+        AddSelectedToSquad(squadPanel);
     }
 
-    public void removeAddedFromSquad(SquadPanelController squadPanel, GameObject robotName)
+    public void AddSelectedToSquad(SquadPanelController squadPanel)
+    {
+        RobotSquadImageController addedRobot = squadPanel.AddRobotSquadImage();
+        addedRobot.SetRemoveCallback(() => RemoveAddedFromSquad(squadPanel, addedRobot));
+        addedRobot.SetSprite(maximizedRosterRobot.GetRobotSprite());
+        addedRobot.SetRating(maximizedRosterRobot.GetRating());
+
+        maximizedRosterRobot.Hide();
+        mySquadPanel.squadPanelButton.interactable = opponentSquadPanel.squadPanelButton.interactable = false;
+    }
+
+    public void RemoveAddedFromSquad(SquadPanelController squadPanel, RobotSquadImageController robot)
     {
         if (squadPanel == mySquadPanel)
         {
-            myStarCount -= (byte)Robot.create(robotName.name).rating;
-            starText.text = myStarCount.ToString() + "/8";
+            myStarCount -= robot.GetRating();
+            UpdateStarText();
         }
-        Destroy(robotName);
+        Destroy(robot);
     }
 
     public void ShowLoading()
     {
-        loading = true;
+        statusText.transform.parent.gameObject.SetActive(true);
+        statusText.color = Color.white;
         statusText.text = "Loading...";
     }
 
@@ -185,8 +123,19 @@ public class SetupController : MonoBehaviour
         BaseGameManager.SendPlayerInfo(myname, op, mybots, opbots);
     }
 
-    void EnterLobby()
+    void UpdateStarText()
     {
-        SceneManager.LoadScene("Lobby");
+        starText.text = myStarCount.ToString() + "/8";
+        startGameButton.interactable = (
+            myStarCount == 8 &&
+            mySquadPanel.squadPanelRobotHolder.transform.childCount <= 4
+        );
+    }
+
+    void DisplayError(string message)
+    {
+        statusText.transform.parent.gameObject.SetActive(true);
+        statusText.color = Color.red;
+        statusText.text = message;
     }
 }
