@@ -6,7 +6,9 @@ public class SquadPanelController : MonoBehaviour
 {
     public Button squadPanelButton;
     public RobotSquadImageController robotSquadImage;
-    public SquadPanelRobotHolderController squadPanelRobotHolder;
+    public Transform squadPanelRobotHolder;
+
+    private RobotSquadImageController[] squadRobots = new RobotSquadImageController[0];
 
     public void SetAddCallback(UnityAction<SquadPanelController> callback)
     {
@@ -15,6 +17,23 @@ public class SquadPanelController : MonoBehaviour
 
     public RobotSquadImageController AddRobotSquadImage()
     {
-        return Instantiate(robotSquadImage, squadPanelRobotHolder.transform);
+        RobotSquadImageController addedRobot = Instantiate(robotSquadImage, squadPanelRobotHolder);
+        squadRobots = Util.Add(squadRobots, addedRobot);
+        return addedRobot;
+    }
+
+    public void RemoveRobotSquadImage(RobotSquadImageController removedRobot)
+    {
+        squadRobots = Util.Remove(squadRobots, removedRobot);
+    }
+
+    public string[] GetSquadRobotNames()
+    {
+        return Util.Map(squadRobots, (RobotSquadImageController r) => r.name.Trim());
+    }
+
+    public int GetNumRobots()
+    {
+        return squadRobots.Length;
     }
 }

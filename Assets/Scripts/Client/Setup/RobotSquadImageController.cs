@@ -9,9 +9,9 @@ public class RobotSquadImageController : MonoBehaviour
 
     private byte rating;
 
-    public void SetRemoveCallback(UnityAction callback)
+    public void SetRemoveCallback(UnityAction<RobotSquadImageController> callback)
     {
-        removeButton.onClick.AddListener(callback);
+        removeButton.onClick.AddListener(() => callback(this));
     }
 
     public void SetSprite(Sprite robotSprite)

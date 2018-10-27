@@ -1,7 +1,10 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 
 class Util
 {
+    public delegate U ReturnAction<T, U>(T arg);
+
     internal static Vector2Int Flip(Vector2Int v)
     {
         return new Vector2Int(-v.x, -v.y);
@@ -49,5 +52,52 @@ class Util
         {
             ChangeLayer(g.transform.GetChild(i).gameObject, l);
         }
+    }
+
+    internal static void ForEach<T>(T[] arr, UnityAction<T> callback)
+    {
+        foreach(T item in arr)
+        {
+            callback(item);
+        }
+    }
+
+    internal static T[] Add<T>(T[] arr, T item)
+    {
+        T[] newArr = new T[arr.Length + 1];
+        int index = 0;
+        ForEach(arr, (T oldItem) =>
+        {
+            newArr[index] = oldItem;
+            index++;
+        });
+        return newArr;
+    }
+
+    internal static T[] Remove<T>(T[] arr, T item)
+    {
+        T[] newArr = new T[arr.Length - 1];
+        int index = 0;
+        ForEach(arr, (T oldItem) =>
+        {
+            if (oldItem.Equals(item))
+            {
+                newArr[index] = oldItem;
+                index++;
+            }
+        });
+        return newArr;
+    }
+
+    internal static U[] Map<T, U>(T[] arr, ReturnAction<T, U> mapper)
+    {
+        U[] newArr = new U[arr.Length];
+        int index = 0;
+        ForEach(arr, (T oldItem) =>
+        {
+            newArr[index] = mapper(oldItem);
+            index++;
+        });
+        return newArr;
     }
 }

@@ -12,6 +12,7 @@ public class BaseGameManager
     private static BaseGameManager instance;
 
     protected SetupController setupController;
+    protected Game.Player[] playerTurnObjectArray;
 
     // region deprecate
     internal static UIController uiController;
@@ -21,7 +22,6 @@ public class BaseGameManager
     internal static bool gameOver;
 
     private static bool loadedLocally = false;
-    private static Game.Player[] playerTurnObjectArray;
     private static Map board;
     private static Logger log = new Logger(typeof(BaseGameManager));
     private static bool myturn;
@@ -46,36 +46,32 @@ public class BaseGameManager
 
     internal static void InitializeSetup(SetupController sc)
     {
-        instance.InitializeSetupController(sc);
+        instance.InitializeSetupImpl(sc);
     }
 
-    protected void InitializeSetupController(SetupController sc)
+    protected void InitializeSetupImpl(SetupController sc)
     {
         setupController = sc;
     }
 
+    public static void SendPlayerInfo(string[] myRobotNames, string username)
+    {
+        instance.SendPlayerInfoImpl(myRobotNames, username);
+    }
 
-
-
-
-
-
-    public static void SendPlayerInfo(string playerId, string opponentId, string[] myRobotNames, string[] opponentRobotNames)
+    protected void SendPlayerInfoImpl(string[] myRobotNames, string username)
     {
         gameOver = false;
         playerTurnObjectArray = new Game.Player[] {
-            new Game.Player(new Robot[0], playerId),
-            new Game.Player(new Robot[0], opponentId)
+            new Game.Player(new Robot[0], username)
         };
-        if (GameConstants.LOCAL_MODE)
-        {
-            GameClient.SendLocalGameRequest(myRobotNames, opponentRobotNames, playerTurnObjectArray[0].name, playerTurnObjectArray[1].name);
-        }
-        else
-        {
-            GameClient.SendGameRequest(myRobotNames, playerTurnObjectArray[0].name);
-        }
     }
+
+
+
+
+
+    
 
     public static void LoadBoard(Robot[] myTeam, Robot[] opponentTeam, string opponentName, Map b, bool isP)
     {
