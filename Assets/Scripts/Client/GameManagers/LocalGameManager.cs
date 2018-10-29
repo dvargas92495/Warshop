@@ -1,11 +1,17 @@
 ﻿public class LocalGameManager : BaseGameManager
 {
+    internal LocalGameManager()
+    {
+        gameClient = new LocalGameClient();
+    }
+
     internal new void InitializeSetupImpl(SetupController sc)
     {
         base.InitializeSetupImpl(sc);
         sc.opponentSquadPanel.gameObject.SetActive(true);
         sc.opponentSquadPanel.SetAddCallback(sc.AddSelectedToOpponentSquad);
-
+        gameClient.AsLocal().ConnectToGameServer(LoadBoard);
+        
         if (sc.playtest != null)
         {
             string[] lines = sc.playtest.text.Split('\n');
@@ -21,11 +27,9 @@
     internal new void SendPlayerInfoImpl(string[] myRobotNames, string username)
     {
         gameOver = false;
-        playerTurnObjectArray = new Game.Player[] {
-            new Game.Player(new Robot[0], username),
-            new Game.Player(new Robot[0], setupController.opponentName.text)
-        };
+        myPlayer = new Game.Player(new Robot[0], username);
+        opponentPlayer = new Game.Player(new Robot[0], setupController.opponentName.text);
         string[] opponentRobotNames = setupController.opponentSquadPanel.GetSquadRobotNames();
-        GameClient.SendLocalGameRequest(myRobotNames, opponentRobotNames, playerTurnObjectArray[0].name, playerTurnObjectArray[1].name);
+        gameClient.AsLocal().SendLocalGameRequest(myRobotNames, opponentRobotNames, myPlayer.name, opponentPlayer.name);
     }
 }

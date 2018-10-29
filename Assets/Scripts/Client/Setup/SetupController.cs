@@ -30,8 +30,6 @@ public class SetupController : MonoBehaviour
 
         robotRosterPanel.SetMaximizeCallback(maximizeSelection);
         Util.ForEach(robotDir, robotRosterPanel.AddRobotImage);
-
-        GameClient.ConnectToGameServer(statusModal.DisplayError);
     }
 
     void EnterLobby()
@@ -95,10 +93,9 @@ public class SetupController : MonoBehaviour
 
     void UpdateStarText()
     {
-        starText.text = myStarCount.ToString() + "/8";
-        startGameButton.interactable = (
-            myStarCount == 8 &&
-            mySquadPanel.GetNumRobots() <= 4
-        );
+        starText.text = myStarCount.ToString() + "/" + GameConstants.MAX_STARS_ON_SQUAD.ToString();
+        startGameButton.interactable =
+            myStarCount == GameConstants.MAX_STARS_ON_SQUAD &&
+            mySquadPanel.GetNumRobots() <= GameConstants.MAX_ROBOTS_ON_SQUAD;
     }
 }

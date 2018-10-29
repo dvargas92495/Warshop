@@ -21,7 +21,6 @@ public class InitialController : MonoBehaviour {
         isServer = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null);
     }
 
-    // Use this for initialization
     void Start () {
         Logger.Setup(isServer);
         if (isServer)

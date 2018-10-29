@@ -1,10 +1,9 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.EventSystems;
+﻿using UnityEngine;
+using UnityEngine.Events;
 
 public class MenuItemController : MonoBehaviour {
 
-    Action callback;
+    UnityAction callback;
     public Material inactiveRing;
     public Material activeRing;
     public Material inactiveBase;
@@ -17,7 +16,7 @@ public class MenuItemController : MonoBehaviour {
         Click();
     }
 
-    public void SetCallback(Action c)
+    public void SetCallback(UnityAction c)
     {
         callback = c;
     }

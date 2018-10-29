@@ -1,0 +1,39 @@
+﻿using UnityEngine.Events;
+using UnityEngine.Networking;
+
+public class LocalGameClient : GameClient
+{
+    LocalApp localApp;
+
+    protected override void Send(short msgType, MessageBase message)
+    {
+        localApp.Receive(msgType, message);
+    }
+
+    internal void ConnectToGameServer(UnityAction<Robot[], Robot[], string, Map> readyCallback)
+    {
+        localApp.Receive(MsgType.Connect, Messages.EMPTY);
+        gameReadyCallback = readyCallback;
+    }
+
+    internal void Receive(short msgType, MessageBase message)
+    {
+        NetworkMessage netMsg = new NetworkMessage();
+        NetworkWriter writer = new NetworkWriter();
+        message.Serialize(writer);
+        NetworkReader reader = new NetworkReader(writer);
+        netMsg.msgType = msgType;
+        netMsg.reader = reader;
+        GetHandler(msgType)(netMsg);
+    }
+
+    internal void SendLocalGameRequest(string[] myRobots, string[] opponentRobots, string myname, string opponentname)
+    {
+        Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
+        msg.myRobots = myRobots;
+        msg.opponentRobots = opponentRobots;
+        msg.myName = myname;
+        msg.opponentName = opponentname;
+        Send(Messages.START_LOCAL_GAME, msg);
+    }
+}

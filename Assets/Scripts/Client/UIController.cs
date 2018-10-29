@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Linq;
@@ -111,7 +111,7 @@ public class UIController : MonoBehaviour {
     }
 
     //Loads the UICanvas and it's child components
-    public void InitializeUICanvas(Game.Player[] playerObjects, bool isPrimary)
+    public void InitializeUICanvas(Game.Player[] playerObjects, bool isPrimary, UnityAction submitCommandsCallback)
     {
         SetPlayerPanel(playerObjects[1], true);
         SetPlayerPanel(playerObjects[0], false);
@@ -140,7 +140,7 @@ public class UIController : MonoBehaviour {
             userScore.transform.Rotate(Vector3.forward, 180);
             opponentScore.transform.Rotate(Vector3.forward, 180);
         }
-        SubmitCommands.SetCallback(BaseGameManager.SubmitActions);
+        SubmitCommands.SetCallback(submitCommandsCallback);
         BackToPresent.SetCallback(BaseGameManager.BackToPresent);
         StepBackButton.SetCallback(BaseGameManager.StepBackward);
         StepForwardButton.SetCallback(BaseGameManager.StepForward);

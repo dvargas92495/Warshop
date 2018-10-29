@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
 
 class Util
 {
     public delegate U ReturnAction<T, U>(T arg);
+    public delegate void UnityAction<T, U, V, W, X>(T arg, U arg1, V arg2, W arg3, X arg4);
 
     internal static Vector2Int Flip(Vector2Int v)
     {
@@ -59,6 +61,14 @@ class Util
         foreach(T item in arr)
         {
             callback(item);
+        }
+    }
+
+    internal static void ForEach<T,U>(Dictionary<T,U> pairs, UnityAction<T,U> callback)
+    {
+        foreach (KeyValuePair<T,U> pair in pairs)
+        {
+            callback(pair.Key, pair.Value);
         }
     }
 

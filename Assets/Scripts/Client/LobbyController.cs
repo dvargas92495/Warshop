@@ -13,7 +13,7 @@ public class LobbyController : MonoBehaviour {
     void Start () {
         if (GameConstants.USE_SERVER)
         {
-            StartCoroutine(GameClient.SendFindAvailableGamesRequest(FindAvailableGamesCallback));
+            StartCoroutine(AwsLambdaClient.SendFindAvailableGamesRequest(FindAvailableGamesCallback));
         }
         newgameSessionUI.GetComponentInChildren<Button>().onClick.AddListener(NewGame);
         backButton.onClick.AddListener(() => SceneManager.LoadScene("Initial"));
@@ -51,8 +51,7 @@ public class LobbyController : MonoBehaviour {
         DeactivateButtons();
         bool isPrivate = newgameSessionUI.GetComponentInChildren<Dropdown>().value == 1;
         string password = newgameSessionUI.GetComponentInChildren<InputField>(true).text;
-        BaseGameManager.InitializeStandard();
-        StartCoroutine(GameClient.SendCreateGameRequest(isPrivate, password, () => SceneManager.LoadScene("Setup")));
+        StartCoroutine(AwsLambdaClient.SendCreateGameRequest(isPrivate, GameClient.username, password, SetupNewGame));
     }
 
     UnityAction JoinGame(string gameSessionId, int i)
@@ -61,10 +60,24 @@ public class LobbyController : MonoBehaviour {
         {
             DeactivateButtons();
             string pass = newgameSessionUI.transform.parent.GetChild(i).GetComponentInChildren<InputField>(true).text;
-            StartCoroutine(GameClient.SendJoinGameRequest(gameSessionId, pass,
-                () => SceneManager.LoadScene("Setup"))
-            );
+            StartCoroutine(AwsLambdaClient.SendJoinGameRequest(gameSessionId, GameClient.username, pass, SetupJoinGame));
         };
+    }
+
+    void SetupNewGame(string playerSessionId, string ipAddress, int port)
+    {
+        SetupGame(playerSessionId, ipAddress, port, true);
+    }
+
+    void SetupJoinGame(string playerSessionId, string ipAddress, int port)
+    {
+        SetupGame(playerSessionId, ipAddress, port, false);
+    }
+
+    void SetupGame(string playerSessionId, string ipAddress, int port, bool isPrimary)
+    {
+        BaseGameManager.InitializeStandard(playerSessionId, ipAddress, port, isPrimary);
+        SceneManager.LoadScene("Setup");
     }
 
     void DeactivateButtons()

@@ -12,7 +12,9 @@ public class BaseGameManager
     private static BaseGameManager instance;
 
     protected SetupController setupController;
-    protected Game.Player[] playerTurnObjectArray;
+    protected Game.Player myPlayer;
+    protected Game.Player opponentPlayer;
+    protected GameClient gameClient;
 
     // region deprecate
     internal static UIController uiController;
@@ -21,7 +23,6 @@ public class BaseGameManager
     internal static string ErrorString = "";
     internal static bool gameOver;
 
-    private static bool loadedLocally = false;
     private static Map board;
     private static Logger log = new Logger(typeof(BaseGameManager));
     private static bool myturn;
@@ -37,11 +38,13 @@ public class BaseGameManager
     internal static void InitializeLocal()
     {
         instance = new LocalGameManager();
+        isPrimary = true;
     }
 
-    internal static void InitializeStandard()
+    internal static void InitializeStandard(string playerSessionId, string ipAddress, int port, bool isP)
     {
-        instance = new StandardGameManager();
+        instance = new StandardGameManager(playerSessionId, ipAddress, port);
+        isPrimary = isP;
     }
 
     internal static void InitializeSetup(SetupController sc)
@@ -62,26 +65,17 @@ public class BaseGameManager
     protected void SendPlayerInfoImpl(string[] myRobotNames, string username)
     {
         gameOver = false;
-        playerTurnObjectArray = new Game.Player[] {
-            new Game.Player(new Robot[0], username)
-        };
+        myPlayer = new Game.Player(new Robot[0], username);
     }
 
-
-
-
-
-    
-
-    public static void LoadBoard(Robot[] myTeam, Robot[] opponentTeam, string opponentName, Map b, bool isP)
+    internal void LoadBoard(Robot[] myTeam, Robot[] opponentTeam, string opponentName, Map b)
     {
-        playerTurnObjectArray[0].team = myTeam;
-        playerTurnObjectArray[1].team = opponentTeam;
-        playerTurnObjectArray[1].name = opponentName;
+        myPlayer.team = myTeam;
+        opponentPlayer.team = opponentTeam;
+        opponentPlayer.name = opponentName;
         board = b;
         myturn = true;
-        isPrimary = isP;
-        if (!loadedLocally) SceneManager.LoadScene("Match");
+        SceneManager.LoadScene("Match");
     }
 
     public static void ClientError(string s)
@@ -91,52 +85,51 @@ public class BaseGameManager
 
     public static void InitializeBoard(BoardController bc)
     {
+        instance.InitializeBoardImpl(bc);
+    }
+
+    public void InitializeBoardImpl(BoardController bc)
+    {
         boardController = bc;
-#if UNITY_EDITOR
-        if (board == null && GameConstants.LOCAL_MODE)
-        {
-            //We are loading from Match scene
-            loadedLocally = true;
-            string[] myRobotNames = new string[] { "Bronze Grunt", "Silver Grunt", "Bronze Grunt", "Platinum Grunt" };
-            string[] opponentRobotNames = new string[] { "Silver Grunt", "Golden Grunt", "Silver Grunt", "Bronze Grunt" };
-            SendPlayerInfo("me", "opponent", myRobotNames, opponentRobotNames);
-            while (board == null) { }
-        }
-#endif
         boardController.InitializeBoard(board);
-        InitializeRobots(playerTurnObjectArray);
+        InitializeRobots();
     }
 
     public static void InitializeUI(UIController ui)
     {
+        instance.InitializeUiImpl(ui);
+    }
+
+    public void InitializeUiImpl(UIController ui)
+    {
         uiController = ui;
-        uiController.InitializeUICanvas(playerTurnObjectArray, isPrimary);
+        uiController.InitializeUICanvas(new Game.Player[]{myPlayer, opponentPlayer }, isPrimary, SubmitActions);
         presentState = SerializeState(-1);
     }
 
-    private static void InitializeRobots(Game.Player[] playerTurns)
+    private void InitializeRobots()
     {
         Transform[] docks = isPrimary ? new Transform[] { boardController.primaryDock.transform, boardController.secondaryDock.transform } :
             new Transform[] { boardController.secondaryDock.transform, boardController.primaryDock.transform };
         robotControllers = new Dictionary<short, RobotController>();
-        for (int p = 0; p < playerTurns.Length; p++)
-        {
-            Game.Player player = playerTurns[p];
-            Transform dock = docks[p];
-            for (int i = 0; i < player.team.Length; i++)
-            {
-                RobotController r = RobotController.Load(player.team[i], dock);
-                r.isOpponent = p == 1;
-                r.canCommand = !r.isOpponent;
-                robotControllers[r.id] = r;
-                r.transform.localPosition = boardController.PlaceInBelt((isPrimary && !r.isOpponent) || (!isPrimary && r.isOpponent));
-                r.transform.rotation = Quaternion.Euler(0, 0, isPrimary ? 0 : 180);
-            }
+        InitializePlayerRobots(myPlayer, docks[0], false);
+        InitializePlayerRobots(opponentPlayer, docks[1], true);
+    }
 
+    private void InitializePlayerRobots(Game.Player player, Transform dock, bool isOpponent)
+    {
+        for (int i = 0; i < player.team.Length; i++)
+        {
+            RobotController r = RobotController.Load(player.team[i], dock);
+            r.isOpponent = isOpponent;
+            r.canCommand = !r.isOpponent;
+            robotControllers[r.id] = r;
+            r.transform.localPosition = boardController.PlaceInBelt((isPrimary && !r.isOpponent) || (!isPrimary && r.isOpponent));
+            r.transform.rotation = Quaternion.Euler(0, 0, isPrimary ? 0 : 180);
         }
     }
 
-    public static void SubmitActions()
+    public void SubmitActions()
     {
         if (!GameConstants.LOCAL_MODE && !myturn)
         {
@@ -144,7 +137,7 @@ public class BaseGameManager
         }
         uiController.LightUpPanel(true, true);
         List<Command> commands = new List<Command>();
-        string username = (myturn ? playerTurnObjectArray[0].name : playerTurnObjectArray[1].name);
+        string username = (myturn ? myPlayer.name : opponentPlayer.name);
         foreach (RobotController robot in robotControllers.Values)
         {
             if (!robot.canCommand) continue;
@@ -175,7 +168,7 @@ public class BaseGameManager
         uiController.SetButtons(uiController.DirectionButtonContainer, false); ;
         uiController.SubmitCommands.Deactivate();
         myturn = false;
-        GameClient.SendSubmitCommands(commands, username);
+        gameClient.SendSubmitCommands(commands.ToArray(), username);
     }
 
     public static void DeleteCommand(short rid, int index)
@@ -193,7 +186,7 @@ public class BaseGameManager
         }
     }
 
-    public static void PlayEvents(List<GameEvent> events, byte t)
+    public void PlayEvents(List<GameEvent> events, byte t)
     {
         turnNumber = t;
         if (GameConstants.LOCAL_MODE)
@@ -215,7 +208,7 @@ public class BaseGameManager
         internal int animationsToPlay = 0;
     }
 
-    private static void NextEvent(List<GameEvent> events, InfoThisPriority infoThisPriority, int i)
+    private void NextEvent(List<GameEvent> events, InfoThisPriority infoThisPriority, int i)
     {
         if (i >= events.Count)
         {
@@ -244,7 +237,7 @@ public class BaseGameManager
             }
             else
             {
-                GameClient.SendEndGameRequest();
+                gameClient.SendEndGameRequest();
             }
             return;
         }

@@ -1,5 +1,8 @@
 ﻿internal class GameConstants
 {
+    internal const int MAX_ROBOTS_ON_SQUAD = 4;
+    internal const int MAX_STARS_ON_SQUAD = 8;
+
     internal const byte DEFAULT_SPAWN_POWER = 2;
     internal const byte DEFAULT_MOVE_POWER = 1;
     internal const byte DEFAULT_ATTACK_POWER = 2;

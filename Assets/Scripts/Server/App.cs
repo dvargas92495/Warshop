@@ -1,75 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Networking;
 using Aws.GameLift;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
 
-public class App {
+public abstract class App
+{
+    private static App instance;
 
-    private static int MIN_PORT = 12350;
-    private static int MAX_PORT = 12360;
     private static Game appgame;
     private static readonly Logger log = new Logger(typeof(App));
 
-    private static Dictionary<short, NetworkMessageDelegate> handlers = new Dictionary<short, NetworkMessageDelegate>()
-    {
-        { MsgType.Connect, OnConnect },
-        { MsgType.Disconnect, OnDisconnect },
-        { Messages.ACCEPT_PLAYER_SESSION, OnAcceptPlayerSession },
-        { Messages.START_LOCAL_GAME, OnStartLocalGame },
-        { Messages.START_GAME, OnStartGame },
-        { Messages.SUBMIT_COMMANDS, OnSubmitCommands},
-        { Messages.END_GAME, OnEndGame}
-    };
-
-    // Use this for initialization
     public static void StartServer()
     {
-        GenericOutcome outcome = GameLiftServerAPI.InitSDK();
-        Application.targetFrameRate = 60;
-        if (outcome.Success)
-        {
-            foreach (KeyValuePair<short, NetworkMessageDelegate> pair in handlers)
-            {
-                NetworkServer.RegisterHandler(pair.Key, pair.Value);
-            }
-            int port = MIN_PORT;
-            for (; port < MAX_PORT; port++)
-            {
-                if (NetworkServer.Listen(port)) break;
-            }
-            GameLiftServerAPI.ProcessReady(new ProcessParameters(
-                OnGameSession,
-                OnProcessTerminate,
-                OnHealthCheck,
-                port,
-                new LogParameters(new List<string>()
-                {
-                    GameConstants.APP_LOG_DIR
-                })
-            ));
-            log.Info("Listening on: " + port);
-        } else
-        {
-            log.Error(outcome);
-        }
+        instance = new AwsApp();
     }
 
-    private static void Send(int connId, short msgType, MessageBase msg)
+    protected NetworkMessageDelegate GetHandler(short messageType)
     {
-        if (connId >= 0)
+        switch(messageType)
         {
-            NetworkServer.connections[connId].Send(msgType, msg);
-        }
-        else
-        {
-            GameClient.Receive(msgType, msg);
+            case MsgType.Connect:
+                return OnConnect;
+            case MsgType.Disconnect:
+                return OnDisconnect;
+            case Messages.ACCEPT_PLAYER_SESSION:
+                return OnAcceptPlayerSession;
+            case Messages.START_LOCAL_GAME:
+                return OnStartLocalGame;
+            case Messages.START_GAME:
+                return OnStartGame;
+            case Messages.SUBMIT_COMMANDS:
+                return OnSubmitCommands;
+            case Messages.END_GAME:
+                return OnEndGame;
+            default:
+                return OnUnsupportedMessage;
         }
     }
 
-    internal static void Receive(short msgType, MessageBase message)
+    protected abstract void Send(int connId, short msgType, MessageBase msg);
+
+    internal void Receive(short msgType, MessageBase message)
     {
         NetworkMessage netMsg = new NetworkMessage();
         NetworkWriter writer = new NetworkWriter();
@@ -79,16 +52,12 @@ public class App {
         netMsg.reader = reader;
         netMsg.conn = new NetworkConnection();
         netMsg.conn.connectionId = -1;
-        NetworkMessageDelegate handler;
-        if (handlers.TryGetValue(msgType, out handler))
-        {
-            handler(netMsg);
-        }
+        GetHandler(msgType)(netMsg);
     }
 
     // begin GameLift callbacks
 
-    static void OnGameSession(GameSession gameSession)
+    protected void OnGameSession(GameSession gameSession)
     {
         Logger.ConfigureNewGame(gameSession.GameSessionId);
         appgame = new Game();
@@ -98,13 +67,13 @@ public class App {
         GameLiftServerAPI.ActivateGameSession();
     }
 
-    static void OnProcessTerminate()
+    protected void OnProcessTerminate()
     {
         GameLiftServerAPI.ProcessEnding();
         GameLiftServerAPI.Destroy();
     }
 
-    static bool OnHealthCheck()
+    protected bool OnHealthCheck()
     {
         log.Info("Heartbeat");
         DescribePlayerSessionsOutcome result =  GameLiftServerAPI.DescribePlayerSessions(new DescribePlayerSessionsRequest
@@ -126,6 +95,11 @@ public class App {
         GameLiftServerAPI.TerminateGameSession();
     }
 
+    protected void OnUnsupportedMessage(NetworkMessage netMsg)
+    {
+        log.Info("Unsupported message type: " + netMsg.msgType);
+    }
+
     static void OnEndGame(NetworkMessage netMsg)
     {
         log.Info(netMsg, "End Game");
@@ -134,14 +108,9 @@ public class App {
 
     // end GameLift callbacks
 
-    private static void OnConnect(NetworkMessage netMsg)
+    protected void OnConnect(NetworkMessage netMsg)
     {
         log.Info(netMsg, "Client Connected");
-        if (!GameConstants.USE_SERVER)
-        {
-            OnGameSession(new GameSession());
-            GameClient.Receive(MsgType.Connect, Messages.EMPTY);
-        }
     }
 
     private static void OnDisconnect(NetworkMessage netMsg)
@@ -160,7 +129,7 @@ public class App {
         }
     }
 
-    private static void OnStartLocalGame(NetworkMessage netMsg)
+    protected void OnStartLocalGame(NetworkMessage netMsg)
     {
         log.Info(netMsg, "Client Starting Local Game");
         if (appgame == null) OnGameSession(new GameSession());
@@ -170,7 +139,7 @@ public class App {
         Send(netMsg.conn.connectionId, Messages.GAME_READY, appgame.GetGameReadyMessage(true));
     }
 
-    private static void OnStartGame(NetworkMessage netMsg)
+    protected void OnStartGame(NetworkMessage netMsg)
     {
         log.Info(netMsg, "Client Starting Game");
         Messages.StartGameMessage msg = netMsg.ReadMessage<Messages.StartGameMessage>();
@@ -182,7 +151,7 @@ public class App {
         }
     }
 
-    private static void OnSubmitCommands(NetworkMessage netMsg)
+    protected void OnSubmitCommands(NetworkMessage netMsg)
     {
         log.Info(netMsg, "Client Submitting Commands");
         Messages.SubmitCommandsMessage msg = netMsg.ReadMessage<Messages.SubmitCommandsMessage>();
