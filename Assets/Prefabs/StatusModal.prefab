@@ -38,6 +38,7 @@ GameObject:
   - component: {fileID: 224285105195449856}
   - component: {fileID: 222149481612245172}
   - component: {fileID: 114160540358159840}
+  - component: {fileID: 114618465713953260}
   m_Layer: 5
   m_Name: StatusModal
   m_TagString: Untagged
@@ -72,6 +73,18 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &114618465713953260
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1841854414117462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 580da3eb20ec0bb4e9811dab85d70b7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  statusText: {fileID: 114800260258324168}
 --- !u!114 &114800260258324168
 MonoBehaviour:
   m_ObjectHideFlags: 1

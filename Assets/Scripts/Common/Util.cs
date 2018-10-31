@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 
 class Util
 {
     public delegate U ReturnAction<T, U>(T arg);
-    public delegate void UnityAction<T, U, V, W, X>(T arg, U arg1, V arg2, W arg3, X arg4);
+    public delegate W ReturnAction<T, U, V, W>(T arg, U arg1, V arg2);
 
     internal static Vector2Int Flip(Vector2Int v)
     {
@@ -64,14 +63,6 @@ class Util
         }
     }
 
-    internal static void ForEach<T,U>(Dictionary<T,U> pairs, UnityAction<T,U> callback)
-    {
-        foreach (KeyValuePair<T,U> pair in pairs)
-        {
-            callback(pair.Key, pair.Value);
-        }
-    }
-
     internal static T[] Add<T>(T[] arr, T item)
     {
         T[] newArr = new T[arr.Length + 1];
@@ -109,5 +100,15 @@ class Util
             index++;
         });
         return newArr;
+    }
+
+    internal static W[] Map<T, U, V, W>(T[] arr, U[] arr1, V[] arr2, ReturnAction<T, U, V, W> callback)
+    {
+        W[] returnArr = new W[Mathf.Min(arr.Length, arr1.Length, arr2.Length)];
+        for (int i = 0; i < returnArr.Length; i++)
+        {
+            returnArr[i] = callback(arr[i], arr1[i], arr2[i]);
+        }
+        return returnArr;
     }
 }

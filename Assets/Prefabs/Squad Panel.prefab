@@ -112,8 +112,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dae71838b7ac0e49a0decf218131246, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SquadPanelButton: {fileID: 114566826677286792}
-  SquadPanelRobotHolder: {fileID: 114129868050762698}
+  squadPanelButton: {fileID: 114566826677286792}
+  robotSquadImage: {fileID: 114265390754065698, guid: 081deeff0813cc941a9ee26cce3fe164,
+    type: 2}
+  squadPanelRobotHolder: {fileID: 114129868050762698}
 --- !u!114 &114313438163715784
 MonoBehaviour:
   m_ObjectHideFlags: 1
