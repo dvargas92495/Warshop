@@ -1,36 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
-using System.Linq;
+﻿using UnityEngine;
 
-public class BoardController : MonoBehaviour {
-
-    //Area board is allowed to be in
-    public int boardCellsWide;
-    public int boardCellsHeight;
-    public TileController tile;
-    public GameObject primaryDock;
-    public GameObject secondaryDock;
-    public Material OpponentQueueBeamMaterial;
-    public RobotController robotBase;
-    public GameObject[] RobotModels;
-    public Light CeilingLight;
+public class BoardController : MonoBehaviour
+{
     public Camera cam;
-    private List< List<TileController>> allLocations = new List<List<TileController>>();
-    internal HashSet<TileController> allQueueLocations = new HashSet<TileController>();
-    internal TileController primaryBatteryLocation;
-    internal TileController secondaryBatteryLocation;
-    private TileController primaryVoidLocation;
-    private TileController secondaryVoidLocation;
-    private bool[] primaryDockOccupied = new bool[] { false, false, false, false};
-    private bool[] secondaryDockOccupied = new bool[] { false, false, false, false };
+    public DockController myDock;
+    public DockController opponentDock;
+    public RobotController robotBase;
+    public TileController tile;
+    public Light CeilingLight;
 
-    internal const byte BLANK_TYPE = 0;
-    internal const byte QUEUE_TYPE = 1;
-    internal const byte BATTERY_TYPE = 2;
-    internal const byte VOID_TYPE = 3;
+    private BatteryController myBattery;
+    private BatteryController opponentBattery;
+    private TileController[] allLocations;
 
-    // Use this for initialization
     void Awake()
     {
         BaseGameManager.InitializeBoard(this);
@@ -38,103 +20,95 @@ public class BoardController : MonoBehaviour {
 
     public void InitializeBoard(Map board)
     {
-        boardCellsWide = board.Width;
-        boardCellsHeight = board.Height;
-        for (int y = 0; y<boardCellsHeight; y++)
-        {
-            List<TileController> row = new List<TileController>();
-            for (int x = 0; x < boardCellsWide; x++)
-            {
-                TileController currentCell = Instantiate(tile, new Vector2(x, y), Quaternion.identity, transform);
-                byte spaceType = currentCell.LoadTile(board, x, y);
-                if (spaceType == QUEUE_TYPE) allQueueLocations.Add(currentCell);
-                else if (spaceType == BATTERY_TYPE && primaryBatteryLocation == null) primaryBatteryLocation = currentCell;
-                else if (spaceType == BATTERY_TYPE && secondaryBatteryLocation == null) secondaryBatteryLocation = currentCell;
-                else if (spaceType == VOID_TYPE && primaryVoidLocation == null) primaryVoidLocation = currentCell;
-                else if (spaceType == VOID_TYPE && secondaryVoidLocation == null) secondaryVoidLocation = currentCell;
-                row.Add(currentCell);
-            }
-            allLocations.Add(row);
-            primaryDock.transform.position = new Vector3(0, -1);
-            secondaryDock.transform.position = new Vector3(boardCellsWide - 1, boardCellsHeight);
-        }
+        allLocations = Util.Map(board.spaces, InitializeTile);
+        
+        myDock.transform.position = new Vector3(0, -1);
+        opponentDock.transform.position = new Vector3(board.width - 1, board.height);
 
-        for (int y = -1; y< boardCellsHeight+2; y+=2)
+        InitializeLights(board.width, board.height);
+    }
+
+    public TileController InitializeTile(Map.Space s)
+    {
+        TileController currentCell = Instantiate(tile, new Vector2(s.x, s.y), Quaternion.identity, transform);
+        currentCell.LoadTile(s, SetMyBattery, SetOpponentBattery);
+        return currentCell;
+    }
+
+    public RobotController LoadRobot(Robot robot, Transform dock)
+    {
+        RobotController r = Instantiate(robotBase, dock);
+        r.LoadModel(robot.name, robot.id);
+        r.name = robot.name;
+        r.displayHealth(robot.health);
+        r.displayAttack(robot.attack);
+        r.HealthLabel.GetComponent<MeshRenderer>().sortingOrder = r.HealthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
+        r.AttackLabel.GetComponent<MeshRenderer>().sortingOrder = r.AttackLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
+        return r;
+    }
+
+    public void PlaceRobot(RobotController robot, int x, int y)
+    {
+        TileController loc = FindTile(x, y);
+        loc.LoadRobotOnTileMesh(robot.isOpponent);
+        robot.transform.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -loc.transform.localScale.z*0.501f);
+    }
+
+    public void UnplaceRobot(RobotController robot)
+    {
+        TileController oldLoc = FindTile(robot.transform.position.x, robot.transform.position.y);
+        oldLoc.ResetMesh();
+    }
+
+    private TileController FindTile(float x, float y)
+    {
+        return Util.Find(allLocations, t => t.transform.position.x == x && t.transform.position.y == y);
+    }
+
+    public BatteryController GetMyBattery()
+    {
+        return myBattery;
+    }
+
+    public BatteryController GetOpponentBattery()
+    {
+        return opponentBattery;
+    }
+
+    public void SetMyBattery(BatteryController batteryController)
+    {
+        myBattery = batteryController;
+    }
+
+    public void SetOpponentBattery(BatteryController batteryController)
+    {
+        opponentBattery = batteryController;
+    }
+
+    public void SetBattery(int a, int b)
+    {
+        myBattery.Score.text = a.ToString();
+        opponentBattery.Score.text = b.ToString();
+    }
+
+    public int GetMyBatteryScore()
+    {
+        return int.Parse(myBattery.Score.text);
+    }
+
+    public int GetOpponentBatteryScore()
+    {
+        return int.Parse(opponentBattery.Score.text);
+    }
+
+    private void InitializeLights(int width, int height)
+    {
+        for (int y = -1; y < height + 2; y += 2)
         {
-            for (int x = 1; x < boardCellsWide; x+=2)
+            for (int x = 1; x < width; x += 2)
             {
                 Light l = Instantiate(CeilingLight, transform);
-                l.transform.position += new Vector3(x- 0.5f, y);
-            }
-        }
-    }
-		
-    public void PlaceRobot(Transform robot, int x, int y)
-    {
-        if (y < 0 || y >= boardCellsHeight || x < 0 || x >= boardCellsWide)
-        {
-            return;
-        }
-        UnplaceRobot(robot);
-        TileController loc = allLocations[y][x];
-        loc.GetComponent<MeshRenderer>().material = robot.GetComponent<RobotController>().isOpponent ? tile.OpponentBaseTile : tile.UserBaseTile;
-        robot.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -tile.transform.localScale.z*0.501f);
-    }
-
-    public void UnplaceRobot(Transform robot)
-    {
-        int oldy = (int)robot.position.y;
-        int oldx = (int)robot.position.x;
-        foreach (RobotController other in BaseGameManager.robotControllers.Values)
-        {
-            if (other.transform.position.x == oldx && other.transform.position.y== oldy && !other.transform.Equals(robot))
-            {
-                return;
-            }
-        }
-        if (oldy >= 0 && oldy < boardCellsHeight && oldx >= 0 && oldx < boardCellsWide)
-        {
-            TileController oldLoc = allLocations[oldy][oldx];
-            oldLoc.GetComponent<MeshRenderer>().material = tile.BaseTile;
-        }
-    }
-
-    public TileController GetVoidTile(bool isUser)
-    {
-        return isUser ? primaryVoidLocation : secondaryVoidLocation;
-    }
-
-    public Vector3 PlaceInBelt(bool isPrimary)
-    {
-        int i;
-        bool[] isOccupied = (isPrimary ? primaryDockOccupied : secondaryDockOccupied);
-        for (i = 0;i<isOccupied.Length; i++)
-        {
-            if (!isOccupied[i])
-            {
-                isOccupied[i] = true;
-                break;
-            }
-        }
-        return Vector3.right * i + Vector3.back * tile.transform.localScale.z * 1.001f;
-    }
-
-    public void RemoveFromBelt(Vector3 localPos, bool isPrimary)
-    {
-        int i = (int)localPos.x;
-        bool[] isOccupied = (isPrimary ? primaryDockOccupied : secondaryDockOccupied);
-        isOccupied[i] = false;
-    }
-
-    public void ColorQueueBelt(bool isPrimary)
-    {
-        Transform t = isPrimary ? secondaryDock.transform : primaryDock.transform;
-        for (int i = 0; i < t.GetChild(0).childCount; i++)
-        {
-            if (t.GetChild(0).GetChild(i).name.StartsWith("Cylinder"))
-            {
-                MeshRenderer m = t.GetChild(0).GetChild(i).GetComponent<MeshRenderer>();
-                m.material = OpponentQueueBeamMaterial;
+                l.transform.position += new Vector3(x - 0.5f, y);
             }
         }
     }

@@ -8,16 +8,16 @@ public class Map
 {
     internal static Vector2Int NULL_VEC = Vector2Int.one * -1;
 
-    internal int Width { get; set; }
-    internal int Height { get; set; }
+    internal int width { get; set; }
+    internal int height { get; set; }
     internal Space[] spaces;
     private Tuple<HashSet<short>, HashSet<short>> Dock = new Tuple<HashSet<short>, HashSet<short>>(new HashSet<short>(), new HashSet<short>());
     private Dictionary<short, Space> objectLocations;
 
-    private Map(int width, int height)
+    private Map(int w, int h)
     {
-        Width = width;
-        Height = height;
+        width = w;
+        height = h;
         spaces = new Space[width*height];
     }
 
@@ -25,30 +25,30 @@ public class Map
     {
         string[] lines = content.Split('\n');
         int[] boardDimensions = lines[0].Trim().Split(null).Select(int.Parse).ToArray();
-        Width = boardDimensions[0];
-        Height = boardDimensions[1];
-        spaces = new Space[Width*Height];
-        for (int y = 0; y < Height; y++)
+        width = boardDimensions[0];
+        height = boardDimensions[1];
+        spaces = new Space[width*height];
+        for (int y = 0; y < height; y++)
         {
             string[] cells = lines[y+1].Trim().Split(' ');
-            for (int x = 0; x < Width; x++)
+            for (int x = 0; x < width; x++)
             {
-                spaces[y * Width + x] = Space.Create(cells[x][0]);
-                spaces[y * Width + x].x = x;
-                spaces[y * Width + x].y = y;
+                spaces[y * width + x] = Space.Create(cells[x][0]);
+                spaces[y * width + x].x = x;
+                spaces[y * width + x].y = y;
             }
         }
         objectLocations = new Dictionary<short, Space>();
     }
     public void Serialize(NetworkWriter writer)
     {
-        writer.Write(Width);
-        writer.Write(Height);
-        for (int y = 0; y < Height; y++)
+        writer.Write(width);
+        writer.Write(height);
+        for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < Width; x++)
+            for (int x = 0; x < width; x++)
             {
-                spaces[y * Width + x].Serialize(writer);
+                spaces[y * width + x].Serialize(writer);
             }
         }
     }
@@ -74,8 +74,8 @@ public class Map
 
     public Space VecToSpace(int x, int y)
     {
-        if (y < 0 || y >= Height || x < 0 || x >= Width) return null;
-        return spaces[y * Width + x];
+        if (y < 0 || y >= height || x < 0 || x >= width) return null;
+        return spaces[y * width + x];
     }
 
     public bool IsVoid(Vector2Int v)
@@ -103,7 +103,7 @@ public class Map
     {
         if (IsQueue(v))
         {
-            return ((Queue)VecToSpace(v)).index;
+            return ((Queue)VecToSpace(v)).GetIndex();
         } else
         {
             return -1;
@@ -114,8 +114,8 @@ public class Map
     {
         Space s = VecToSpace(v);
         if (s == null) return true;
-        else if (s is Battery) return ((Battery)s).isPrimary;
-        else if (s is Queue) return ((Queue)s).isPrimary;
+        else if (s is Battery) return ((Battery)s).GetIsPrimary();
+        else if (s is Queue) return ((Queue)s).GetIsPrimary();
         else return true;
     }
 
@@ -139,7 +139,7 @@ public class Map
     public Vector2Int GetQueuePosition(byte i, bool isPrimary)
     {
         Space[] queueSpaces = Array.FindAll(spaces, (Space s) => s is Queue);
-        Space queueSpace = Array.Find(queueSpaces, (Space s) => ((Queue)s).index == i && ((Queue)s).isPrimary == isPrimary);
+        Space queueSpace = Array.Find(queueSpaces, (Space s) => ((Queue)s).GetIndex() == i && ((Queue)s).GetIsPrimary() == isPrimary);
         return new Vector2Int(queueSpace.x, queueSpace.y);
     }
 
@@ -172,6 +172,12 @@ public class Map
     {
         internal int x;
         internal int y;
+
+        protected const byte VOID_ID = 0;
+        protected const byte BLANK_ID = 1;
+        protected const byte BATTERY_ID = 2;
+        protected const byte QUEUE_ID = 4;
+
         internal static Space Create(char s)
         {
             switch (s)
@@ -192,28 +198,30 @@ public class Map
                     bool p = char.IsUpper(s);
                     byte i = (byte)(p ? s - 'A': s - 'a');
                     return new Queue(i, p);
-                case 'V':
                 default:
                     return new Void();
             }
         }
+
+        public abstract void accept(TileController t);
         public abstract void Serialize(NetworkWriter writer);
+
         public static Space Deserialize(NetworkReader reader)
         {
             byte s = reader.ReadByte();
-            if (s == 0)
+            if (s == VOID_ID)
             {
                 return new Void();
-            } else if (s == 1)
+            } else if (s == BLANK_ID)
             {
                 return new Blank();
-            } else if (s <= 3)
+            } else if (s < BATTERY_ID + 2)
             {
-                return new Battery(s == 2);
-            } else if (s <= 11)
+                return new Battery(s == BATTERY_ID);
+            } else if (s < QUEUE_ID + GameConstants.MAX_ROBOTS_ON_SQUAD*2)
             {
-                bool p = s <= 7;
-                byte i = (byte)(p ? s - 4 : s - 8);
+                bool p = s < QUEUE_ID + GameConstants.MAX_ROBOTS_ON_SQUAD;
+                byte i = (byte)(p ? s - GameConstants.MAX_ROBOTS_ON_SQUAD : s - (GameConstants.MAX_ROBOTS_ON_SQUAD*2));
                 return new Queue(i, p);
             }else
             {
@@ -221,45 +229,78 @@ public class Map
             }
         }
     }
-    private class Void : Space
+
+    public abstract class PlayerSpace : Space
     {
-        public override void Serialize(NetworkWriter writer)
+        protected bool isPrimary;
+
+        public bool GetIsPrimary()
         {
-            writer.Write((byte)0);
+            return isPrimary;
         }
     }
-    private class Blank : Space
+
+    public class Void : Space
     {
+        public override void accept(TileController t){}
+
         public override void Serialize(NetworkWriter writer)
         {
-            writer.Write((byte)1);
+            writer.Write(VOID_ID);
         }
     }
-    private class Battery : Space
+
+    public class Blank : Space
     {
-        internal bool isPrimary { private set; get; }
+        public override void accept(TileController t) { }
+
+        public override void Serialize(NetworkWriter writer)
+        {
+            writer.Write(BLANK_ID);
+        }
+    }
+
+    public class Battery : PlayerSpace
+    {
         internal Battery(bool p)
         {
             isPrimary = p;
         }
+
+        public override void accept(TileController t)
+        {
+            t.LoadBatteryTile(this);
+        }
+
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write((byte)(isPrimary ? 2 : 3));
         }
     }
-    private class Queue : Space
+
+    public class Queue : PlayerSpace
     {
-        internal bool isPrimary { private set; get; }
-        internal byte index { private set; get; }
+        private byte index;
         internal Queue(byte i, bool p)
         {
             index = i;
             isPrimary = p;
         }
+
+        public override void accept(TileController t)
+        {
+            t.LoadQueueTile(this);
+        }
+
         public override void Serialize(NetworkWriter writer)
         {
             byte s = (byte)((isPrimary ? 4:8) + index);
             writer.Write(s);
+        }
+
+        public byte GetIndex()
+        {
+            return index;
         }
 
     }

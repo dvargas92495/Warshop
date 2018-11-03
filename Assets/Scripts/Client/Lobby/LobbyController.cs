@@ -39,29 +39,19 @@ public class LobbyController : MonoBehaviour {
         DeactivateButtons();
         bool isPrivate = newGameSessionUI.GetPrivacy();
         string password = newGameSessionUI.GetPassword();
-        StartCoroutine(AwsLambdaClient.SendCreateGameRequest(isPrivate, GameClient.username, password, SetupNewGame));
+        StartCoroutine(AwsLambdaClient.SendCreateGameRequest(isPrivate, GameClient.username, password, SetupGame));
     }
 
     void JoinGame(GameSessionUiController match, string gameSessionId)
     {
         DeactivateButtons();
         string password = match.GetPassword();
-        StartCoroutine(AwsLambdaClient.SendJoinGameRequest(gameSessionId, GameClient.username, password, SetupJoinGame));
+        StartCoroutine(AwsLambdaClient.SendJoinGameRequest(gameSessionId, GameClient.username, password, SetupGame));
     }
 
-    void SetupNewGame(string playerSessionId, string ipAddress, int port)
+    void SetupGame(string playerSessionId, string ipAddress, int port)
     {
-        SetupGame(playerSessionId, ipAddress, port, true);
-    }
-
-    void SetupJoinGame(string playerSessionId, string ipAddress, int port)
-    {
-        SetupGame(playerSessionId, ipAddress, port, false);
-    }
-
-    void SetupGame(string playerSessionId, string ipAddress, int port, bool isPrimary)
-    {
-        BaseGameManager.InitializeStandard(playerSessionId, ipAddress, port, isPrimary);
+        BaseGameManager.InitializeStandard(playerSessionId, ipAddress, port);
         SceneManager.LoadScene("Setup");
     }
 

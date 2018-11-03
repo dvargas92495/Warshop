@@ -111,4 +111,13 @@ class Util
         }
         return returnArr;
     }
+
+    internal static T Find<T>(T[] arr, ReturnAction<T, bool> callback)
+    {
+        foreach (T item in arr)
+        {
+            if (callback(item)) return item;
+        }
+        return default(T);
+    }
 }

@@ -60,7 +60,6 @@ public class AwsGameClient : GameClient
     private void OnConnect(NetworkMessage netMsg)
     {
         log.Info("Connected");
-        BaseGameManager.ClientError("");
 
         Messages.AcceptPlayerSessionMessage msg = new Messages.AcceptPlayerSessionMessage();
         msg.playerSessionId = playerSessionId;
@@ -70,7 +69,6 @@ public class AwsGameClient : GameClient
     private void OnDisconnect(NetworkMessage netMsg)
     {
         log.Info("Disconnected");
-        BaseGameManager.ClientError("Disconnected, attempting to reconnect");
         client.Connect(ip, port);
     }
 

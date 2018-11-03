@@ -988,9 +988,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   backButton: {fileID: 1823166056}
-  newGameSessionUI: {fileID: 2105518633}
+  newGameSessionUI: {fileID: 0}
   gameSessionUI: {fileID: 114124043811574296, guid: 206f192ab8c01234f8647df6487d816d,
     type: 2}
+  gameSessionUIs: []
   statusModal: {fileID: 656025966}
   matches: {fileID: 229547428}
 --- !u!114 &738706554
@@ -2707,10 +2708,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2105518630}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93e6d1ab59001814bae88c04e63d0363, type: 3}
+  m_Script: {fileID: 11500000, guid: 92fc8f68877ea2442adb0b6c1f892ee1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playButton: {fileID: 0}
-  passwordField: {fileID: 0}
-  usernameField: {fileID: 0}
-  publicPrivateText: {fileID: 0}
+  playButton: {fileID: 1506498897}
+  passwordField: {fileID: 845672333}
+  usernameField: {fileID: 2003351545}
+  publicPrivateText: {fileID: 792002796}
+  publicPrivateDropdown: {fileID: 1692203813}

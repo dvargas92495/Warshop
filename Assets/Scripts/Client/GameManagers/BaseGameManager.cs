@@ -11,6 +11,7 @@ public class BaseGameManager
 {
     private static BaseGameManager instance;
 
+    protected BoardController boardController;
     protected SetupController setupController;
     protected Game.Player myPlayer;
     protected Game.Player opponentPlayer;
@@ -18,7 +19,6 @@ public class BaseGameManager
 
     // region deprecate
     internal static UIController uiController;
-    internal static BoardController boardController;
     internal static Dictionary<short, RobotController> robotControllers;
     internal static string ErrorString = "";
     internal static bool gameOver;
@@ -26,7 +26,6 @@ public class BaseGameManager
     private static Map board;
     private static Logger log = new Logger(typeof(BaseGameManager));
     private static bool myturn;
-    private static bool isPrimary;
     private static byte turnNumber = 1;
     private static Tuple<byte, byte, byte> currentHistory = new Tuple<byte, byte, byte>(1, GameConstants.MAX_PRIORITY, 0);
     private static byte[] presentState;
@@ -38,13 +37,11 @@ public class BaseGameManager
     internal static void InitializeLocal()
     {
         instance = new LocalGameManager();
-        isPrimary = true;
     }
 
-    internal static void InitializeStandard(string playerSessionId, string ipAddress, int port, bool isP)
+    internal static void InitializeStandard(string playerSessionId, string ipAddress, int port)
     {
         instance = new StandardGameManager(playerSessionId, ipAddress, port);
-        isPrimary = isP;
     }
 
     internal static void InitializeSetup(SetupController sc)
@@ -78,11 +75,6 @@ public class BaseGameManager
         SceneManager.LoadScene("Match");
     }
 
-    public static void ClientError(string s)
-    {
-        ErrorString = s;
-    }
-
     public static void InitializeBoard(BoardController bc)
     {
         instance.InitializeBoardImpl(bc);
@@ -92,6 +84,7 @@ public class BaseGameManager
     {
         boardController = bc;
         boardController.InitializeBoard(board);
+        boardController.SetBattery(myPlayer.battery, opponentPlayer.battery);
         InitializeRobots();
     }
 
@@ -103,30 +96,33 @@ public class BaseGameManager
     public void InitializeUiImpl(UIController ui)
     {
         uiController = ui;
-        uiController.InitializeUICanvas(new Game.Player[]{myPlayer, opponentPlayer }, isPrimary, SubmitActions);
+        uiController.InitializeUICanvas(myPlayer, opponentPlayer);
+        uiController.SubmitCommands.SetCallback(SubmitActions);
+        uiController.BackToPresent.SetCallback(BackToPresent);
+        uiController.StepForwardButton.SetCallback(StepForward);
+        uiController.StepBackButton.SetCallback(StepBackward);
         presentState = SerializeState(-1);
     }
 
     private void InitializeRobots()
     {
-        Transform[] docks = isPrimary ? new Transform[] { boardController.primaryDock.transform, boardController.secondaryDock.transform } :
-            new Transform[] { boardController.secondaryDock.transform, boardController.primaryDock.transform };
         robotControllers = new Dictionary<short, RobotController>();
-        InitializePlayerRobots(myPlayer, docks[0], false);
-        InitializePlayerRobots(opponentPlayer, docks[1], true);
+        InitializePlayerRobots(myPlayer, boardController.myDock);
+        InitializePlayerRobots(opponentPlayer, boardController.opponentDock);
     }
 
-    private void InitializePlayerRobots(Game.Player player, Transform dock, bool isOpponent)
+    private void InitializePlayerRobots(Game.Player player, DockController dock)
     {
-        for (int i = 0; i < player.team.Length; i++)
-        {
-            RobotController r = RobotController.Load(player.team[i], dock);
-            r.isOpponent = isOpponent;
-            r.canCommand = !r.isOpponent;
-            robotControllers[r.id] = r;
-            r.transform.localPosition = boardController.PlaceInBelt((isPrimary && !r.isOpponent) || (!isPrimary && r.isOpponent));
-            r.transform.rotation = Quaternion.Euler(0, 0, isPrimary ? 0 : 180);
-        }
+        Util.ForEach(player.team, r => InitializeRobot(r, dock));
+    }
+
+    private void InitializeRobot(Robot robot, DockController dock)
+    {
+        RobotController r = boardController.LoadRobot(robot, dock.transform);
+        r.isOpponent = dock.Equals(boardController.opponentDock);
+        r.canCommand = !r.isOpponent;
+        robotControllers[r.id] = r;
+        r.transform.localPosition = dock.PlaceInBelt();
     }
 
     public void SubmitActions()
@@ -144,7 +140,6 @@ public class BaseGameManager
             foreach (Command cmd in robot.commands)
             {
                 Command c = cmd;
-                if (!isPrimary && myturn) c = Util.Flip(c);
                 c.robotId = robot.id;
                 commands.Add(c);
             }
@@ -203,8 +198,8 @@ public class BaseGameManager
 
     private class InfoThisPriority {
         internal List<GameEvent> events = new List<GameEvent>();
-        internal int userBattery = uiController.GetUserBattery();
-        internal int opponentBattery = uiController.GetOpponentBattery();
+        internal int userBattery;
+        internal int opponentBattery;
         internal int animationsToPlay = 0;
     }
 
@@ -244,19 +239,19 @@ public class BaseGameManager
         GameEvent e = events[i];
         if (!infoThisPriority.events.Any())
         {
-            infoThisPriority.userBattery = uiController.GetUserBattery();
-            infoThisPriority.opponentBattery = uiController.GetOpponentBattery();
+            infoThisPriority.userBattery = boardController.GetMyBatteryScore();
+            infoThisPriority.opponentBattery = boardController.GetOpponentBatteryScore();
         }
         Action<int> Next = (int j) => NextEvent(events, infoThisPriority, j); 
         if (e is GameEvent.Resolve)
         {
             GameEvent.Resolve r = (GameEvent.Resolve)e;
             uiController.HighlightCommands(r.commandType, r.priority);
-            int currentUserBattery = uiController.GetUserBattery();
-            int currentOpponentBattery = uiController.GetOpponentBattery();
-            uiController.SetBattery(infoThisPriority.userBattery, infoThisPriority.opponentBattery);
+            int currentUserBattery = boardController.GetMyBatteryScore();
+            int currentOpponentBattery = boardController.GetOpponentBatteryScore();
+            boardController.SetBattery(infoThisPriority.userBattery, infoThisPriority.opponentBattery);
             History.Add(new Tuple<byte, byte, byte, byte[]>(turnNumber, r.priority, GameEvent.Resolve.GetByte(r.commandType), SerializeState(r.priority)));
-            uiController.SetBattery(currentUserBattery, currentOpponentBattery);
+            boardController.SetBattery(currentUserBattery, currentOpponentBattery);
             uiController.SetPriority(r.priority);
             Action callback = () =>
             {
@@ -267,10 +262,19 @@ public class BaseGameManager
                 if (!evt.success) continue;
                 RobotController primaryRobot = GetRobot(evt.primaryRobotId);
                 infoThisPriority.animationsToPlay++;
-                if (evt is GameEvent.Move) primaryRobot.displayMove(((GameEvent.Move)evt).destinationPos, callback);
+                if (evt is GameEvent.Move) primaryRobot.displayMove(((GameEvent.Move)evt).destinationPos, callback, boardController.PlaceRobot);
                 else if (evt is GameEvent.Attack) primaryRobot.displayAttack(((GameEvent.Attack)evt).locs[0], callback);
-                else if (evt is GameEvent.Death) primaryRobot.displayDeath(((GameEvent.Death)evt).returnHealth, isPrimary, callback);
-                else if (evt is GameEvent.Spawn) primaryRobot.displaySpawn(((GameEvent.Spawn)evt).destinationPos, isPrimary, callback);
+                else if (evt is GameEvent.Death) primaryRobot.displayDeath(((GameEvent.Death)evt).returnHealth, callback, () => {
+                    boardController.UnplaceRobot(primaryRobot);
+                    DockController dock = !primaryRobot.isOpponent ? boardController.myDock : boardController.opponentDock;
+                    primaryRobot.transform.parent = dock.transform;
+                    primaryRobot.transform.localPosition = dock.PlaceInBelt();
+                });
+                else if (evt is GameEvent.Spawn) primaryRobot.displaySpawn(((GameEvent.Spawn)evt).destinationPos, callback, () => {
+                    (primaryRobot.isOpponent ? boardController.opponentDock : boardController.myDock).RemoveFromBelt(primaryRobot.transform.localPosition);
+                    primaryRobot.transform.parent = boardController.transform;
+                    boardController.PlaceRobot(primaryRobot, ((GameEvent.Spawn)evt).destinationPos.x, ((GameEvent.Spawn)evt).destinationPos.y);
+                });
                 else infoThisPriority.animationsToPlay--;
                 primaryRobot.clearEvents();
             }
@@ -280,11 +284,11 @@ public class BaseGameManager
         else if (e is GameEvent.End)
         {
             GameEvent.End evt = (GameEvent.End)e;
-            if (evt.primaryLost) boardController.primaryBatteryLocation.transform.Rotate(Vector3.down * 90);
-            if (evt.secondaryLost) boardController.secondaryBatteryLocation.transform.Rotate(Vector3.down * 90);
-            uiController.Splash(!((isPrimary && evt.primaryLost) || (!isPrimary && evt.secondaryLost)));
+            if (evt.primaryLost) boardController.GetMyBattery().transform.Rotate(Vector3.down * 90);
+            if (evt.secondaryLost) boardController.GetOpponentBattery().transform.Rotate(Vector3.down * 90);
+            uiController.Splash(evt.primaryLost);
             Array.ForEach(robotControllers.Values.ToArray(), (RobotController r) => r.canCommand = false);
-            uiController.statsInterface.Initialize(evt, isPrimary);
+            uiController.statsInterface.Initialize(evt, true);
             myturn = false;
             gameOver = true;
             Next(i + 1);
@@ -307,19 +311,19 @@ public class BaseGameManager
             else if (e is GameEvent.Miss) Array.ForEach(((GameEvent.Miss)e).locs, (Vector2Int v) => primaryRobot.displayEvent("Missed Attack", v, callback, false));
             else if (e is GameEvent.Battery)
             {
-                Vector3 pos = (((GameEvent.Battery)e).isPrimary ? boardController.primaryBatteryLocation : boardController.secondaryBatteryLocation).transform.position;
+                Vector3 pos = (((GameEvent.Battery)e).isPrimary ? boardController.GetMyBattery(): boardController.GetOpponentBattery()).transform.position;
                 primaryRobot.displayEvent("Damage", new Vector2Int((int)pos.x, (int)pos.y), callback, false);
             }
             else if (e is GameEvent.Spawn) primaryRobot.displayEvent("", new Vector2Int(((GameEvent.Spawn)e).destinationPos.x, ((GameEvent.Spawn)e).destinationPos.y), callback, false);
             else goNext = true;
             log.Info(e.ToString());
-            uiController.SetBattery(e.primaryBattery, e.secondaryBattery);
+            boardController.SetBattery(e.primaryBattery, e.secondaryBattery);
             infoThisPriority.events.Add(e);
             if (goNext) callback();
         }
     }
 
-    private static byte[] SerializeState(int priority)
+    private byte[] SerializeState(int priority)
     {
         BinaryFormatter bf = new BinaryFormatter();
         using (MemoryStream ms = new MemoryStream())
@@ -359,19 +363,19 @@ public class BaseGameManager
             foreach (TileController t in boardController.GetComponentsInChildren<TileController>())
             {
                 Material m = t.GetComponent<MeshRenderer>().material;
-                if (m.name.StartsWith(t.BaseTile.name)) bf.Serialize(ms, 0);
-                else if (m.name.StartsWith(t.UserBaseTile.name)) bf.Serialize(ms, 1);
-                else if (m.name.StartsWith(t.OpponentBaseTile.name)) bf.Serialize(ms, 2);
+                if (m.name.StartsWith(t.baseTile.name)) bf.Serialize(ms, 0);
+                else if (m.name.StartsWith(t.userBaseTile.name)) bf.Serialize(ms, 1);
+                else if (m.name.StartsWith(t.opponentBaseTile.name)) bf.Serialize(ms, 2);
                 else throw new Exception("Unknown material: " + m);
             }
-            bf.Serialize(ms, uiController.GetUserBattery());
-            bf.Serialize(ms, uiController.GetOpponentBattery());
+            bf.Serialize(ms, boardController.GetMyBatteryScore());
+            bf.Serialize(ms, boardController.GetOpponentBatteryScore());
             bf.Serialize(ms, priority);
             return ms.ToArray();
         }
     }
 
-    private static void DeserializeState(byte[] state)
+    private void DeserializeState(byte[] state)
     {
         using (MemoryStream ms = new MemoryStream())
         {
@@ -426,18 +430,18 @@ public class BaseGameManager
             foreach (TileController t in boardController.GetComponentsInChildren<TileController>())
             {
                 int m = (int)bf.Deserialize(ms);
-                if (m == 0) t.GetComponent<MeshRenderer>().material = boardController.tile.BaseTile;
-                else if (m == 1) t.GetComponent<MeshRenderer>().material = boardController.tile.UserBaseTile;
-                else if (m == 2) t.GetComponent<MeshRenderer>().material = boardController.tile.OpponentBaseTile;
+                if (m == 0) t.GetComponent<MeshRenderer>().material = boardController.tile.baseTile;
+                else if (m == 1) t.GetComponent<MeshRenderer>().material = boardController.tile.userBaseTile;
+                else if (m == 2) t.GetComponent<MeshRenderer>().material = boardController.tile.opponentBaseTile;
             }
             int userBattery = (int)bf.Deserialize(ms);
             int opponentBattery = (int)bf.Deserialize(ms);
-            uiController.SetBattery(userBattery, opponentBattery);
+            boardController.SetBattery(userBattery, opponentBattery);
             uiController.SetPriority((int)bf.Deserialize(ms));
         }
     }
 
-    public static void BackToPresent()
+    public void BackToPresent()
     {
         DeserializeState(presentState);
         currentHistory = new Tuple<byte, byte, byte>((byte)(turnNumber + 1), GameConstants.MAX_PRIORITY, 0);
@@ -454,7 +458,7 @@ public class BaseGameManager
         uiController.StepForwardButton.Deactivate();
     }
 
-    public static void StepForward()
+    public void StepForward()
     {
         Tuple<byte, byte, byte, byte[]> historyState = History.Find((Tuple<byte, byte, byte, byte[]> t) =>
                    (t.Item1 == currentHistory.Item1 && t.Item2 == currentHistory.Item2 && t.Item3 == currentHistory.Item3));
@@ -472,7 +476,7 @@ public class BaseGameManager
         uiController.StepBackButton.Activate();
     }
 
-    public static void StepBackward()
+    public void StepBackward()
     {
         int historyIndex = History.Count;
         if (currentHistory.Item1 != turnNumber+1)
@@ -488,7 +492,7 @@ public class BaseGameManager
         uiController.BackToPresent.Activate();
     }
 
-    private static void GoTo(byte turn, byte priority, byte command, byte[] state)
+    private void GoTo(byte turn, byte priority, byte command, byte[] state)
     {
         DeserializeState(state);
         currentHistory = new Tuple<byte,byte,byte> ( turn, priority, command );

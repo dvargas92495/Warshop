@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
 public class RobotController : MonoBehaviour
 {
@@ -17,23 +16,12 @@ public class RobotController : MonoBehaviour
     public SpriteRenderer eventArrow;
     public TextMesh HealthLabel;
     public TextMesh AttackLabel;
+    public GameObject[] RobotModels;
 
-    public static RobotController Load(Robot robot, Transform dock)
+    public void LoadModel(string n, short i)
     {
-        RobotController r = Instantiate(BaseGameManager.boardController.robotBase, dock);
-        r.LoadModel(robot.name);
-        r.name = robot.name;
-        r.id = robot.id;
-        r.displayHealth(robot.health);
-        r.displayAttack(robot.attack);
-        r.HealthLabel.GetComponent<MeshRenderer>().sortingOrder = r.HealthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
-        r.AttackLabel.GetComponent<MeshRenderer>().sortingOrder = r.AttackLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
-        return r;
-    }
-
-    public void LoadModel(string n)
-    {
-        GameObject model = Array.Find(BaseGameManager.boardController.RobotModels, (GameObject g) => g.name.Equals(n));
+        id = i;
+        GameObject model = Array.Find(RobotModels, (GameObject g) => g.name.Equals(n));
         if (model == null) model = DefaultModel;
         GameObject baseModel = Instantiate(model, transform.GetComponentInChildren<Animator>().transform);
     }
@@ -59,9 +47,9 @@ public class RobotController : MonoBehaviour
 
     internal void ShowMenuOptions(GameObject m)
     {
-        if (
-            (transform.parent.Equals(BaseGameManager.boardController.primaryDock.transform) ||
-            transform.parent.Equals(BaseGameManager.boardController.secondaryDock.transform)) &&
+        if (//TODO
+            //(transform.parent.Equals(BaseGameManager.boardController.myDock.transform) ||
+            //transform.parent.Equals(BaseGameManager.boardController.opponentDock.transform)) &&
             commands.Count == 0
         )
         {
@@ -112,11 +100,9 @@ public class RobotController : MonoBehaviour
         };
     }
 
-    public void displayMove(Vector2Int v, Action callback)
+    public void displayMove(Vector2Int v, Action callback, UnityAction<RobotController, int, int> robotCallback)
     {
-        animate("Move" + getDir(v), callback, () => {
-            BaseGameManager.boardController.PlaceRobot(transform, v.x, v.y);
-        });
+        animate("Move" + getDir(v), callback, () => robotCallback(this, v.x, v.y));
     }
 
     public void displayAttack(Vector2Int v, Action callback)
@@ -124,26 +110,18 @@ public class RobotController : MonoBehaviour
         animate("Attack" + getDir(v), callback, () => {});
     }
 
-    public void displaySpawn(Vector2Int v, bool isPrimary, Action callback)
+    public void displaySpawn(Vector2Int v, Action callback, UnityAction robotCallback)
     {
-        animate("Default", callback, () => {
-            BaseGameManager.boardController.RemoveFromBelt(transform.localPosition, ((!isOpponent && isPrimary) || (isOpponent && !isPrimary)));
-            transform.parent = BaseGameManager.boardController.transform;
-            BaseGameManager.boardController.PlaceRobot(transform, v.x, v.y);
-        });
+        animate("Default", callback, () => robotCallback());
     }
 
-    public void displayDeath(short health, bool isPrimary, Action callback)
+    public void displayDeath(short health, Action callback, UnityAction robotCallback)
     {
         Debug.Log(id);
         animate("Death", callback, () => {
             displayHealth(health);
-            BaseGameManager.boardController.UnplaceRobot(transform);
             gameObject.SetActive(false);
-            bool isP = ((!isOpponent && isPrimary) || (isOpponent && !isPrimary));
-            Transform dock = isP ? BaseGameManager.boardController.primaryDock.transform : BaseGameManager.boardController.secondaryDock.transform;
-            transform.parent = dock;
-            transform.localPosition = BaseGameManager.boardController.PlaceInBelt(isP);
+            robotCallback();
         });
     }
 

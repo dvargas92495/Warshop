@@ -1,59 +1,67 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using TMPro;
 
 
-public class TileController : MonoBehaviour {
-
-    public GameObject battery;
-    public GameObject QueueMarker;
-    public Sprite[] queueSprites;
-    public TMP_Text spawnTileText;
+public class TileController : MonoBehaviour
+{
+    public BatteryController battery;
+    public GameObject queueMarker;
     public Material userSpawnTileTextMaterial;
     public Material opponentSpawnTileTextMaterial;
-    public Material BaseTile;
-    public Material UserBaseTile;
-    public Material OpponentBaseTile;
-    public Material OpponentCore;
-    public Sprite defaultSpace;
-    //Not used for now:
-    //internal static Color userQueueColor = new Color(0, 0.5f, 1.0f);
-    //internal static Color opponentQueueColor = new Color(1.0f, 0.25f, 0);
+    public Material baseTile;
+    public Material userBaseTile;
+    public Material opponentBaseTile;
+    public Material opponentCore;
+    public MeshRenderer meshRenderer;
+    public TMP_Text spawnTileText;
 
-    public byte LoadTile(Map b, int x, int y)
+    private UnityAction<BatteryController> primaryBatterySetterCallback;
+    private UnityAction<BatteryController> secondaryBatterySetterCallback;
+
+    public void LoadTile(Map.Space s, UnityAction<BatteryController> primaryCallback, UnityAction<BatteryController> secondaryCallback)
     {
-        Vector2Int v = new Vector2Int(x, y);
-        //sr.sprite = defaultSpace;
-        if (b.IsVoid(v)) {
-            //sr.color = Color.black;
-            return BoardController.VOID_TYPE;
-        } else if (b.IsQueue(v))
-        {
-            TMP_Text spawnText = Instantiate(spawnTileText, transform);
-            spawnText.text = (b.GetQueueIndex(v)+1).ToString();
-            spawnText.transform.localPosition = Vector3.back * 0.501f;
-            spawnText.fontSharedMaterial = b.IsPrimary(v) ? userSpawnTileTextMaterial : opponentSpawnTileTextMaterial;
+        s.accept(this);
+        primaryBatterySetterCallback = primaryCallback;
+        secondaryBatterySetterCallback = secondaryCallback;
+    }
 
-            return BoardController.QUEUE_TYPE;
-        } else if (b.IsBattery(v))
-        {
-            GameObject Battery = Instantiate(battery, transform);
-            Battery.transform.localRotation = Quaternion.Euler(Vector3.left * 90);
-            Battery.transform.localPosition = Vector3.back * 0.5f;
-            //Battery.transform.localScale += Vector3.up * ((1 / transform.localScale.z) - 1);
-            if (!b.IsPrimary(v))
-            {
-                Battery.transform.GetChild(0).GetComponent<Renderer>().material = OpponentCore;
-            }
+    public void LoadBlankTile(Map.Blank s)
+    {
+    }
 
-            return BoardController.BATTERY_TYPE;
+    public void LoadBatteryTile(Map.Battery s)
+    {
+        BatteryController Battery = Instantiate(battery, transform);
+        Battery.transform.localRotation = Quaternion.Euler(Vector3.left * 90);
+        Battery.transform.localPosition = Vector3.back * 0.5f;
+
+        if (s.GetIsPrimary())
+        {
+            Battery.transform.GetChild(0).GetComponent<Renderer>().material = opponentCore;
+            secondaryBatterySetterCallback(Battery);
         }
-        
-
         else
         {
-            //sr.color = Color.white;
-            return BoardController.BLANK_TYPE;
+            primaryBatterySetterCallback(Battery);
         }
     }
 
+    public void LoadQueueTile(Map.Queue s)
+    {
+        TMP_Text spawnText = Instantiate(spawnTileText, transform);
+        spawnText.text = (s.GetIndex() + 1).ToString();
+        spawnText.transform.localPosition = Vector3.back * 0.501f;
+        spawnText.fontSharedMaterial = s.GetIsPrimary() ? userSpawnTileTextMaterial : opponentSpawnTileTextMaterial;
+    }
+
+    public void LoadRobotOnTileMesh(bool isOpponent)
+    {
+        meshRenderer.material = isOpponent ? opponentBaseTile : userBaseTile;
+    }
+
+    public void ResetMesh()
+    {
+        meshRenderer.material = baseTile;
+    }
 }

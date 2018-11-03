@@ -9,13 +9,9 @@ using System.Linq;
 
 public class UIController : MonoBehaviour {
 
-	public TextMesh ScoreModel;
-    
-    internal TextMesh opponentScore;
-    public Image OpponentBackground;
+	public Image OpponentBackground;
     public GameObject OpponentsRobots;
     
-    internal TextMesh userScore;
     public Image UserBackground;
     public GameObject UsersRobots;
 
@@ -40,7 +36,8 @@ public class UIController : MonoBehaviour {
 
     public Sprite Default;
     public Sprite[] sprites;
-    public Sprite[] arrows;    
+    public Sprite[] arrows;
+    public Sprite[] queueSprites;
 
     private Dictionary<short, GameObject> robotIdToPanel = new Dictionary<short, GameObject>();
     private int CommandChildIndex = 3;
@@ -111,48 +108,19 @@ public class UIController : MonoBehaviour {
     }
 
     //Loads the UICanvas and it's child components
-    public void InitializeUICanvas(Game.Player[] playerObjects, bool isPrimary, UnityAction submitCommandsCallback)
+    public void InitializeUICanvas(Game.Player myPlayer, Game.Player opponentPlayer)
     {
-        SetPlayerPanel(playerObjects[1], true);
-        SetPlayerPanel(playerObjects[0], false);
+        SetPlayerPanel(opponentPlayer, true);
+        SetPlayerPanel(myPlayer, false);
 
-        userScore = Instantiate(ScoreModel, (isPrimary ? BaseGameManager.boardController.primaryBatteryLocation : 
-            BaseGameManager.boardController.secondaryBatteryLocation).transform);
-        userScore.GetComponent<MeshRenderer>().sortingOrder = 1;
-
-        opponentScore = Instantiate(ScoreModel, (!isPrimary ? BaseGameManager.boardController.primaryBatteryLocation : 
-            BaseGameManager.boardController.secondaryBatteryLocation).transform);
-        opponentScore.GetComponent<MeshRenderer>().sortingOrder = 1;
-        SetBattery(playerObjects[0].battery, playerObjects[1].battery);
-        BaseGameManager.boardController.ColorQueueBelt(isPrimary);
-        if (!isPrimary)
-        {
-            BaseGameManager.boardController.cam.transform.Rotate(new Vector3(60, 0, 180));
-            BaseGameManager.boardController.cam.transform.position += Vector3.up * 16; //TODO: Magic Number?
-            BaseGameManager.boardController.allQueueLocations.ToList().ForEach((TileController t) =>
-            {
-                TMP_Text s = t.transform.GetComponentInChildren<TMP_Text>();
-                s.transform.Rotate(new Vector3(0, 0, 180));
-                s.fontSharedMaterial = s.fontSharedMaterial.Equals(BaseGameManager.boardController.tile.userSpawnTileTextMaterial) ?
-                    BaseGameManager.boardController.tile.opponentSpawnTileTextMaterial : 
-                    BaseGameManager.boardController.tile.userSpawnTileTextMaterial;
-            });
-            userScore.transform.Rotate(Vector3.forward, 180);
-            opponentScore.transform.Rotate(Vector3.forward, 180);
-        }
-        SubmitCommands.SetCallback(submitCommandsCallback);
-        BackToPresent.SetCallback(BaseGameManager.BackToPresent);
-        StepBackButton.SetCallback(BaseGameManager.StepBackward);
-        StepForwardButton.SetCallback(BaseGameManager.StepForward);
         SubmitCommands.Deactivate();
         BackToPresent.Deactivate();
         StepBackButton.Deactivate();
         StepForwardButton.Deactivate();
+
         SetButtons(RobotButtonContainer, true);
         SetButtons(CommandButtonContainer, false);
         SetButtons(DirectionButtonContainer, false);
-        return;
-        
     }
 
     void SetPlayerPanel(Game.Player player, bool isOpponent)
@@ -208,7 +176,7 @@ public class UIController : MonoBehaviour {
                     EachMenuItem(DirectionButtonContainer, (MenuItemController d) => {
                         byte dir = Command.byteToDirectionString.First((KeyValuePair<byte, string> pair) => pair.Value.Equals(d.name)).Key;
                         d.GetComponentInChildren<SpriteRenderer>().sprite = isSpawn ?
-                            BaseGameManager.boardController.tile.queueSprites[dir] : BaseGameManager.uiController.GetArrow(m + " Arrow");
+                            queueSprites[dir] : BaseGameManager.uiController.GetArrow(m + " Arrow");
                         d.SetCallback(() => {
                             BaseGameManager.robotControllers[r.id].addRobotCommand(m, dir);
                             EachMenuItem(DirectionButtonContainer, (MenuItemController d2) => d2.GetComponentInChildren<SpriteRenderer>().sprite = null);
@@ -305,7 +273,7 @@ public class UIController : MonoBehaviour {
                 child.Open();
                 if (cmd is Command.Spawn)
                 {
-                    child.Arrow.sprite = BaseGameManager.boardController.tile.queueSprites[cmd.direction];
+                    child.Arrow.sprite = queueSprites[cmd.direction];
                     child.Arrow.transform.localRotation = Quaternion.identity;
                 } else
                 {
@@ -338,7 +306,7 @@ public class UIController : MonoBehaviour {
             if (child.Arrow.sprite.Equals(Default)) break;
             string name = child.Arrow.sprite.name;
             byte d = name.StartsWith(Command.Spawn.DISPLAY) ? 
-                (byte)BaseGameManager.boardController.tile.queueSprites.ToList().IndexOf(child.Arrow.sprite) : 
+                (byte)queueSprites.ToList().IndexOf(child.Arrow.sprite) : 
                 (byte)(child.Arrow.transform.localRotation.eulerAngles.z / 90);
             content.Add(new Tuple<string, byte>(child.Arrow.sprite.name, d));
         }
@@ -356,22 +324,6 @@ public class UIController : MonoBehaviour {
                 child.Arrow.gameObject.SetActive(true);
             }
         }
-    }
-
-    public void SetBattery(int a, int b)
-    {
-        userScore.text = a.ToString();
-        opponentScore.text = b.ToString();
-    }
-
-    public int GetUserBattery()
-    {
-        return int.Parse(userScore.text);
-    }
-
-    public int GetOpponentBattery()
-    {
-        return int.Parse(opponentScore.text);
     }
 
     internal void EachMenuItem(GameObject g, Action<MenuItemController> a)
@@ -412,7 +364,7 @@ public class UIController : MonoBehaviour {
 
     public void Splash(bool win)
     {
-        BaseGameManager.ClientError(win ? "You win!" : "You lose!"); //TODO REMOVE
+        //TODO: Add Calvin's screens
         //SplashScreen.GetComponentInChildren<Text>().text = win ? "YOU WIN!" : "YOU LOSE!";
         //SplashScreen.gameObject.SetActive(true);
         //SetButtons(false);

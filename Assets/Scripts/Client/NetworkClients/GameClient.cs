@@ -60,7 +60,6 @@ public abstract class GameClient
     {
         Messages.ServerErrorMessage msg = netMsg.ReadMessage<Messages.ServerErrorMessage>();
         log.Fatal(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
-        BaseGameManager.ClientError(msg.serverMessage);
     }
     
     internal void SendSubmitCommands (Command[] commands, string owner) {
