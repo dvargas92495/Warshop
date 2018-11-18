@@ -10,10 +10,9 @@ public class LocalGameClient : GameClient
         localApp.Receive(msgType, message);
     }
 
-    internal void ConnectToGameServer(UnityAction<Robot[], Robot[], string, Map> readyCallback)
+    internal void ConnectToGameServer()
     {
         localApp.Receive(MsgType.Connect, Messages.EMPTY);
-        gameReadyCallback = readyCallback;
     }
 
     internal void Receive(short msgType, MessageBase message)
@@ -27,13 +26,14 @@ public class LocalGameClient : GameClient
         GetHandler(msgType)(netMsg);
     }
 
-    internal void SendLocalGameRequest(string[] myRobots, string[] opponentRobots, string myname, string opponentname)
+    internal void SendLocalGameRequest(string[] myRobots, string[] opponentRobots, string myname, string opponentname, UnityAction<Robot[], Robot[], string, Map> readyCallback)
     {
         Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
         msg.myRobots = myRobots;
         msg.opponentRobots = opponentRobots;
         msg.myName = myname;
         msg.opponentName = opponentname;
+        gameReadyCallback = readyCallback;
         Send(Messages.START_LOCAL_GAME, msg);
     }
 }

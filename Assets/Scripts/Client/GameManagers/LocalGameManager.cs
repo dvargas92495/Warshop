@@ -13,7 +13,7 @@
         base.InitializeSetupImpl(sc);
         sc.opponentSquadPanel.gameObject.SetActive(true);
         sc.opponentSquadPanel.SetAddCallback(sc.AddSelectedToOpponentSquad);
-        gameClient.AsLocal().ConnectToGameServer(LoadBoard);
+        gameClient.AsLocal().ConnectToGameServer();
         
         if (sc.playtest != null)
         {
@@ -32,7 +32,7 @@
         myPlayer = new Game.Player(new Robot[0], username);
         opponentPlayer = new Game.Player(new Robot[0], setupController.opponentName.text);
         string[] opponentRobotNames = setupController.opponentSquadPanel.GetSquadRobotNames();
-        gameClient.AsLocal().SendLocalGameRequest(myRobotNames, opponentRobotNames, myPlayer.name, opponentPlayer.name);
+        gameClient.AsLocal().SendLocalGameRequest(myRobotNames, opponentRobotNames, myPlayer.name, opponentPlayer.name, LoadBoard);
     }
 
     protected override void SubmitCommands()

@@ -8,13 +8,13 @@
     protected new void InitializeSetupImpl(SetupController sc)
     {
         base.InitializeSetupImpl(sc);
-        gameClient.AsAws().ConnectToGameServer(LoadBoard, setupController.statusModal.DisplayError);
+        gameClient.AsAws().ConnectToGameServer(setupController.statusModal.DisplayError);
     }
 
     protected new void SendPlayerInfoImpl(string[] myRobotNames, string username)
     {
         base.SendPlayerInfoImpl(myRobotNames, username);
-        gameClient.AsAws().SendGameRequest(myRobotNames, myPlayer.name);
+        gameClient.AsAws().SendGameRequest(myRobotNames, myPlayer.name, LoadBoard);
     }
 
     protected override void SubmitCommands()

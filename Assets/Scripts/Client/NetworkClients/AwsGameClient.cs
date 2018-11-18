@@ -17,11 +17,10 @@ public class AwsGameClient : GameClient
         port = p;
     }
 
-    internal void ConnectToGameServer(UnityAction<Robot[], Robot[], string, Map> readyCallback, UnityAction<string> errorCallback)
+    internal void ConnectToGameServer(UnityAction<string> errorCallback)
     {
         try
         {
-            gameReadyCallback = readyCallback;
             client = new NetworkClient();
             short[] messageTypes = new short[] {
                 MsgType.Connect, MsgType.Disconnect, MsgType.Error, Messages.GAME_READY, Messages.TURN_EVENTS, Messages.WAITING_COMMANDS, Messages.SERVER_ERROR,
@@ -72,11 +71,12 @@ public class AwsGameClient : GameClient
         client.Connect(ip, port);
     }
 
-    internal void SendGameRequest(string[] myRobots, string myname)
+    internal void SendGameRequest(string[] myRobots, string myname, UnityAction<Robot[], Robot[], string, Map> readyCallback)
     {
         Messages.StartGameMessage msg = new Messages.StartGameMessage();
         msg.myName = myname;
         msg.myRobots = myRobots;
+        gameReadyCallback = readyCallback;
         Send(Messages.START_GAME, msg);
     }
 }
