@@ -15,10 +15,7 @@ public class LocalApp : App
     protected new void OnConnect(NetworkMessage netMsg)
     {
         log.Info(netMsg, "Client Connected");
-        if (!GameConstants.USE_SERVER)
-        {
-            OnGameSession(new GameSession());
-            gameClient.Receive(MsgType.Connect, Messages.EMPTY);
-        }
+        OnGameSession(new GameSession());
+        gameClient.Receive(MsgType.Connect, Messages.EMPTY);
     }
 }

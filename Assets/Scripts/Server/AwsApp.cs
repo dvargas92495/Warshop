@@ -48,4 +48,26 @@ public class AwsApp : App
     {
         NetworkServer.connections[connId].Send(msgType, msg);
     }
+
+    protected new NetworkMessageDelegate GetHandler(short messageType)
+    {
+        switch (messageType)
+        {
+            case Messages.ACCEPT_PLAYER_SESSION:
+                return OnAcceptPlayerSession;
+            default:
+                return base.GetHandler(messageType);
+        }
+    }
+
+    private void OnAcceptPlayerSession(NetworkMessage netMsg)
+    {
+        Messages.AcceptPlayerSessionMessage msg = netMsg.ReadMessage<Messages.AcceptPlayerSessionMessage>();
+        GenericOutcome outcome = GameLiftServerAPI.AcceptPlayerSession(msg.playerSessionId);
+        if (!outcome.Success)
+        {
+            log.Error(outcome);
+            return;
+        }
+    }
 }

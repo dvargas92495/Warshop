@@ -10,8 +10,6 @@ public class InitialController : MonoBehaviour {
     public Button EnterLocalMatchButton;
     public Button ProfileButton;
 
-    public Toggle useServerToggle;
-
     private bool isServer;
     private bool entered;
     private bool localMode;
@@ -25,7 +23,6 @@ public class InitialController : MonoBehaviour {
         Logger.Setup(isServer);
         if (isServer)
         {
-            GameConstants.USE_SERVER = true;
             App.StartServer();
             return;
         }
@@ -34,9 +31,6 @@ public class InitialController : MonoBehaviour {
         EnterLocalMatchButton.onClick.AddListener(EnterLocalMatch);
         ProfileButton.onClick.AddListener(EnterProfile);
 
-        GameConstants.USE_SERVER = !Application.isEditor;
-        useServerToggle.gameObject.SetActive(Application.isEditor);
-        useServerToggle.onValueChanged.AddListener((bool val) => GameConstants.USE_SERVER = val);
         UsernameField.text = GameClient.username;
     }
 

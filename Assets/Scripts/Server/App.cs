@@ -25,8 +25,6 @@ public abstract class App
                 return OnConnect;
             case MsgType.Disconnect:
                 return OnDisconnect;
-            case Messages.ACCEPT_PLAYER_SESSION:
-                return OnAcceptPlayerSession;
             case Messages.START_LOCAL_GAME:
                 return OnStartLocalGame;
             case Messages.START_GAME:
@@ -116,17 +114,6 @@ public abstract class App
     private static void OnDisconnect(NetworkMessage netMsg)
     {
         log.Info(netMsg, "Client Disconnected");
-    }
-
-    private static void OnAcceptPlayerSession(NetworkMessage netMsg)
-    {
-        Messages.AcceptPlayerSessionMessage msg = netMsg.ReadMessage<Messages.AcceptPlayerSessionMessage>();
-        GenericOutcome outcome = GameLiftServerAPI.AcceptPlayerSession(msg.playerSessionId);
-        if (!outcome.Success && GameConstants.USE_SERVER)
-        {
-            log.Error(outcome);
-            return;
-        }
     }
 
     protected void OnStartLocalGame(NetworkMessage netMsg)

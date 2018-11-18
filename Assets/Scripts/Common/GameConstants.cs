@@ -25,8 +25,4 @@
 
     internal const string APP_LOG_DIR = "/local/game/logs";
     internal const string GATEWAY_URL = "https://o29y7usfvd.execute-api.us-west-2.amazonaws.com/PROD";
-
-    //TODO: delete
-    internal static bool LOCAL_MODE = true;
-    internal static bool USE_SERVER = false;
 }
