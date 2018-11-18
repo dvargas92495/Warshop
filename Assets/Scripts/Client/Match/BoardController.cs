@@ -42,8 +42,8 @@ public class BoardController : MonoBehaviour
         r.name = robot.name;
         r.displayHealth(robot.health);
         r.displayAttack(robot.attack);
-        r.HealthLabel.GetComponent<MeshRenderer>().sortingOrder = r.HealthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
-        r.AttackLabel.GetComponent<MeshRenderer>().sortingOrder = r.AttackLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
+        r.healthLabel.GetComponent<MeshRenderer>().sortingOrder = r.healthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
+        r.attackLabel.GetComponent<MeshRenderer>().sortingOrder = r.attackLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
         return r;
     }
 
@@ -73,6 +73,11 @@ public class BoardController : MonoBehaviour
     public BatteryController GetOpponentBattery()
     {
         return opponentBattery;
+    }
+
+    public TileController[] GetAllTiles()
+    {
+        return allLocations;
     }
 
     public void SetMyBattery(BatteryController batteryController)

@@ -8,6 +8,7 @@ public class MenuItemController : MonoBehaviour {
     public Material activeRing;
     public Material inactiveBase;
     public Material activeBase;
+    public SpriteRenderer spriteRenderer;
     private bool inactive;
     private bool selected;
 
@@ -19,6 +20,16 @@ public class MenuItemController : MonoBehaviour {
     public void SetCallback(UnityAction c)
     {
         callback = c;
+    }
+
+    public void SetSprite(Sprite s)
+    {
+        spriteRenderer.sprite = s;
+    }
+
+    public void ClearSprite()
+    {
+        spriteRenderer.sprite = null;
     }
 
     public void Click()

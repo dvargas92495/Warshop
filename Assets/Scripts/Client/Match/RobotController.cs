@@ -1,0 +1,173 @@
+﻿using UnityEngine;
+using UnityEngine.Events;
+
+public class RobotController : MonoBehaviour
+{
+    public GameObject defaultModel;
+    public SpriteRenderer eventArrow;
+    public TextMesh healthLabel;
+    public TextMesh attackLabel;
+    public GameObject[] robotModels;
+
+    internal short id { get; private set; }
+    internal bool isSpawned;
+    internal bool isOpponent;
+    internal SpriteRenderer[] currentEvents = new SpriteRenderer[0];
+    internal Command[] commands = new Command[0];
+
+    public void LoadModel(string n, short i)
+    {
+        id = i;
+        GameObject model = Util.Find(robotModels, g => g.name.Equals(n));
+        if (model == null) model = defaultModel;
+        GameObject baseModel = Instantiate(model, transform.GetComponentInChildren<Animator>().transform);
+    }
+    
+    /***********************************
+     * Robot Model Before Turn Methods *
+     ***********************************/
+
+    internal void AddRobotCommand(Command cmd, UnityAction<Command, short> callback)
+    {
+        int num = GetNumCommandType(cmd.commandId);
+        if (num < Command.limit[cmd.commandId])
+        {
+            commands = Util.Add(commands, cmd);
+            callback(cmd, id);
+        }
+    }
+
+    private int GetNumCommandType(byte t)
+    {
+        return Util.Count(commands, c => c.commandId == t);
+    }
+
+    internal void ShowMenuOptions(ButtonContainerController m)
+    {
+        if (!isSpawned &&commands.Length == 0)
+        {
+            Util.ForEach(Command.NUM_TYPES, t => m.transform.Find(Command.GetDisplay((byte)t)).GetComponent<MenuItemController>().SetActive(t == Command.SPAWN_COMMAND_ID));
+        }
+        else
+        {
+            Util.ForEach(Command.NUM_TYPES, t =>
+            {
+                int num = GetNumCommandType((byte)t);
+                bool active = num < Command.limit[t] && !t.Equals(typeof(Command.Spawn));
+                MenuItemController item = m.transform.Find(Command.GetDisplay((byte)t)).GetComponent<MenuItemController>();
+                item.SetActive(active);
+            });
+        }
+    }
+
+    internal void AddRobotCommand(string name, byte dir, UnityAction<Command, short> callback)
+    {
+        if (name.Equals(Command.GetDisplay(Command.SPAWN_COMMAND_ID)))
+        {
+            AddRobotCommand(new Command.Spawn(dir), callback);
+        }
+        else if (name.Equals(Command.GetDisplay(Command.MOVE_COMMAND_ID)))
+        {
+            AddRobotCommand(new Command.Move(dir), callback);
+        }
+        else if (name.Equals(Command.GetDisplay(Command.ATTACK_COMMAND_ID)))
+        {
+            AddRobotCommand(new Command.Attack(dir), callback);
+        }
+    }
+
+    /********************************
+     * Robot UI During Turn Methods *
+     ********************************/
+
+    public void animate(string name, UnityAction interpreterCallback, UnityAction robotCallback)
+    {
+        GetComponentInChildren<Animator>().Play(name);
+        GetComponentInChildren<AnimatorHelper>().animatorCallback = () =>
+        {
+            robotCallback();
+            interpreterCallback();
+        };
+    }
+
+    public void displayMove(Vector2Int v, UnityAction callback, UnityAction<RobotController, int, int> robotCallback)
+    {
+        animate("Move" + getDir(v), callback, () => robotCallback(this, v.x, v.y));
+    }
+
+    public void displayAttack(Vector2Int v, UnityAction callback)
+    {
+        animate("Attack" + getDir(v), callback, () => {});
+    }
+
+    public void displaySpawn(Vector2Int v, UnityAction callback, UnityAction robotCallback)
+    {
+        animate("Default", callback, () => robotCallback());
+    }
+
+    public void displayDeath(short health, UnityAction callback, UnityAction robotCallback)
+    {
+        Debug.Log(id);
+        animate("Death", callback, () => {
+            displayHealth(health);
+            gameObject.SetActive(false);
+            robotCallback();
+        });
+    }
+
+    public void displayHealth(short health)
+    {
+        healthLabel.text = health.ToString();
+    }
+
+    public void displayAttack(short attack)
+    {
+        attackLabel.text = attack.ToString();
+    }
+
+    public short GetHealth()
+    {
+        return short.Parse(healthLabel.text);
+    }
+
+    public short GetAttack()
+    {
+        return short.Parse(attackLabel.text);
+    }
+
+    private string getDir(Vector2Int v)
+    {
+        string dir = "Reset";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.left) dir = "Left";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.right) dir = "Right";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.up) dir = "Up";
+        if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.down) dir = "Down";
+        return dir;
+    }
+
+    public SpriteRenderer displayEvent(Sprite eventName, Vector2Int targetLoc, bool relative = true)
+    {
+        Sprite eventType = eventName == null ? GetComponentInChildren<SpriteRenderer>().sprite : eventName;
+        Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
+        loc.z = -1;
+        Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;
+        SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
+        addedEvent.sprite = eventType;
+        addedEvent.sortingOrder += currentEvents.Length;
+        currentEvents = Util.Add(currentEvents, addedEvent);
+        return addedEvent;
+    }
+
+    public void displayEvent(Sprite eventName, Vector2Int targetLoc, UnityAction callback, bool relative = true)
+    {
+        SpriteRenderer addedEvent = displayEvent(eventName, targetLoc, relative);
+        addedEvent.GetComponent<Animator>().Play("EventIndicator");
+        addedEvent.GetComponent<AnimatorHelper>().animatorCallback = callback;
+    }
+
+    public void clearEvents()
+    {
+        Util.ForEach(currentEvents, i => Destroy(i.gameObject));
+        currentEvents = new SpriteRenderer[0];
+    }
+}

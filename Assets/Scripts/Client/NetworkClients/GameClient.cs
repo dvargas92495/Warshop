@@ -53,7 +53,7 @@ public abstract class GameClient
 
     protected void OnOpponentWaiting(NetworkMessage netMsg)
     {
-        BaseGameManager.uiController.LightUpPanel(!GameConstants.LOCAL_MODE, false);
+        //BaseGameManager.uiController.LightUpPanel(!GameConstants.LOCAL_MODE, false);
     }
 
     protected void OnServerError(NetworkMessage netMsg)

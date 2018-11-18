@@ -368,22 +368,18 @@ public abstract class GameEvent
     public class Resolve : GameEvent
     {
         internal const byte EVENT_ID = 12;
-        internal Type commandType;
+        internal byte commandType;
         
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(GetByte(commandType));
+            writer.Write(commandType);
         }
         public new static Resolve Deserialize(NetworkReader reader)
         {
             Resolve evt = new Resolve();
-            evt.commandType = Command.byteToCmd[reader.ReadByte()];
+            evt.commandType = reader.ReadByte();
             return evt;
-        }
-        public static byte GetByte(Type t)
-        {
-            return Command.byteToCmd.Keys.ToList().Find((byte b) => Command.byteToCmd[b].Equals(t));
         }
     }
 

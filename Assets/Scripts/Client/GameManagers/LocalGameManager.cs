@@ -1,11 +1,14 @@
 ﻿public class LocalGameManager : BaseGameManager
 {
+    private bool myturn;
+
     internal LocalGameManager()
     {
         gameClient = new LocalGameClient();
+        myturn = true;
     }
 
-    internal new void InitializeSetupImpl(SetupController sc)
+    protected new void InitializeSetupImpl(SetupController sc)
     {
         base.InitializeSetupImpl(sc);
         sc.opponentSquadPanel.gameObject.SetActive(true);
@@ -24,12 +27,30 @@
         }
     }
 
-    internal new void SendPlayerInfoImpl(string[] myRobotNames, string username)
+    protected new void SendPlayerInfoImpl(string[] myRobotNames, string username)
     {
-        gameOver = false;
         myPlayer = new Game.Player(new Robot[0], username);
         opponentPlayer = new Game.Player(new Robot[0], setupController.opponentName.text);
         string[] opponentRobotNames = setupController.opponentSquadPanel.GetSquadRobotNames();
         gameClient.AsLocal().SendLocalGameRequest(myRobotNames, opponentRobotNames, myPlayer.name, opponentPlayer.name);
+    }
+
+    protected override void SubmitCommands()
+    {
+        Command[] commands = GetSubmittedCommands();
+        uiController.robotButtonContainer.EachMenuItem(m => m.gameObject.SetActive(!m.gameObject.activeInHierarchy));
+        string username = myturn ? myPlayer.name : opponentPlayer.name;
+        myturn = false;
+        gameClient.SendSubmitCommands(commands, username);
+    }
+
+    protected new void PlayEvents(GameEvent[] events, byte t)
+    {
+        uiController.actionButtonContainer.SetButtons(false);
+        uiController.robotButtonContainer.SetButtons(false);
+        uiController.commandButtonContainer.SetButtons(false);
+        uiController.directionButtonContainer.SetButtons(false);
+        base.PlayEvents(events, t);
+        myturn = true;
     }
 }

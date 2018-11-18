@@ -170,10 +170,10 @@ public class Game
             HashSet<Command> currentCmds = priorityToCommands[(byte)p];
             List<GameEvent> priorityEvents = (p == 0 ? processEndOfTurn() : new List<GameEvent>());
 
-            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Spawn)));
-            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Move)));
-            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Attack)));
-            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, typeof(Command.Special)));
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, Command.SPAWN_COMMAND_ID));
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, Command.MOVE_COMMAND_ID));
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, Command.ATTACK_COMMAND_ID));
+            priorityEvents.AddRange(processCommands(currentCmds, robotIdToTurnObject, Command.SPECIAL_COMMAND_ID));
 
             processBatteryLoss(priorityEvents, (byte)p);
             events.AddRange(priorityEvents);
@@ -195,10 +195,10 @@ public class Game
         return events;
     }
 
-    private List<GameEvent> processCommands(HashSet<Command> allCommands, Dictionary<short, RobotTurnObject> robotIdToTurnObject, Type t)
+    private List<GameEvent> processCommands(HashSet<Command> allCommands, Dictionary<short, RobotTurnObject> robotIdToTurnObject, byte t)
     {
         List<GameEvent> events = new List<GameEvent>();
-        HashSet<Command> commands = new HashSet<Command>(allCommands.Where((Command c) => c.GetType().Equals(t)));
+        HashSet<Command> commands = new HashSet<Command>(allCommands.Where((Command c) => c.commandId == t));
         commands.ToList().ForEach((Command c) =>
         {
             bool isPrimary = c.owner.Equals(primary.name);

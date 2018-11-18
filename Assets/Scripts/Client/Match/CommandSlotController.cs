@@ -1,32 +1,18 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.EventSystems;
-using System;
+﻿using UnityEngine;
+using UnityEngine.Events;
 
 public class CommandSlotController : MonoBehaviour {
 
     public SpriteRenderer Arrow;
     public SpriteRenderer Delete;
     internal bool deletable;
-    internal bool isOpponent;
 
-    private Action myClick;
+    private UnityAction myClick;
     private static Color NO_COMMAND = new Color(0.25f, 0.25f, 0.25f);
     private static Color HIGHLIGHTED_COMMAND = new Color(0.5f, 0.5f, 0.5f);
     private static Color SUBMITTED_COMMAND = new Color(0.75f, 0.75f, 0.75f);
     private static Color NEXT_COMMAND = new Color(0.5f, 1, 0.5f);
     private static Color OPEN_COMMAND = new Color(1, 1, 1);
-
-    // Use this for initialization
-    void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
     void OnMouseEnter()
     {
@@ -53,24 +39,15 @@ public class CommandSlotController : MonoBehaviour {
             Arrow.color = NEXT_COMMAND;
         }
         deletable = false;
-        myClick = () =>
-        {
+    }
+
+    internal void BindClickCallback(Sprite defaultArrow, UnityAction clickCallback)
+    {
+        myClick = () => {
             if (deletable)
             {
-                BaseGameManager.DeleteCommand(rid, p - i);
-                BaseGameManager.uiController.SetButtons(BaseGameManager.uiController.RobotButtonContainer, true);
-                BaseGameManager.robotControllers.Values.ToList().ForEach((RobotController otherR) => 
-                    Util.ChangeLayer(otherR.gameObject, BaseGameManager.uiController.BoardLayer)
-                );
-                BaseGameManager.uiController.SetButtons(BaseGameManager.uiController.CommandButtonContainer, false);
-                BaseGameManager.uiController.SetButtons(BaseGameManager.uiController.DirectionButtonContainer, false);
-                BaseGameManager.uiController.EachMenuItem(BaseGameManager.uiController.DirectionButtonContainer,
-                    (MenuItemController m) => m.GetComponentInChildren<SpriteRenderer>().sprite = null
-                );
-                BaseGameManager.uiController.SubmitCommands.SetActive(
-                    BaseGameManager.robotControllers.Values.Any((RobotController r) => r.commands.Count > 0)
-                );
-                deletable = !Arrow.sprite.Equals(BaseGameManager.uiController.Default);
+                clickCallback();
+                deletable = !Arrow.sprite.Equals(defaultArrow);
                 Delete.gameObject.SetActive(deletable);
             }
         };

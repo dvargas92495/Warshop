@@ -26,7 +26,7 @@ public class AwsLambdaClient
             Messages.CreateGameResponse res = JsonUtility.FromJson<Messages.CreateGameResponse>(www.downloadHandler.text);
             if (res.IsError)
             {
-                BaseGameManager.ErrorString = res.ErrorMessage;
+                //BaseGameManager.ErrorString = res.ErrorMessage;
             }
             else
             {
@@ -55,7 +55,7 @@ public class AwsLambdaClient
             Messages.JoinGameResponse res = JsonUtility.FromJson<Messages.JoinGameResponse>(www.downloadHandler.text);
             if (res.IsError)
             {
-                BaseGameManager.ErrorString = res.ErrorMessage;
+                //BaseGameManager.ErrorString = res.ErrorMessage;
             }
             else
             {
@@ -77,7 +77,7 @@ public class AwsLambdaClient
             Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse>(www.downloadHandler.text);
             if (res.IsError)
             {
-                BaseGameManager.ErrorString = res.ErrorMessage;
+                //BaseGameManager.ErrorString = res.ErrorMessage;
             }
             else
             {

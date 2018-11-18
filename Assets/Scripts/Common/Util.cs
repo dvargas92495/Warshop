@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-class Util
+public class Util
 {
-    public delegate U ReturnAction<T, U>(T arg);
-    public delegate W ReturnAction<T, U, V, W>(T arg, U arg1, V arg2);
 
     internal static Vector2Int Flip(Vector2Int v)
     {
@@ -45,14 +43,106 @@ class Util
         else return c;
     }
 
-    internal static void ChangeLayer(GameObject g, int l)
+    public delegate U ReturnAction<T, U>(T arg);
+    public delegate V ReturnAction<T, U, V>(T arg, U arg1);
+    public delegate W ReturnAction<T, U, V, W>(T arg, U arg1, V arg2);
+
+    public class Dictionary<T, U>
     {
-        if (g.layer == l) return;
-        g.layer = l;
-        for (int i = 0; i < g.transform.childCount; i++)
+        private T[] keys;
+        private U[] vals;
+        private bool[] entries;
+
+        public Dictionary (int length)
         {
-            ChangeLayer(g.transform.GetChild(i).gameObject, l);
+            keys = new T[length];
+            vals = new U[length];
+            entries = new bool[length];
         }
+
+        public void Add(T key, U val)
+        {
+            int i = FindIndex(entries, e => !e);
+            entries[i] = true;
+            keys[i] = key;
+            vals[i] = val;
+        }
+
+        public U Get(T key)
+        {
+            return vals[GetIndex(key)];
+        }
+
+        public int GetLength()
+        {
+            return entries.Length;
+        }
+
+        public int GetIndex(T key)
+        {
+            return FindIndex(keys, key);
+        }
+
+        public void ForEach(UnityAction<T,U> callback)
+        {
+            Util.ForEach(keys, vals, callback);
+        }
+
+        public void ForEachValue(UnityAction<U> callback)
+        {
+            Util.ForEach(vals, callback);
+        }
+
+        public V ReduceEachValue<V>(V initialValue, ReturnAction<V,U,V> callback)
+        {
+            return Reduce(vals, initialValue, callback);
+        }
+
+        public bool AnyValue(ReturnAction<U,bool> callback)
+        {
+            foreach(U val in vals)
+            {
+                if (callback(val)) return true;
+            }
+            return false;
+        }
+    }
+    
+    public class Tuple<L,R>
+    {
+        L _left;
+        R _right;
+
+        public Tuple(L left, R right)
+        {
+            _left = left;
+            _right = right;
+        }
+
+        public L GetLeft()
+        {
+            return _left;
+        }
+
+        public R GetRight()
+        {
+            return _right;
+        }
+    }
+
+    internal static int[] Int(int length)
+    {
+        int[] arr = new int[length];
+        for (int i=0;i<length;i++)
+        {
+            arr[i] = i;
+        }
+        return arr;
+    }
+
+    internal static void ForEach(int length, UnityAction<int> callback)
+    {
+        ForEach(Int(length), callback);
     }
 
     internal static void ForEach<T>(T[] arr, UnityAction<T> callback)
@@ -60,6 +150,15 @@ class Util
         foreach(T item in arr)
         {
             callback(item);
+        }
+    }
+    
+    internal static void ForEach<T, U>(T[] arr, U[] arr1, UnityAction<T, U> callback)
+    {
+        int length = Mathf.Min(arr.Length, arr1.Length);
+        for (int i = 0; i < length; i++)
+        {
+            callback(arr[i], arr1[i]);
         }
     }
 
@@ -72,6 +171,24 @@ class Util
             newArr[index] = oldItem;
             index++;
         });
+        newArr[index] = item;
+        return newArr;
+    }
+
+    internal static T[] Add<T>(T[] arr, T[] items)
+    {
+        T[] newArr = new T[arr.Length + items.Length];
+        int index = 0;
+        ForEach(arr, (T oldItem) =>
+        {
+            newArr[index] = oldItem;
+            index++;
+        });
+        ForEach(items, (T newItem) =>
+        {
+            newArr[index] = newItem;
+            index++;
+        });
         return newArr;
     }
 
@@ -81,12 +198,26 @@ class Util
         int index = 0;
         ForEach(arr, (T oldItem) =>
         {
-            if (oldItem.Equals(item))
+            if (!oldItem.Equals(item))
             {
                 newArr[index] = oldItem;
                 index++;
             }
         });
+        return newArr;
+    }
+
+    internal static T[] RemoveAt<T>(T[] arr, int index)
+    {
+        T[] newArr = new T[arr.Length - 1];
+        for (int i = 0; i < index; i++)
+        {
+            newArr[i] = arr[i];
+        }
+        for (int i = index+1;i<arr.Length;i++)
+        {
+            newArr[i - 1] = arr[i];
+        }
         return newArr;
     }
 
@@ -119,5 +250,39 @@ class Util
             if (callback(item)) return item;
         }
         return default(T);
+    }
+
+    internal static int FindIndex<T>(T[] arr, ReturnAction<T, bool> callback)
+    {
+        for (int i=0; i<arr.Length; i++)
+        {
+            if (callback(arr[i])) return i;
+        }
+        return -1;
+    }
+
+    internal static int FindIndex<T>(T[] arr, T item)
+    {
+        return FindIndex(arr, i => i.Equals(item));
+    }
+
+    internal static T Reduce<T,U>(U[] arr, T initialValue, ReturnAction<T, U, T> callback)
+    {
+        T val = initialValue;
+        ForEach(arr, (U item) =>
+        {
+            val = callback(val, item);
+        });
+        return val;
+    }
+
+    internal static int Count<T>(T[] arr, ReturnAction<T, bool> callback)
+    {
+        int count = 0;
+        foreach(T item in arr)
+        {
+            if (callback(item)) count++;
+        }
+        return count;
     }
 }

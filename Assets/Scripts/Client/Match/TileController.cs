@@ -64,4 +64,14 @@ public class TileController : MonoBehaviour
     {
         meshRenderer.material = baseTile;
     }
+
+    public Material GetMaterial()
+    {
+        return meshRenderer.material;
+    }
+
+    public void SetMaterial(Material m)
+    {
+        meshRenderer.material = m;
+    }
 }
