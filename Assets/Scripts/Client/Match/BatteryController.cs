@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class BatteryController : MonoBehaviour
+public class BatteryController : Controller
 {
     public TextMesh Score;
 

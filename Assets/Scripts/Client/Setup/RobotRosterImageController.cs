@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-public class RobotRosterImageController : MonoBehaviour
+public class RobotRosterImageController : Controller
 {
     public Button maximizeButton;
     public Image myImage;

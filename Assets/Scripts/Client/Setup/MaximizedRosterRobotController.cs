@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using TMPro;
 
-public class MaximizedRosterRobotController : MonoBehaviour
+public class MaximizedRosterRobotController : Controller
 {
     public Image selectedRobot;
     public HorizontalLayoutGroup ratingGroup;

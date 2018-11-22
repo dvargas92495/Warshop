@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class StatusModalController : MonoBehaviour
+public class StatusModalController : Controller
 {
     public Text statusText;
 

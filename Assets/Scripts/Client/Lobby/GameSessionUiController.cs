@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine.UI;
 using UnityEngine.Events;
 
-public class GameSessionUiController : MonoBehaviour
+public class GameSessionUiController : Controller
 {
     public Button playButton;
     public InputField passwordField;

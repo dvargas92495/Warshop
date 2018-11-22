@@ -1,12 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class StatsController : MonoBehaviour {
-
+public class StatsController : Controller
+{
     public Text MyScore;
     public Text OpponentScore;
     public Text TimeText;

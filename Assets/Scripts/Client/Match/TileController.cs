@@ -2,8 +2,7 @@
 using UnityEngine.Events;
 using TMPro;
 
-
-public class TileController : MonoBehaviour
+public class TileController : Controller
 {
     public BatteryController battery;
     public GameObject queueMarker;

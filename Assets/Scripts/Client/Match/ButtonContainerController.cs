@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-public class ButtonContainerController : MonoBehaviour 
+public class ButtonContainerController : Controller 
 {
     public MenuItemController[] menuItems;
 

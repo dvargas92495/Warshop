@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class RobotPanelController : MonoBehaviour
+public class RobotPanelController : Controller
 {
     public CommandSlotContainerController commandSlotContainer;
     public SpriteRenderer robotSprite;

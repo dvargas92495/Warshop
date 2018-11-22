@@ -988,7 +988,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   backButton: {fileID: 1823166056}
-  newGameSessionUI: {fileID: 0}
+  newGameSessionUI: {fileID: 2105518633}
   gameSessionUI: {fileID: 114124043811574296, guid: 206f192ab8c01234f8647df6487d816d,
     type: 2}
   gameSessionUIs: []

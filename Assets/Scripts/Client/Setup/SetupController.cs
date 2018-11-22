@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-public class SetupController : MonoBehaviour
+public class SetupController : Controller
 {
     public Button backButton;
     public Button startGameButton;

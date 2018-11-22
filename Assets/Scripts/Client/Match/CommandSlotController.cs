@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-public class CommandSlotController : MonoBehaviour {
-
+public class CommandSlotController : Controller
+{
     public SpriteRenderer Arrow;
     public SpriteRenderer Delete;
     internal bool deletable;

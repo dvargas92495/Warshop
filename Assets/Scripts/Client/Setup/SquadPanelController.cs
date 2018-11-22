@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-public class SquadPanelController : MonoBehaviour
+public class SquadPanelController : Controller
 {
     public Button squadPanelButton;
     public RobotSquadImageController robotSquadImage;

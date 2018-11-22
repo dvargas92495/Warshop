@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-public class CommandSlotContainerController : MonoBehaviour 
+public class CommandSlotContainerController : Controller
 {
     public CommandSlotController commandSlot;
     public Sprite defaultArrow;

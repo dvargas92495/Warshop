@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-public class RobotRosterPanelController : MonoBehaviour
+public class RobotRosterPanelController : Controller
 {
     public RobotRosterImageController robotRosterImage;
 

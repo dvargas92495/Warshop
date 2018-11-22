@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-public class RobotController : MonoBehaviour
+public class RobotController : Controller
 {
     public GameObject defaultModel;
     public SpriteRenderer eventArrow;

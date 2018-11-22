@@ -1,9 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-public class LobbyController : MonoBehaviour {
-
+public class LobbyController : Controller
+{
     public Button backButton;
     public NewGameSessionUiController newGameSessionUI;
     public GameSessionUiController gameSessionUI;

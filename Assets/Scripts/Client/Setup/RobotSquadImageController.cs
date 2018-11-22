@@ -2,7 +2,7 @@
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class RobotSquadImageController : MonoBehaviour
+public class RobotSquadImageController : Controller
 {
     public Button removeButton;
     public Image robotImage;

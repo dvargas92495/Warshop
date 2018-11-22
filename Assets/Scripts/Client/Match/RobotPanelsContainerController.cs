@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-public class RobotPanelsContainerController : MonoBehaviour
+public class RobotPanelsContainerController : Controller
 {
     public RobotPanelController RobotPanel;
     public Sprite[] robotSprites;

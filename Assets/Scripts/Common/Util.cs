@@ -285,4 +285,55 @@ public class Util
         }
         return count;
     }
+
+    internal static T[] Filter<T>(T[] arr, ReturnAction<T, bool> callback)
+    {
+        T[] newArr = new T[arr.Length];
+        int count = 0;
+        foreach(T item in arr)
+        {
+            if (callback(item))
+            {
+                newArr[count] = item;
+                count++;
+            }
+        }
+        T[] returnArr = new T[count];
+        for (int index = 0; index<returnArr.Length; index++)
+        {
+            returnArr[index] = newArr[index];
+        }
+        return returnArr;
+    }
+
+    internal static T[] Flatten<T>(T[][] arr)
+    {
+        int count = 0;
+        foreach (T[] subarr in arr)
+        {
+            count += subarr.Length;
+        }
+        T[] returnArr = new T[count];
+        int i = 0;
+        foreach (T[] subarr in arr)
+        {
+            foreach (T item in subarr)
+            {
+                returnArr[i] = item;
+                i++;
+            }
+        }
+        return returnArr;
+    }
+
+    internal static string ToArrayString<T>(T[] arr, string delim)
+    {
+        string s = "";
+        foreach(T item in arr)
+        {
+            s += item.ToString();
+            s += delim;
+        }
+        return s;
+    }
 }

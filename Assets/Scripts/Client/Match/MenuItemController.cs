@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-public class MenuItemController : MonoBehaviour {
-
+public class MenuItemController : Controller
+{
     UnityAction callback;
     public Material inactiveRing;
     public Material activeRing;

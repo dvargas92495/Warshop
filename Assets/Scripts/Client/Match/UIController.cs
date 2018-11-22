@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-public class UIController : MonoBehaviour {
-
+public class UIController : Controller
+{
 	public Image opponentBackground;
     public RobotPanelsContainerController opponentsRobots;
     public TMP_Text opponentsPlayerName;

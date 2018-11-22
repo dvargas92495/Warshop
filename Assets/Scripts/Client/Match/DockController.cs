@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class DockController : MonoBehaviour
+public class DockController : Controller
 {
     private bool[] isOccupied = new bool[GameConstants.MAX_ROBOTS_ON_SQUAD];
 

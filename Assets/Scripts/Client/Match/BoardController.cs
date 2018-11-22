@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class BoardController : MonoBehaviour
+public class BoardController : Controller
 {
     public Camera cam;
     public DockController myDock;
