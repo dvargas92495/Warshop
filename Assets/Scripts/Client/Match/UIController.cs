@@ -8,34 +8,27 @@ public class UIController : Controller
 	public Image opponentBackground;
     public RobotPanelsContainerController opponentsRobots;
     public TMP_Text opponentsPlayerName;
-
     public Image myBackground;
     public RobotPanelsContainerController myRobots;
     public TMP_Text myPlayerName;
-
-    public GameObject Controls;
-
     public ButtonContainerController robotButtonContainer;
     public ButtonContainerController commandButtonContainer;
     public ButtonContainerController directionButtonContainer;
     public ButtonContainerController actionButtonContainer;
+    public LayerMask boardLayer;
+    public LayerMask selectedLayer;
     public MenuItemController submitCommands;
     public MenuItemController stepBackButton;
     public MenuItemController stepForwardButton;
     public MenuItemController backToPresent;
     public MenuItemController genericButton;
+    public Sprite[] arrows;
+    public Sprite[] queueSprites;
     public StatsController statsInterface;
     public StatusModalController statusText;
 
     private RobotController selectedRobotController;
-    private const int BOARD_LAYER = 11; // TODO: Load layer value dynamically
-    private const int SELECTED_LAYER = 12; // TODO: Load layer value dynamically 
     // public Image SplashScreen;
-
-    public Sprite[] arrows;
-    public Sprite[] queueSprites;
-
-    private int CommandChildIndex = 3;
 
     void Start()
     {
@@ -152,9 +145,9 @@ public class UIController : Controller
     private void RobotButtonSelect(MenuItemController robotButton, RobotController robotController)
     {
         robotButtonContainer.SetButtons(true);
-        ChangeLayer(selectedRobotController, BOARD_LAYER);
+        ChangeLayer(selectedRobotController, boardLayer);
         robotButton.Select();
-        ChangeLayer(robotController, SELECTED_LAYER);
+        ChangeLayer(robotController, selectedLayer);
         selectedRobotController = robotController;
         robotController.ShowMenuOptions(commandButtonContainer);
         directionButtonContainer.SetButtons(false);
@@ -254,7 +247,7 @@ public class UIController : Controller
 
     public void ChangeToBoardLayer(RobotController r)
     {
-        ChangeLayer(r, BOARD_LAYER);
+        ChangeLayer(r, boardLayer);
     }
 
     private void ChangeLayer(RobotController r, int l)
@@ -266,10 +259,7 @@ public class UIController : Controller
     {
         if (g.layer == l) return;
         g.layer = l;
-        for (int i = 0; i < g.transform.childCount; i++)
-        {
-            ChangeLayer(g.transform.GetChild(i).gameObject, l);
-        }
+        Util.ForEach(g.transform.childCount, i => ChangeLayer(g.transform.GetChild(i).gameObject, l));
     }
 
 }

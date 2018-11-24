@@ -5,7 +5,7 @@ using System.Reflection;
 
 public class EditorValidator : EditorWindow
 {
-    [MenuItem("GameObject/Validate")]
+    [MenuItem("Component/Validate All References")]
     public static void ValidateAllScenes()
     {
         // https://stackoverflow.com/questions/40577412/clear-editor-console-logs-from-script
@@ -16,6 +16,7 @@ public class EditorValidator : EditorWindow
         string[] sceneNames = Util.Map(EditorBuildSettings.scenes, s => s.path);
         string[] errors = Util.Flatten(Util.Map(sceneNames, i => ValidateScene(i)));
         Util.ForEach(errors, Debug.LogError);
+        if (errors.Length == 0) Debug.Log("No Errors");
     }
 
     private static string[] ValidateScene(string s)

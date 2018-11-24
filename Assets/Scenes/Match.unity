@@ -6070,6 +6070,12 @@ MonoBehaviour:
   commandButtonContainer: {fileID: 678756415}
   directionButtonContainer: {fileID: 493623649}
   actionButtonContainer: {fileID: 742710364}
+  boardLayer:
+    serializedVersion: 2
+    m_Bits: 2048
+  selectedLayer:
+    serializedVersion: 2
+    m_Bits: 4096
   submitCommands: {fileID: 1598391775}
   stepBackButton: {fileID: 1675399365}
   stepForwardButton: {fileID: 2127854630}
