@@ -992,6 +992,12 @@ MonoBehaviour:
   gameSessionUI: {fileID: 114124043811574296, guid: 206f192ab8c01234f8647df6487d816d,
     type: 2}
   gameSessionUIs: []
+  initialScene:
+    sceneAsset: {fileID: 102900000, guid: 00ed4ba23fb052d42ba04200a91cf92d, type: 3}
+    scenePath: Assets/Scenes/Initial.unity
+  setupScene:
+    sceneAsset: {fileID: 102900000, guid: 8c8e7c869c0e1434087165687f65a116, type: 3}
+    scenePath: Assets/Scenes/Setup.unity
   statusModal: {fileID: 656025966}
   matches: {fileID: 229547428}
 --- !u!114 &738706554

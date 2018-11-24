@@ -3,10 +3,16 @@ using UnityEngine.SceneManagement;
 
 public class ProfileController : Controller
 {
-    public Button BackToInitialButton;
+    public Button backToInitialButton;
+    public SceneReference initialScene;
 
     void Start ()
     {
-        BackToInitialButton.onClick.AddListener(() => SceneManager.LoadScene("Initial"));
+        backToInitialButton.onClick.AddListener(BackToInitial);
 	}
+
+    void BackToInitial()
+    {
+        SceneManager.LoadScene(initialScene);
+    }
 }

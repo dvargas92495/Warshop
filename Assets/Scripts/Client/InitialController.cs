@@ -9,12 +9,12 @@ public class InitialController : Controller
     public Button enterLocalMatchButton;
     public Button profileButton;
     public InputField usernameField;
+    public SceneReference lobbyScene;
+    public SceneReference profileScene;
+    public SceneReference setupScene;
 
     private bool isServer;
     private bool localMode;
-    private Scene lobbyScene;
-    private Scene profileScene;
-    private Scene setupScene;
 
     void Awake()
     {
@@ -28,13 +28,22 @@ public class InitialController : Controller
             App.StartServer();
             return;
         }
+        Debug.Log(setupScene.ScenePath);
 
         enterLobbyButton.onClick.AddListener(EnterLobby);
         enterLocalMatchButton.onClick.AddListener(EnterLocalMatch);
         profileButton.onClick.AddListener(EnterProfile);
 
         usernameField.text = GameClient.username;
-        usernameField.onValueChanged.AddListener(v => enterLobbyButton.interactable = v.Equals(""));
+        usernameField.onValueChanged.AddListener(OnUsernameFieldEdit);
+    }
+
+    void OnUsernameFieldEdit(string newValue)
+    {
+        bool valid = !string.IsNullOrEmpty(newValue);
+        enterLobbyButton.interactable = valid;
+        enterLocalMatchButton.interactable = valid;
+        profileButton.interactable = valid;
     }
 
     void EnterLobby()
@@ -44,18 +53,18 @@ public class InitialController : Controller
         enterLobbyButton.interactable = false;
         usernameField.interactable = false;
 
-        SceneManager.LoadScene(lobbyScene.name);
+        SceneManager.LoadScene(lobbyScene);
     }
 
     void EnterLocalMatch()
     {
         BaseGameManager.InitializeLocal();
 
-        SceneManager.LoadScene(setupScene.name);
+        SceneManager.LoadScene(setupScene);
     }
 
     void EnterProfile()
     {
-        SceneManager.LoadScene(profileScene.name);
+        SceneManager.LoadScene(profileScene);
     }
 }

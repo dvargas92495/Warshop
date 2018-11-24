@@ -13,14 +13,14 @@ public class EditorValidator : EditorWindow
         Assembly editor = Assembly.GetAssembly(typeof(Editor));
         editor.GetType("UnityEditor.LogEntries").GetMethod("Clear").Invoke(new object(), null);
 
-        string[] sceneNames = new string[] { "Initial", "Lobby", "Profile", "Setup", "Match" };
+        string[] sceneNames = Util.Map(EditorBuildSettings.scenes, s => s.path);
         string[] errors = Util.Flatten(Util.Map(sceneNames, i => ValidateScene(i)));
         Util.ForEach(errors, Debug.LogError);
     }
 
     private static string[] ValidateScene(string s)
     {
-        EditorSceneManager.OpenScene("Assets/Scenes/"+s+".unity");
+        EditorSceneManager.OpenScene(s);
         Controller[] controllers = FindObjectsOfType<Controller>();
         return Util.Flatten(Util.Map(controllers, ValidateController));
     }

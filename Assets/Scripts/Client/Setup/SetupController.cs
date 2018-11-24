@@ -10,6 +10,7 @@ public class SetupController : Controller
     public InputField opponentName;
     public MaximizedRosterRobotController maximizedRosterRobot;
     public RobotRosterPanelController robotRosterPanel;
+    public SceneReference lobbyScene;
     public Sprite[] robotDir;
     public SquadPanelController mySquadPanel;
     public SquadPanelController opponentSquadPanel;
@@ -34,7 +35,7 @@ public class SetupController : Controller
 
     void EnterLobby()
     {
-        SceneManager.LoadScene("Lobby");
+        SceneManager.LoadScene(lobbyScene);
     }
 
     public void maximizeSelection(Sprite selectedRobot)

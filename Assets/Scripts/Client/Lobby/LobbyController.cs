@@ -7,6 +7,8 @@ public class LobbyController : Controller
     public NewGameSessionUiController newGameSessionUI;
     public GameSessionUiController gameSessionUI;
     public GameSessionUiController[] gameSessionUIs;
+    public SceneReference initialScene;
+    public SceneReference setupScene;
     public StatusModalController statusModal;
     public VerticalLayoutGroup matches;
 
@@ -51,7 +53,7 @@ public class LobbyController : Controller
     void SetupGame(string playerSessionId, string ipAddress, int port)
     {
         BaseGameManager.InitializeStandard(playerSessionId, ipAddress, port);
-        SceneManager.LoadScene("Setup");
+        SceneManager.LoadScene(setupScene);
     }
 
     void DeactivateButtons()
@@ -62,6 +64,6 @@ public class LobbyController : Controller
 
     void LoadInitial()
     {
-        SceneManager.LoadScene("Initial");
+        SceneManager.LoadScene(initialScene);
     }
 }

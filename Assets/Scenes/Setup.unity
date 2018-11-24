@@ -2630,6 +2630,9 @@ MonoBehaviour:
   opponentName: {fileID: 2053936568}
   maximizedRosterRobot: {fileID: 141044989}
   robotRosterPanel: {fileID: 1918440611}
+  lobbyScene:
+    sceneAsset: {fileID: 102900000, guid: fb34f0ea6d95ca24cb4193a70813fb0b, type: 3}
+    scenePath: Assets/Scenes/Lobby.unity
   robotDir:
   - {fileID: 21300000, guid: a794f0c1e485b3d4891ade21b8b7bebb, type: 3}
   - {fileID: 21300000, guid: fc45df0e25973924eb6b2c1701ebc9e2, type: 3}

@@ -647,6 +647,15 @@ MonoBehaviour:
   enterLocalMatchButton: {fileID: 422316750}
   profileButton: {fileID: 1800798914}
   usernameField: {fileID: 685079192}
+  lobbyScene:
+    sceneAsset: {fileID: 102900000, guid: fb34f0ea6d95ca24cb4193a70813fb0b, type: 3}
+    scenePath: Assets/Scenes/Lobby.unity
+  profileScene:
+    sceneAsset: {fileID: 102900000, guid: 7aec3baa9f6f140439178dd2ef9718e2, type: 3}
+    scenePath: Assets/Scenes/Profile.unity
+  setupScene:
+    sceneAsset: {fileID: 102900000, guid: 8c8e7c869c0e1434087165687f65a116, type: 3}
+    scenePath: Assets/Scenes/Setup.unity
 --- !u!1 &685079190
 GameObject:
   m_ObjectHideFlags: 0
