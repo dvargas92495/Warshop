@@ -2,10 +2,12 @@
 
 public class BatteryController : Controller
 {
-    public TextMesh Score;
+    public MeshRenderer scoreMeshRenderer;
+    public Renderer coreRenderer;
+    public TextMesh score;
 
     void Start()
     {
-        Score.GetComponent<MeshRenderer>().sortingOrder = 1;
+        scoreMeshRenderer.sortingOrder = 1;
     }
 }

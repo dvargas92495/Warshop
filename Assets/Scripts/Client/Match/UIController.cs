@@ -51,34 +51,33 @@ public class UIController : Controller
         {
             Application.Quit();
         }
-        MenuItemController[] mics = robotButtonContainer.GetComponentsInChildren<MenuItemController>();
-        for (int i = 0; i < mics.Length; i++)
+        for (int i = 0; i < GameConstants.MAX_ROBOTS_ON_SQUAD; i++)
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1 + i)) mics[i].Click();
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i)) robotButtonContainer.Get(i).Click();
         }
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            commandButtonContainer.GetComponentsInChildren<MenuItemController>()[0].Click();
+            commandButtonContainer.GetByName(Command.GetDisplay(Command.SPAWN_COMMAND_ID)).Click();
         } else if (Input.GetKeyDown(KeyCode.M))
         {
-            commandButtonContainer.GetComponentsInChildren<MenuItemController>()[1].Click();
+            commandButtonContainer.GetByName(Command.GetDisplay(Command.MOVE_COMMAND_ID)).Click();
         }
         else if (Input.GetKeyDown(KeyCode.A))
         {
-            commandButtonContainer.GetComponentsInChildren<MenuItemController>()[2].Click();
+            commandButtonContainer.GetByName(Command.GetDisplay(Command.ATTACK_COMMAND_ID)).Click();
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            directionButtonContainer.GetComponentsInChildren<MenuItemController>()[0].Click();
+            directionButtonContainer.GetByName(Command.byteToDirectionString[Command.UP]).Click();
         } else if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            directionButtonContainer.GetComponentsInChildren<MenuItemController>()[1].Click();
+            directionButtonContainer.GetByName(Command.byteToDirectionString[Command.LEFT]).Click();
         } else if(Input.GetKeyDown(KeyCode.DownArrow))
         {
-            directionButtonContainer.GetComponentsInChildren<MenuItemController>()[2].Click();
+            directionButtonContainer.GetByName(Command.byteToDirectionString[Command.DOWN]).Click();
         } else if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            directionButtonContainer.GetComponentsInChildren<MenuItemController>()[3].Click();
+            directionButtonContainer.GetByName(Command.byteToDirectionString[Command.RIGHT]).Click();
         }
         if (Input.GetKeyDown(KeyCode.Return))
         {
@@ -167,8 +166,8 @@ public class UIController : Controller
         byte dir = (byte) Util.FindIndex(Command.byteToDirectionString, s => s.Equals(directionButton.name));
         directionButton.SetSprite(isSpawn ? queueSprites[dir] : GetArrow(commandName + " Arrow"));
         directionButton.SetCallback(() => DirectionButtonCallback(robotButton, robotController, commandName, dir));
-        directionButton.GetComponentInChildren<SpriteRenderer>().transform.localRotation = Quaternion.Euler(Vector3.up * 180 + (isSpawn ? Vector3.zero : Vector3.forward * dir * 90));
-        directionButton.GetComponentInChildren<SpriteRenderer>().color = isSpawn ? Color.gray : Color.white;
+        directionButton.spriteRenderer.transform.localRotation = Quaternion.Euler(Vector3.up * 180 + (isSpawn ? Vector3.zero : Vector3.forward * dir * 90));
+        directionButton.spriteRenderer.color = isSpawn ? Color.gray : Color.white;
     }
 
     private void DirectionButtonCallback(MenuItemController robotButton, RobotController robotController, string commandName, byte dir)
@@ -240,7 +239,7 @@ public class UIController : Controller
     public void Splash(bool win)
     {
         //TODO: Add Calvin's screens
-        //SplashScreen.GetComponentInChildren<Text>().text = win ? "YOU WIN!" : "YOU LOSE!";
+        //SplashScreen.SetText( = win ? "YOU WIN!" : "YOU LOSE!");
         //SplashScreen.gameObject.SetActive(true);
         //SetButtons(false);
     }

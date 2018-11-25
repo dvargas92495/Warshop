@@ -3,8 +3,13 @@ using UnityEngine.Events;
 
 public class RobotController : Controller
 {
+    public Animator animator;
+    public AnimatorHelper animatorHelper;
     public GameObject defaultModel;
+    public MeshRenderer healthMeshRenderer;
+    public MeshRenderer attackMeshRenderer;
     public SpriteRenderer eventArrow;
+    public SpriteRenderer statsBaseRenderer;
     public TextMesh healthLabel;
     public TextMesh attackLabel;
     public GameObject[] robotModels;
@@ -20,7 +25,7 @@ public class RobotController : Controller
         id = i;
         GameObject model = Util.Find(robotModels, g => g.name.Equals(n));
         if (model == null) model = defaultModel;
-        GameObject baseModel = Instantiate(model, transform.GetComponentInChildren<Animator>().transform);
+        GameObject baseModel = Instantiate(model, animator.transform);
     }
     
     /***********************************
@@ -46,7 +51,7 @@ public class RobotController : Controller
     {
         if (!isSpawned &&commands.Length == 0)
         {
-            Util.ForEach(Command.NUM_TYPES, t => m.transform.Find(Command.GetDisplay((byte)t)).GetComponent<MenuItemController>().SetActive(t == Command.SPAWN_COMMAND_ID));
+            Util.ForEach(Command.NUM_TYPES, t => m.GetByName(Command.GetDisplay((byte)t)).SetActive(t == Command.SPAWN_COMMAND_ID));
         }
         else
         {
@@ -54,7 +59,7 @@ public class RobotController : Controller
             {
                 int num = GetNumCommandType((byte)t);
                 bool active = num < Command.limit[t] && !t.Equals(typeof(Command.Spawn));
-                MenuItemController item = m.transform.Find(Command.GetDisplay((byte)t)).GetComponent<MenuItemController>();
+                MenuItemController item = m.GetByName(Command.GetDisplay((byte)t));
                 item.SetActive(active);
             });
         }
@@ -82,8 +87,8 @@ public class RobotController : Controller
 
     public void animate(string name, UnityAction interpreterCallback, UnityAction robotCallback)
     {
-        GetComponentInChildren<Animator>().Play(name);
-        GetComponentInChildren<AnimatorHelper>().animatorCallback = () =>
+        animator.Play(name);
+        animatorHelper.animatorCallback = () =>
         {
             robotCallback();
             interpreterCallback();
@@ -147,7 +152,7 @@ public class RobotController : Controller
 
     public SpriteRenderer displayEvent(Sprite eventName, Vector2Int targetLoc, bool relative = true)
     {
-        Sprite eventType = eventName == null ? GetComponentInChildren<SpriteRenderer>().sprite : eventName;
+        Sprite eventType = eventName == null ? statsBaseRenderer.sprite : eventName;
         Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
         loc.z = -1;
         Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;
@@ -161,8 +166,8 @@ public class RobotController : Controller
     public void displayEvent(Sprite eventName, Vector2Int targetLoc, UnityAction callback, bool relative = true)
     {
         SpriteRenderer addedEvent = displayEvent(eventName, targetLoc, relative);
-        addedEvent.GetComponent<Animator>().Play("EventIndicator");
-        addedEvent.GetComponent<AnimatorHelper>().animatorCallback = callback;
+        // addedEvent.animator.Play("EventIndicator");
+        // addedEvent.AnimatorHelper.animatorCallback = callback;
     }
 
     public void clearEvents()

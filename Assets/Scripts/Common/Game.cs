@@ -70,7 +70,7 @@ public class Game
         internal string name;
         internal short battery = GameConstants.POINTS_TO_WIN;
         internal Robot[] team;
-        internal Dictionary<short, RobotStat> teamStats = new Dictionary<short, RobotStat>();
+        internal Util.Dictionary<short, RobotStat> teamStats;
         internal bool ready;
         internal bool joined;
         internal List<Command> commands;
@@ -79,7 +79,8 @@ public class Game
         internal Player(Robot[] t, string n)
         {
             team = t;
-            team.ToList().ForEach((Robot r) => teamStats[r.id] = new RobotStat() { name = r.name });
+            teamStats = new Util.Dictionary<short, RobotStat>(t.Length);
+            team.ToList().ForEach((Robot r) => teamStats.Add(r.id, new RobotStat() { name = r.name }));
             name = n;
             joined = true;
         }

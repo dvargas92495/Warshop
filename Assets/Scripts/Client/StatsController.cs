@@ -1,43 +1,40 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class StatsController : Controller
 {
-    public Text MyScore;
-    public Text OpponentScore;
-    public Text TimeText;
-    public HorizontalLayoutGroup MyTeam;
-    public HorizontalLayoutGroup OpponentTeam;
+    public Text myScore;
+    public Text opponentScore;
+    public Text timeText;
+    public Text[] myTeam;
+    public Text[] opponentTeam;
 
-    public void Initialize(GameEvent.End evt, bool isPrimary)
+    public void Initialize(GameEvent.End evt)
     {
-        MyScore.text = (isPrimary ? evt.primaryBattery : evt.secondaryBattery).ToString();
-        OpponentScore.text = (isPrimary ? evt.secondaryBattery : evt.primaryBattery).ToString();
-        TimeText.text = "Number of turns: " + evt.turnCount + "\t Time of game: " + evt.timeTaken;
+        myScore.text = evt.primaryBattery.ToString();
+        opponentScore.text = evt.secondaryBattery.ToString();
+        timeText.text = "Number of turns: " + evt.turnCount + "\t Time of game: " + evt.timeTaken;
 
-        UnityAction<Dictionary<short, Game.RobotStat>, HorizontalLayoutGroup> fillStats =
-            (Dictionary<short, Game.RobotStat> teamStats, HorizontalLayoutGroup g) => {
-                g.GetComponentsInChildren<Text>().ToList().ForEach((Text t) => t.gameObject.SetActive(false));
-                List<short> keys = teamStats.Keys.ToList();
-                for (int i = 0; i < teamStats.Count; i++)
-                {
-                    Text stat = g.transform.GetChild(i).GetComponent<Text>();
-                    Game.RobotStat robotStat = teamStats[keys[i]];
-                    stat.gameObject.SetActive(true);
-                    stat.text = robotStat.name + 
-                                "\nSpawns: " + robotStat.spawns +
-                                "\nMoves: " + robotStat.moves +
-                                "\nAttacks: " + robotStat.attacks + 
-                                "\nSpecials: " + robotStat.specials +
-                                "\nDeaths: " + robotStat.numberOfDeaths +
-                                "\nKills: " + robotStat.numberOfKills
-                    ;
-                }
-            };
+        FillStats(evt.primaryTeamStats, myTeam);
+        FillStats(evt.secondaryTeamStats, opponentTeam);
+    }
 
-        fillStats(evt.primaryTeamStats, isPrimary ? MyTeam : OpponentTeam);
-        fillStats(evt.secondaryTeamStats, isPrimary ? OpponentTeam : MyTeam);
+    private void FillStats(Util.Dictionary<short, Game.RobotStat> teamStats, Text[] g)
+    {
+        Util.ForEach(g, t => t.gameObject.SetActive(false));
+        teamStats.ForEach((i, robotStat) => FillRobotStat(g[i], robotStat));
+    }
+
+    private void FillRobotStat(Text stat, Game.RobotStat robotStat)
+    {
+        stat.gameObject.SetActive(true);
+        stat.text = robotStat.name +
+                    "\nSpawns: " + robotStat.spawns +
+                    "\nMoves: " + robotStat.moves +
+                    "\nAttacks: " + robotStat.attacks +
+                    "\nSpecials: " + robotStat.specials +
+                    "\nDeaths: " + robotStat.numberOfDeaths +
+                    "\nKills: " + robotStat.numberOfKills
+        ;
     }
 }

@@ -336,4 +336,18 @@ public class Util
         }
         return s;
     }
+
+    internal static T[] Concat<T>(T[] arr, T[] arr2)
+    {
+        T[] returnArr = new T[arr.Length + arr2.Length];
+        for (int i = 0; i<arr.Length; i++)
+        {
+            returnArr[i] = arr[i];
+        }
+        for (int i = 0; i < arr2.Length; i++)
+        {
+            returnArr[arr.Length + i] = arr2[i];
+        }
+        return returnArr;
+    }
 }

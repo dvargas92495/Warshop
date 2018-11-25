@@ -38,4 +38,14 @@ public class ButtonContainerController : Controller
         robotButton.transform.localPosition = Vector3.right * (menuItems.Length%4 * 3 - 4.5f);
         Util.Add(menuItems, robotButton);
     }
+
+    public MenuItemController Get(int index)
+    {
+        return menuItems[index];
+    }
+
+    public MenuItemController GetByName(string name)
+    {
+        return Util.Find(menuItems, m => m.name.Equals(name));
+    }
 }

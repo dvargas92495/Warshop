@@ -202,7 +202,7 @@ public abstract class BaseGameManager
             if (evt.primaryLost) boardController.GetMyBattery().transform.Rotate(Vector3.down * 90);
             if (evt.secondaryLost) boardController.GetOpponentBattery().transform.Rotate(Vector3.down * 90);
             uiController.Splash(evt.primaryLost);
-            uiController.statsInterface.Initialize(evt, true);
+            uiController.statsInterface.Initialize(evt);
             gameClient.SendEndGameRequest();
         }
         else

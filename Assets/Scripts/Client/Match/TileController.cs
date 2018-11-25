@@ -31,18 +31,18 @@ public class TileController : Controller
 
     public void LoadBatteryTile(Map.Battery s)
     {
-        BatteryController Battery = Instantiate(battery, transform);
-        Battery.transform.localRotation = Quaternion.Euler(Vector3.left * 90);
-        Battery.transform.localPosition = Vector3.back * 0.5f;
+        BatteryController newBattery = Instantiate(battery, transform);
+        newBattery.transform.localRotation = Quaternion.Euler(Vector3.left * 90);
+        newBattery.transform.localPosition = Vector3.back * 0.5f;
 
         if (s.GetIsPrimary())
         {
-            Battery.transform.GetChild(0).GetComponent<Renderer>().material = opponentCore;
-            secondaryBatterySetterCallback(Battery);
+            newBattery.coreRenderer.material = opponentCore;
+            secondaryBatterySetterCallback(newBattery);
         }
         else
         {
-            primaryBatterySetterCallback(Battery);
+            primaryBatterySetterCallback(newBattery);
         }
     }
 

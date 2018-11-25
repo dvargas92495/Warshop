@@ -42,8 +42,8 @@ public class BoardController : Controller
         r.name = robot.name;
         r.displayHealth(robot.health);
         r.displayAttack(robot.attack);
-        r.healthLabel.GetComponent<MeshRenderer>().sortingOrder = r.healthLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
-        r.attackLabel.GetComponent<MeshRenderer>().sortingOrder = r.attackLabel.transform.parent.GetComponent<SpriteRenderer>().sortingOrder + 1;
+        r.healthMeshRenderer.sortingOrder = r.statsBaseRenderer.sortingOrder + 1;
+        r.attackMeshRenderer.sortingOrder = r.statsBaseRenderer.sortingOrder + 1;
         return r;
     }
 
@@ -92,18 +92,18 @@ public class BoardController : Controller
 
     public void SetBattery(int a, int b)
     {
-        myBattery.Score.text = a.ToString();
-        opponentBattery.Score.text = b.ToString();
+        myBattery.score.text = a.ToString();
+        opponentBattery.score.text = b.ToString();
     }
 
     public int GetMyBatteryScore()
     {
-        return int.Parse(myBattery.Score.text);
+        return int.Parse(myBattery.score.text);
     }
 
     public int GetOpponentBatteryScore()
     {
-        return int.Parse(opponentBattery.Score.text);
+        return int.Parse(opponentBattery.score.text);
     }
 
     private void InitializeLights(int width, int height)

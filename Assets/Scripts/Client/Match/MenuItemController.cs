@@ -3,14 +3,18 @@ using UnityEngine.Events;
 
 public class MenuItemController : Controller
 {
-    UnityAction callback;
     public Material inactiveRing;
     public Material activeRing;
     public Material inactiveBase;
     public Material activeBase;
+    public MeshRenderer baseRenderer;
+    public MeshRenderer ringRenderer;
     public SpriteRenderer spriteRenderer;
+
     private bool inactive;
     private bool selected;
+    private UnityAction callback;
+
 
     void OnMouseUp()
     {
@@ -46,25 +50,25 @@ public class MenuItemController : Controller
     {
         inactive = true;
         selected = false;
-        transform.GetChild(0).GetComponent<MeshRenderer>().material = inactiveBase;
-        transform.GetChild(1).GetComponent<MeshRenderer>().material = inactiveRing;
-        transform.GetChild(0).localPosition = Vector3.up*0.225f;
+        baseRenderer.material = inactiveBase;
+        ringRenderer.material = inactiveRing;
+        baseRenderer.transform.localPosition = Vector3.up*0.225f;
     }
 
     public void Select()
     {
         selected = true;
-        transform.GetChild(0).GetComponent<MeshRenderer>().material = inactiveBase;
-        transform.GetChild(0).localPosition = Vector3.zero;
+        baseRenderer.material = inactiveBase;
+        baseRenderer.transform.localPosition = Vector3.zero;
     }
 
     public void Activate()
     {
         inactive = false;
         selected = false;
-        transform.GetChild(0).GetComponent<MeshRenderer>().material = activeBase;
-        transform.GetChild(1).GetComponent<MeshRenderer>().material = activeRing;
-        transform.GetChild(0).localPosition = Vector3.up * 0.225f;
+        baseRenderer.material = activeBase;
+        ringRenderer.material = activeRing;
+        baseRenderer.transform.localPosition = Vector3.up * 0.225f;
     }
 
     public void SetActive(bool b)

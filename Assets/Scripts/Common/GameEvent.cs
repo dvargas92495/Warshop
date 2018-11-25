@@ -390,8 +390,8 @@ public abstract class GameEvent
         internal bool secondaryLost;
         internal short turnCount;
         internal int timeTaken;
-        internal Dictionary<short, Game.RobotStat> primaryTeamStats = new Dictionary<short, Game.RobotStat>();
-        internal Dictionary<short, Game.RobotStat> secondaryTeamStats = new Dictionary<short, Game.RobotStat>();
+        internal Util.Dictionary<short, Game.RobotStat> primaryTeamStats;
+        internal Util.Dictionary<short, Game.RobotStat> secondaryTeamStats;
 
         public override void Serialize(NetworkWriter writer)
         {
@@ -400,18 +400,16 @@ public abstract class GameEvent
             writer.Write(secondaryLost);
             writer.Write(turnCount);
             writer.Write(timeTaken);
-            writer.Write(primaryTeamStats.Count);
-            primaryTeamStats.Keys.ToList().ForEach((short k) =>
+            writer.Write(primaryTeamStats.GetLength());
+            primaryTeamStats.ForEach((k, stat) =>
             {
                 writer.Write(k);
-                Game.RobotStat stat = primaryTeamStats[k];
                 stat.Serialize(writer);
             });
-            writer.Write(secondaryTeamStats.Count);
-            secondaryTeamStats.Keys.ToList().ForEach((short k) =>
+            writer.Write(secondaryTeamStats.GetLength());
+            secondaryTeamStats.ForEach((k, stat) =>
             {
                 writer.Write(k);
-                Game.RobotStat stat = secondaryTeamStats[k];
                 stat.Serialize(writer);
             });
 
@@ -424,19 +422,21 @@ public abstract class GameEvent
             evt.secondaryLost = reader.ReadBoolean();
             evt.turnCount = reader.ReadInt16();
             evt.timeTaken = reader.ReadInt32();
-            int pc = reader.ReadInt32();
-            for (int i = 0; i < pc; i++)
+            evt.primaryTeamStats = new Util.Dictionary<short, Game.RobotStat>(reader.ReadInt32());
+            for (int i = 0; i < evt.primaryTeamStats.GetLength(); i++)
             {
                 short k = reader.ReadInt16();
-                evt.primaryTeamStats[k] = new Game.RobotStat();
-                evt.primaryTeamStats[k].Deserialize(reader);
+                Game.RobotStat stat = new Game.RobotStat();
+                stat.Deserialize(reader);
+                evt.primaryTeamStats.Add(k, stat);
             }
-            int sc = reader.ReadInt32();
-            for (int i = 0; i < sc; i++)
+            evt.secondaryTeamStats = new Util.Dictionary<short, Game.RobotStat>(reader.ReadInt32());
+            for (int i = 0; i < evt.secondaryTeamStats.GetLength(); i++)
             {
                 short k = reader.ReadInt16();
-                evt.secondaryTeamStats[k] = new Game.RobotStat();
-                evt.secondaryTeamStats[k].Deserialize(reader);
+                Game.RobotStat stat = new Game.RobotStat();
+                stat.Deserialize(reader);
+                evt.secondaryTeamStats.Add(k, stat);
             }
             return evt;
         }

@@ -3,6 +3,7 @@
 public class RobotPanelController : Controller
 {
     public CommandSlotContainerController commandSlotContainer;
+    public MeshRenderer powerUsedMeshRenderer;
     public SpriteRenderer robotSprite;
     public TextMesh powerUsedField;
 
@@ -14,7 +15,7 @@ public class RobotPanelController : Controller
     public void SetPowerUsed(int power)
     {
         powerUsedField.text = power.ToString();
-        powerUsedField.GetComponent<MeshRenderer>().sortingOrder = 2;
+        powerUsedMeshRenderer.sortingOrder = 2;
     }
 
     public Sprite GetSprite()
