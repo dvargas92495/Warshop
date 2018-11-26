@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Rendering;
+﻿using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class InitialController : Controller
@@ -13,23 +11,9 @@ public class InitialController : Controller
     public SceneReference profileScene;
     public SceneReference setupScene;
 
-    private bool isServer;
-    private bool localMode;
-
-    void Awake()
+    void Start ()
     {
-        isServer = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null;
-    }
-
-    void Start () {
-        Logger.Setup(isServer);
-        if (isServer)
-        {
-            App.StartServer();
-            return;
-        }
-        Debug.Log(setupScene.ScenePath);
-
+        Logger.Setup(false);
         enterLobbyButton.onClick.AddListener(EnterLobby);
         enterLocalMatchButton.onClick.AddListener(EnterLocalMatch);
         profileButton.onClick.AddListener(EnterProfile);

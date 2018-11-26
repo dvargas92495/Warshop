@@ -12,6 +12,7 @@ public class AwsApp : App
 
     public AwsApp()
     {
+        Logger.Setup(true);
         GenericOutcome outcome = GameLiftServerAPI.InitSDK();
         Application.targetFrameRate = 60;
         if (outcome.Success)
