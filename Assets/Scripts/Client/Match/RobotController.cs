@@ -9,7 +9,6 @@ public class RobotController : Controller
     public MeshRenderer healthMeshRenderer;
     public MeshRenderer attackMeshRenderer;
     public SpriteRenderer eventArrow;
-    public SpriteRenderer statsBaseRenderer;
     public TextMesh healthLabel;
     public TextMesh attackLabel;
     public GameObject[] robotModels;
@@ -152,7 +151,7 @@ public class RobotController : Controller
 
     public SpriteRenderer displayEvent(Sprite eventName, Vector2Int targetLoc, bool relative = true)
     {
-        Sprite eventType = eventName == null ? statsBaseRenderer.sprite : eventName;
+        Sprite eventType = eventName == null ? eventArrow.sprite : eventName;
         Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
         loc.z = -1;
         Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;

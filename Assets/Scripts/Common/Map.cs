@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 
 public class Map
 {
-    internal static Vector2Int NULL_VEC = Vector2Int.one * -1;
+    public static Vector2Int NULL_VEC = Vector2Int.one * -1;
 
     internal int width { get; set; }
     internal int height { get; set; }
@@ -21,7 +21,7 @@ public class Map
         spaces = new Space[width*height];
     }
 
-    internal Map(string content)
+    public Map(string content)
     {
         string[] lines = content.Split('\n');
         int[] boardDimensions = lines[0].Trim().Split(null).Select(int.Parse).ToArray();
@@ -153,11 +153,11 @@ public class Map
         return objectLocations.ContainsValue(s);
     }
 
-    internal void UpdateObjectLocation(int x, int y, short objectId) {
+    public void UpdateObjectLocation(int x, int y, short objectId) {
         objectLocations[objectId] = VecToSpace(x,y);
     }
 
-    internal void RemoveObjectLocation(short objectId)
+    public void RemoveObjectLocation(short objectId)
     {
         objectLocations.Remove(objectId);
     }

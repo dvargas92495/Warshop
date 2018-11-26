@@ -194,7 +194,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93e6d1ab59001814bae88c04e63d0363, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playButton: {fileID: 0}
+  playButton: {fileID: 114918100215809408}
+  passwordField: {fileID: 114733777426203996}
+  usernameField: {fileID: 114717266518571764}
+  publicPrivateText: {fileID: 114936904182298200}
 --- !u!114 &114256990780043794
 MonoBehaviour:
   m_ObjectHideFlags: 1

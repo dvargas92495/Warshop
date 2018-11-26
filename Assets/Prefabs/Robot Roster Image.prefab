@@ -41,6 +41,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86f5ce2a1d5b6fe4a83d424b79f0e851, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maximizeButton: {fileID: 114711957519876368}
+  myImage: {fileID: 114174852895450514}
 --- !u!114 &114174852895450514
 MonoBehaviour:
   m_ObjectHideFlags: 1

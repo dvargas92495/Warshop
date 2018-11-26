@@ -42,8 +42,8 @@ public class BoardController : Controller
         r.name = robot.name;
         r.displayHealth(robot.health);
         r.displayAttack(robot.attack);
-        r.healthMeshRenderer.sortingOrder = r.statsBaseRenderer.sortingOrder + 1;
-        r.attackMeshRenderer.sortingOrder = r.statsBaseRenderer.sortingOrder + 1;
+        r.healthMeshRenderer.sortingOrder = 2;
+        r.attackMeshRenderer.sortingOrder = 2;
         return r;
     }
 

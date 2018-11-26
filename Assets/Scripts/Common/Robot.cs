@@ -8,12 +8,12 @@ public class Robot
     internal readonly string name;
     internal readonly string description;
     internal byte priority;
-    internal short startingHealth;
-    internal short health;
-    internal short attack;
+    public short startingHealth;
+    public short health;
+    public short attack;
     internal Rating rating;
-    internal short id;
-    internal Vector2Int position;
+    public short id;
+    public Vector2Int position;
     internal Robot(string _name, string _description)
     {
         name = _name;

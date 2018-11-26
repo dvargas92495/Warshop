@@ -566,7 +566,7 @@ public class SlinkbotTest : TestBase
         BeforeEachTest();
         Vector2Int expected = primarySlink.position + Vector2Int.up * 2;
         List<GameEvent> events = SimulateCommands(
-            MoveCommand(Command.Move.UP, primarySlink.id)
+            MoveCommand(Command.UP, primarySlink.id)
         );
         Assert.AreEqual(3, events.Count);
         Assert.IsInstanceOf<GameEvent.Move>(events[0]);

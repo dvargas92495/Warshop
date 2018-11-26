@@ -130,6 +130,62 @@ public class Util
         }
     }
 
+    public class List<T>
+    {
+        private T[] items;
+
+        public List()
+        {
+            items = new T[0];
+        }
+
+        public List(params T[] i)
+        {
+            items = i;
+        }
+
+        public List<R> Map<R>(ReturnAction<T, R> callback)
+        {
+            return new List<R>(Util.Map(items, callback));
+        }
+
+        public List<R> MapFlattened<R>(ReturnAction<T, List<R>> callback)
+        {
+            ReturnAction<T, R[]> modifiedCallback = i => callback(i).items;
+            return new List<R>(Flatten(Util.Map(items, modifiedCallback)));
+        }
+
+        public List<T> Filter(ReturnAction<T,bool> callback)
+        {
+            return new List<T>(Util.Filter(items, callback));
+        }
+
+        public string ToString(string delim)
+        {
+            return ToArrayString(items, delim);
+        }
+
+        public List<T> Concat(List<T> newItems)
+        {
+            return new List<T>(Util.Concat(items, newItems.items));
+        }
+
+        public int GetLength()
+        {
+            return items.Length;
+        }
+
+        public bool IsEmpty()
+        {
+            return items.Length == 0;
+        }
+    }
+
+    public static List<T> ToList<T>(T[] arr)
+    {
+        return new List<T>(arr);
+    }
+
     internal static int[] Int(int length)
     {
         int[] arr = new int[length];

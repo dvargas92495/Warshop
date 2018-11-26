@@ -1,4 +1,4 @@
-﻿internal class GameConstants
+﻿public class GameConstants
 {
     internal const int MAX_ROBOTS_ON_SQUAD = 4;
     internal const int MAX_STARS_ON_SQUAD = 8;
@@ -13,11 +13,11 @@
     internal const byte DEFAULT_ATTACK_LIMIT = 1;
     internal const byte DEFAULT_SPECIAL_LIMIT = 0;
 
-    internal const byte DEFAULT_BATTERY_MULTIPLIER = 8;
+    public const byte DEFAULT_BATTERY_MULTIPLIER = 8;
     internal const byte DEFAULT_DEATH_MULTIPLIER = 8;
 
     internal const byte MAX_PRIORITY = 8;
-    internal const int POINTS_TO_WIN = 256;
+    public const int POINTS_TO_WIN = 256;
 
     internal const string FINISHED_EVENTS = "Finished Events, Submit Your Moves!";
     internal const string IM_WAITING = "Waiting for opponent to submit moves...";

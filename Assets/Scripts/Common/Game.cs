@@ -7,18 +7,18 @@ using UnityEngine.Networking;
 
 public class Game
 {
-    internal Player primary = new Player();
-    internal Player secondary = new Player();
+    public Player primary = new Player();
+    public Player secondary = new Player();
     internal string gameSessionId;
     Robot[] allRobots = new Robot[0];
     internal List<GameEvent> endOfTurnEvents = new List<GameEvent>();
-    internal Map board;
+    public Map board;
     internal short nextRobotId;
     internal byte turn = 1;
 
-    internal Game() {}
+    public Game() {}
 
-    internal void Join(string[] t, string n, int cid)
+    public void Join(string[] t, string n, int cid)
     {
         bool isPrimary = !primary.joined;
         Robot[] robots = new Robot[t.Length];
@@ -68,8 +68,8 @@ public class Game
     public class Player
     {
         internal string name;
-        internal short battery = GameConstants.POINTS_TO_WIN;
-        internal Robot[] team;
+        public short battery = GameConstants.POINTS_TO_WIN;
+        public Robot[] team;
         internal Util.Dictionary<short, RobotStat> teamStats;
         internal bool ready;
         internal bool joined;
@@ -84,7 +84,7 @@ public class Game
             name = n;
             joined = true;
         }
-        internal void StoreCommands(List<Command> cmds)
+        public void StoreCommands(List<Command> cmds)
         {
             commands = cmds;
             commands.ForEach((Command c) => c.owner = name);

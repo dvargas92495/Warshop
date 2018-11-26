@@ -229,6 +229,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   commandSlotContainer: {fileID: 114610667231352606}
+  powerUsedMeshRenderer: {fileID: 23961307395039988}
   robotSprite: {fileID: 212076129527512304}
   powerUsedField: {fileID: 102467345591118734}
 --- !u!114 &114610667231352606

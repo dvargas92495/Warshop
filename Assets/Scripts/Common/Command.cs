@@ -3,10 +3,10 @@ using UnityEngine.Networking;
 
 public abstract class Command
 {
-    internal const byte UP = 0;
-    internal const byte LEFT = 1;
-    internal const byte DOWN = 2;
-    internal const byte RIGHT = 3;
+    public const byte UP = 0;
+    public const byte LEFT = 1;
+    public const byte DOWN = 2;
+    public const byte RIGHT = 3;
 
     internal const byte SPAWN_COMMAND_ID = 0;
     internal const byte MOVE_COMMAND_ID = 1;
@@ -64,7 +64,7 @@ public abstract class Command
         }
     }
 
-    internal short robotId { get; set; }
+    public short robotId { get; set; }
     internal string owner { get; set; }
     protected internal string display { get; protected set; }
     protected internal byte direction { get; protected set; }
@@ -109,7 +109,7 @@ public abstract class Command
         return display + " " + byteToDirectionString[direction];
     }
 
-    internal class Spawn : Command
+    public class Spawn : Command
     {
         public Spawn(byte dir)
         {
@@ -119,7 +119,7 @@ public abstract class Command
         }
     }
 
-    internal class Move : Command
+    public class Move : Command
     {
         public Move(byte dir)
         {
@@ -129,7 +129,7 @@ public abstract class Command
         }
     }
 
-    internal class Attack : Command
+    public class Attack : Command
     {
         public Attack(byte dir)
         {
