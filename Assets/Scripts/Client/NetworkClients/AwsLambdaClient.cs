@@ -1,13 +1,12 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
 
 public class AwsLambdaClient
 {
-    private static Logger log = new Logger(typeof(AwsLambdaClient));
+    private static Logger log = new Logger(typeof(AwsLambdaClient).ToString());
 
-    public static IEnumerator SendCreateGameRequest(bool isPriv, string username, string pass, UnityAction<string, string, int> callback)
+    public static void SendCreateGameRequest(bool isPriv, string username, string pass, UnityAction<string, string, int> callback)
     {
         Messages.CreateGameRequest request = new Messages.CreateGameRequest
         {
@@ -16,7 +15,11 @@ public class AwsLambdaClient
             password = isPriv ? pass : "NONE"
         };
         UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
-        yield return www.SendWebRequest();
+        www.SendWebRequest().completed += (op) => CreateGameResponse(www, callback);
+    }
+
+    private static void CreateGameResponse(UnityWebRequest www, UnityAction<string, string, int> callback)
+    {
         if (www.isNetworkError || www.isHttpError)
         {
             log.Fatal("Error creating new game: \n" + www.downloadHandler.text);
@@ -33,9 +36,10 @@ public class AwsLambdaClient
                 callback(res.playerSessionId, res.ipAddress, res.port);
             }
         }
+        www.Dispose();
     }
 
-    public static IEnumerator SendJoinGameRequest(string gId, string username, string pass, UnityAction<string, string, int> callback)
+    public static void SendJoinGameRequest(string gId, string username, string pass, UnityAction<string, string, int> callback)
     {
         Messages.JoinGameRequest request = new Messages.JoinGameRequest
         {
@@ -45,10 +49,14 @@ public class AwsLambdaClient
         };
         UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
         www.method = "POST"; //LOL you freaking suck Unity
-        yield return www.SendWebRequest();
+        www.SendWebRequest().completed += (op) => JoinGameResponse(www, callback);
+    }
+
+    private static void JoinGameResponse(UnityWebRequest www, UnityAction<string, string, int> callback)
+    {
         if (www.isNetworkError || www.isHttpError)
         {
-            log.Fatal("Error joining available game: \n" + www.downloadHandler.text);
+            log.Fatal("Error joining game: \n" + www.downloadHandler.text);
         }
         else
         {
@@ -62,12 +70,17 @@ public class AwsLambdaClient
                 callback(res.playerSessionId, res.ipAddress, res.port);
             }
         }
+        www.Dispose();
     }
 
-    public static IEnumerator SendFindAvailableGamesRequest(UnityAction<string[], string[], bool[]> callback)
+    public static void SendFindAvailableGamesRequest(UnityAction<string[], string[], bool[]> callback)
     {
         UnityWebRequest www = UnityWebRequest.Get(GameConstants.GATEWAY_URL + "/games");
-        yield return www.SendWebRequest();
+        www.SendWebRequest().completed += (op) => FindAvailableGamesResponse(www, callback);
+    }
+
+    private static void FindAvailableGamesResponse(UnityWebRequest www, UnityAction<string[], string[], bool[]> callback)
+    {
         if (www.isNetworkError || www.isHttpError)
         {
             log.Fatal("Error finding available games: \n" + www.downloadHandler.text);
@@ -84,5 +97,6 @@ public class AwsLambdaClient
                 callback(res.gameSessionIds, res.creatorIds, res.isPrivate);
             }
         }
+        www.Dispose();
     }
 }

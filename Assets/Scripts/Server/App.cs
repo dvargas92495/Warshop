@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine.Networking;
+﻿using UnityEngine.Networking;
 using Aws.GameLift;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
@@ -10,7 +8,7 @@ public abstract class App
     private static App instance;
 
     private static Game appgame;
-    private static readonly Logger log = new Logger(typeof(App));
+    private static readonly Logger log = new Logger(typeof(App).ToString());
 
     public static void StartServer()
     {
@@ -145,35 +143,35 @@ public abstract class App
         try
         {
             Game.Player p = (appgame.primary.name.Equals(msg.owner) ? appgame.primary : appgame.secondary);
-            p.StoreCommands(new List<Command>(msg.commands));
+            p.StoreCommands(new Util.List<Command>(msg.commands));
             if (appgame.primary.ready && appgame.secondary.ready)
             {
                 Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();
-                List<GameEvent> events = appgame.CommandsToEvents();
+                Util.List<GameEvent> events = appgame.CommandsToEvents();
                 resp.events = events.ToArray();
                 resp.turn = appgame.GetTurn();
-                foreach (int cid in appgame.connectionIds())
+                appgame.connectionIds().ForEach(cid =>
                 {
-                    if (cid != appgame.primary.connectionId && cid == appgame.secondary.connectionId) Array.ForEach(resp.events, (GameEvent g) => g.Flip());
+                    if (cid != appgame.primary.connectionId && cid == appgame.secondary.connectionId) Util.ForEach(resp.events, (GameEvent g) => g.Flip());
                     Send(cid, Messages.TURN_EVENTS, resp);
-                }
+                });
             }
             else
             {
                 int cid = (p.Equals(appgame.primary) ? appgame.secondary.connectionId : appgame.primary.connectionId);
                 Send(cid, Messages.WAITING_COMMANDS, new Messages.OpponentWaitingMessage());
             }
-        } catch(Exception e)
+        } catch(ZException e)
         {
             log.Fatal(e);
             Messages.ServerErrorMessage errorMsg = new Messages.ServerErrorMessage();
             errorMsg.serverMessage = "Game server crashed when processing your submitted commands";
             errorMsg.exceptionType = e.GetType().ToString();
             errorMsg.exceptionMessage = e.Message;
-            foreach (int cid in appgame.connectionIds())
+            appgame.connectionIds().ForEach(cid =>
             {
                 Send(cid, Messages.SERVER_ERROR, errorMsg);
-            }
+            });
             EndGame();
         }
     }

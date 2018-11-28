@@ -14,7 +14,7 @@ public class LobbyController : Controller
 
     void Start ()
     {
-        StartCoroutine(AwsLambdaClient.SendFindAvailableGamesRequest(FindAvailableGamesCallback));
+        AwsLambdaClient.SendFindAvailableGamesRequest(FindAvailableGamesCallback);
 
         newGameSessionUI.SetUsername(GameClient.username);
         newGameSessionUI.SetPlayCallback(NewGame);
@@ -40,14 +40,14 @@ public class LobbyController : Controller
         DeactivateButtons();
         bool isPrivate = newGameSessionUI.GetPrivacy();
         string password = newGameSessionUI.GetPassword();
-        StartCoroutine(AwsLambdaClient.SendCreateGameRequest(isPrivate, GameClient.username, password, SetupGame));
+        AwsLambdaClient.SendCreateGameRequest(isPrivate, GameClient.username, password, SetupGame);
     }
 
     void JoinGame(GameSessionUiController match, string gameSessionId)
     {
         DeactivateButtons();
         string password = match.GetPassword();
-        StartCoroutine(AwsLambdaClient.SendJoinGameRequest(gameSessionId, GameClient.username, password, SetupGame));
+        AwsLambdaClient.SendJoinGameRequest(gameSessionId, GameClient.username, password, SetupGame);
     }
 
     void SetupGame(string playerSessionId, string ipAddress, int port)

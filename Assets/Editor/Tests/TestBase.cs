@@ -70,8 +70,8 @@ public class TestBase
 
     internal static List<GameEvent> SimulateCommands(params Command[] cmds)
     {
-        List<Command> primaryCmds = new List<Command>();
-        List<Command> secondaryCmds = new List<Command>();
+        Util.List<Command> primaryCmds = new Util.List<Command>();
+        Util.List<Command> secondaryCmds = new Util.List<Command>();
         Array.ForEach(cmds, (Command c) =>
         {
             if (Array.Exists(testgame.primary.team, (Robot r) => r.id == c.robotId)) primaryCmds.Add(c);
@@ -79,7 +79,7 @@ public class TestBase
         });
         testgame.primary.StoreCommands(primaryCmds);
         testgame.secondary.StoreCommands(secondaryCmds);
-        return testgame.CommandsToEvents();
+        return new List<GameEvent>(testgame.CommandsToEvents().ToArray());
     }
 
 }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine.UI;
+﻿using UnityEngine.UI;
 
 public class StatsController : Controller
 {

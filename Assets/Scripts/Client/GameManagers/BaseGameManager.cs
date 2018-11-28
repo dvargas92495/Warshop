@@ -19,7 +19,7 @@ public abstract class BaseGameManager
     protected HistoryState[] history = new HistoryState[0];
     protected Map board;
 
-    private static Logger log = new Logger(typeof(BaseGameManager));
+    private static Logger log = new Logger(typeof(BaseGameManager).ToString());
 
     public static void InitializeLocal()
     {

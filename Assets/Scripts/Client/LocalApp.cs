@@ -5,7 +5,7 @@ public class LocalApp : App
 {
     LocalGameClient gameClient;
 
-    private static readonly Logger log = new Logger(typeof(LocalApp));
+    private static readonly Logger log = new Logger(typeof(LocalApp).ToString());
 
     protected override void Send(int connId, short msgType, MessageBase msg)
     {

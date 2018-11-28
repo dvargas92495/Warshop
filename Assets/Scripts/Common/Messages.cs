@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
 
 public class Messages {
@@ -21,20 +19,20 @@ public class Messages {
     }
     public class StartLocalGameMessage : MessageBase
     {
-        public String myName;
-        public String opponentName;
-        public String[] myRobots;
-        public String[] opponentRobots;
+        public string myName;
+        public string opponentName;
+        public string[] myRobots;
+        public string[] opponentRobots;
     }
     public class StartGameMessage : MessageBase
     {
-        public String myName;
-        public String[] myRobots;
+        public string myName;
+        public string[] myRobots;
     }
     public class GameReadyMessage : MessageBase
     {
         public bool isPrimary;
-        public String opponentname;
+        public string opponentname;
         public Robot[] myTeam;
         public Robot[] opponentTeam;
         public Map board;
@@ -43,9 +41,9 @@ public class Messages {
             writer.Write(isPrimary);
             writer.Write(opponentname);
             writer.Write(myTeam.Length);
-            Array.ForEach(myTeam, (Robot robot) => robot.Serialize(writer));
+            Util.ForEach(myTeam, (Robot robot) => robot.Serialize(writer));
             writer.Write(opponentTeam.Length);
-            Array.ForEach(opponentTeam, (Robot robot) => robot.Serialize(writer));
+            Util.ForEach(opponentTeam, (Robot robot) => robot.Serialize(writer));
             board.Serialize(writer);
         }
         public override void Deserialize(NetworkReader reader)
@@ -72,7 +70,7 @@ public class Messages {
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(commands.Length);
-            Array.ForEach(commands, (Command cmd) => cmd.Serialize(writer));
+            Util.ForEach(commands, (Command cmd) => cmd.Serialize(writer));
             writer.Write(owner);
         }
         public override void Deserialize(NetworkReader reader)
@@ -92,7 +90,7 @@ public class Messages {
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(events.Length);
-            Array.ForEach(events, (GameEvent evt) =>
+            Util.ForEach(events, (GameEvent evt) =>
             {
                 evt.Serialize(writer);
                 evt.FinishMessage(writer);
@@ -119,7 +117,6 @@ public class Messages {
     public class EndGameMessage : MessageBase { }
 
     //Gateway Objects, TODO: Get rid of repeated classes
-    [Serializable]
     public class CreateGameRequest
     {
         public string playerId;
@@ -127,7 +124,6 @@ public class Messages {
         public string password;
     }
 
-    [Serializable]
     public class JoinGameRequest
     {
         public string playerId;
@@ -135,14 +131,12 @@ public class Messages {
         public string password;
     }
 
-    [Serializable]
     public class ZResponse
     {
         public bool IsError;
         public string ErrorMessage;
     }
 
-    [Serializable]
     public class GetGamesResponse : ZResponse
     {
         public string[] gameSessionIds;
@@ -150,15 +144,12 @@ public class Messages {
         public bool[] isPrivate;
     }
 
-    [Serializable]
     public class GameSessionResponse : ZResponse
     {
         public string playerSessionId;
         public string ipAddress;
         public int port;
     }
-    [Serializable]
     public class CreateGameResponse : GameSessionResponse { }
-    [Serializable]
     public class JoinGameResponse : GameSessionResponse { }
 }

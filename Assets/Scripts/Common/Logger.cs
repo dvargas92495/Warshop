@@ -1,5 +1,4 @@
 ﻿using Aws.GameLift;
-using System;
 using UnityEngine;
 using UnityEngine.Networking;
 using log4net.Layout;
@@ -13,7 +12,7 @@ class Logger {
     internal ILog log;
     private static bool configured;
 
-    internal Logger(Type t)
+    internal Logger(string t)
     {
         log = LogManager.GetLogger(t);
     }
@@ -43,7 +42,7 @@ class Logger {
         log.Error(message);
     }
 
-    internal void Fatal(Exception e)
+    internal void Fatal(ZException e)
     {
         log.Fatal(e.GetType() + " - " + e.Message + ":\n\t" + e.StackTrace);
     }

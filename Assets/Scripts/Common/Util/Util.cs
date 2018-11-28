@@ -68,9 +68,29 @@ public class Util
             vals[i] = val;
         }
 
+        public void Put(T key, U val)
+        {
+            vals[GetIndex(key)] = val;
+        }
+
+        public bool Contains(T key)
+        {
+            return Util.Contains(keys, key);
+        }
+
+        public bool ContainsValue(U val)
+        {
+            return Util.Contains(vals, val);
+        }
+
         public U Get(T key)
         {
             return vals[GetIndex(key)];
+        }
+
+        public T GetKey(U val)
+        {
+            return keys[FindIndex(vals, val)];
         }
 
         public int GetLength()
@@ -96,6 +116,14 @@ public class Util
         public V ReduceEachValue<V>(V initialValue, ReturnAction<V,U,V> callback)
         {
             return Reduce(vals, initialValue, callback);
+        }
+
+        public void Remove(T key)
+        {
+            int i = GetIndex(key);
+            vals[i] = default(U);
+            keys[i] = default(T);
+            entries[i] = false;
         }
 
         public bool AnyValue(ReturnAction<U,bool> callback)
@@ -144,6 +172,26 @@ public class Util
             items = i;
         }
 
+        public List(List<T> l)
+        {
+            items = l.items;
+        }
+
+        public T Get(int i)
+        {
+            return items[i];
+        }
+
+        public List<T> Get(int i, int size)
+        {
+            return new List<T>(Util.Get(items, i, size));
+        }
+
+        public T[] ToArray()
+        {
+            return Util.Get(items, 0, items.Length);
+        }
+
         public List<R> Map<R>(ReturnAction<T, R> callback)
         {
             return new List<R>(Util.Map(items, callback));
@@ -160,6 +208,31 @@ public class Util
             return new List<T>(Util.Filter(items, callback));
         }
 
+        public T Find(ReturnAction<T, bool> callback)
+        {
+            return Util.Find(items, callback);
+        }
+
+        public int FindIndex(T item)
+        {
+            return Util.FindIndex(items, item);
+        }
+
+        public void RemoveAt(int i)
+        {
+            items = Util.RemoveAt(items, i);
+        }
+
+        public void RemoveAt(int i, int size)
+        {
+            items = Util.RemoveAt(items, i, size);
+        }
+
+        public void RemoveAll(ReturnAction<T, bool> callback)
+        {
+            items = Util.Filter(items, (T item) => !callback(item));
+        }
+
         public string ToString(string delim)
         {
             return ToArrayString(items, delim);
@@ -167,7 +240,42 @@ public class Util
 
         public List<T> Concat(List<T> newItems)
         {
-            return new List<T>(Util.Concat(items, newItems.items));
+            return new List<T>(Util.Add(items, newItems.items));
+        }
+
+        public void Add(T item)
+        {
+            items = Util.Add(items, item);
+        }
+
+        public void Add(List<T> l)
+        {
+            items = Util.Add(items, l.items);
+        }
+
+        public void Add(T item, int i)
+        {
+            items = Util.Add(items, item, i);
+        }
+
+        public void Add(List<T> l, int i)
+        {
+            items = Util.Add(items, l.items, i);
+        }
+
+        public bool Contains(T item)
+        {
+            return Util.Contains(items, item);
+        }
+
+        public void ForEach(UnityAction<T> callback)
+        {
+            Util.ForEach(items, callback);
+        }
+
+        public void Clear()
+        {
+            items = new T[0];
         }
 
         public int GetLength()
@@ -178,6 +286,50 @@ public class Util
         public bool IsEmpty()
         {
             return items.Length == 0;
+        }
+    }
+
+    public class Set<T>
+    {
+        int count = 0;
+        T[] items;
+        public Set(int size)
+        {
+            items = new T[size];
+        }
+
+        public Set(T[] other)
+        {
+            items = other;
+            count = other.Length;
+        }
+
+        public Set(Set<T> other)
+        {
+            items = other.items;
+            count = other.count;
+        }
+
+        public void Add(T item)
+        {
+            items[count] = item;
+            count++;
+        }
+
+        public void Remove(T item)
+        {
+            items = Util.Remove(items, item);
+            count--;
+        }
+
+        public Set<T> Filter(ReturnAction<T, bool> callback)
+        {
+            return new Set<T>(Util.Filter(items, callback));
+        }
+
+        public void ForEach(UnityAction<T> callback)
+        {
+            Util.ForEach(Util.Filter(items, i => i != null), callback);
         }
     }
 
@@ -231,6 +383,42 @@ public class Util
         return newArr;
     }
 
+    internal static T[] Add<T>(T[] arr, T item, int i)
+    {
+        T[] newArr = new T[arr.Length + 1];
+        int index = 0;
+        ForEach(arr, (T oldItem) =>
+        {
+            if (i == index)
+            {
+                newArr[index] = item;
+                index++;
+            }
+            newArr[index] = oldItem;
+            index++;
+        });
+        if (i == index) newArr[index] = item;
+        return newArr;
+    }
+
+    internal static T[] Add<T>(T[] arr, T[] arr2, int index)
+    {
+        T[] newArr = new T[arr.Length + arr2.Length];
+        for (int i = 0; i < index; i++)
+        {
+            newArr[i] = arr[i];
+        }
+        for (int i = index; i < index + arr2.Length; i++)
+        {
+            newArr[i] = arr2[i - index];
+        }
+        for (int i = index + arr2.Length; i < newArr.Length; i++)
+        {
+            newArr[i] = arr[i - arr2.Length];
+        }
+        return newArr;
+    }
+
     internal static T[] Add<T>(T[] arr, T[] items)
     {
         T[] newArr = new T[arr.Length + items.Length];
@@ -265,14 +453,19 @@ public class Util
 
     internal static T[] RemoveAt<T>(T[] arr, int index)
     {
-        T[] newArr = new T[arr.Length - 1];
+        return RemoveAt(arr, index, 1);
+    }
+
+    internal static T[] RemoveAt<T>(T[] arr, int index, int size)
+    {
+        T[] newArr = new T[arr.Length - size];
         for (int i = 0; i < index; i++)
         {
             newArr[i] = arr[i];
         }
-        for (int i = index+1;i<arr.Length;i++)
+        for (int i = index + size; i < arr.Length; i++)
         {
-            newArr[i - 1] = arr[i];
+            newArr[i - size] = arr[i];
         }
         return newArr;
     }
@@ -382,6 +575,13 @@ public class Util
         return returnArr;
     }
 
+    internal static T[] Get<T>(T[] arr, int index, int size)
+    {
+        T[] returnArr = new T[size];
+        for (int i = index; i < index + size; i++) returnArr[i - index] = arr[i];
+        return returnArr;
+    }
+
     internal static string ToArrayString<T>(T[] arr, string delim)
     {
         string s = "";
@@ -393,17 +593,18 @@ public class Util
         return s;
     }
 
-    internal static T[] Concat<T>(T[] arr, T[] arr2)
+    internal static bool Contains<T>(T[] arr, T item)
     {
-        T[] returnArr = new T[arr.Length + arr2.Length];
-        for (int i = 0; i<arr.Length; i++)
+        foreach(T i in arr)
         {
-            returnArr[i] = arr[i];
+            if (i.Equals(item)) return true;
         }
-        for (int i = 0; i < arr2.Length; i++)
-        {
-            returnArr[arr.Length + i] = arr2[i];
-        }
-        return returnArr;
+        return false;
+    }
+
+    internal static int Max(int a, int b)
+    {
+        if (a > b) return a;
+        return b;
     }
 }

@@ -5,7 +5,7 @@ public abstract class GameClient
 {
     protected UnityAction<Robot[], Robot[], string, Map> gameReadyCallback;
     internal static string username;
-    private static Logger log = new Logger(typeof(GameClient));
+    private static Logger log = new Logger(typeof(GameClient).ToString());
 
     protected abstract void Send(short msgType, MessageBase message);
 

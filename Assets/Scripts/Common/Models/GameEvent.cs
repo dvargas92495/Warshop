@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
 
 public abstract class GameEvent
@@ -451,7 +448,7 @@ public abstract class GameEvent
         {
             writer.Write(EVENT_ID);
             writer.Write(collidingRobots.Length);
-            Array.ForEach(collidingRobots, writer.Write);
+            Util.ForEach(collidingRobots, writer.Write);
             writer.Write(deniedPos.x);
             writer.Write(deniedPos.y);
         }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
 
 public class Map
@@ -11,8 +8,8 @@ public class Map
     internal int width { get; set; }
     internal int height { get; set; }
     internal Space[] spaces;
-    private Tuple<HashSet<short>, HashSet<short>> Dock = new Tuple<HashSet<short>, HashSet<short>>(new HashSet<short>(), new HashSet<short>());
-    private Dictionary<short, Space> objectLocations;
+    private Util.Tuple<Util.Set<short>, Util.Set<short>> dock = new Util.Tuple<Util.Set<short>, Util.Set<short>>(new Util.Set<short>(GameConstants.MAX_ROBOTS_ON_SQUAD), new Util.Set<short>(GameConstants.MAX_ROBOTS_ON_SQUAD));
+    private Util.Dictionary<short, Space> objectLocations;
 
     private Map(int w, int h)
     {
@@ -24,7 +21,7 @@ public class Map
     public Map(string content)
     {
         string[] lines = content.Split('\n');
-        int[] boardDimensions = lines[0].Trim().Split(null).Select(int.Parse).ToArray();
+        int[] boardDimensions = Util.Map(lines[0].Trim().Split(null), int.Parse);
         width = boardDimensions[0];
         height = boardDimensions[1];
         spaces = new Space[width*height];
@@ -38,7 +35,7 @@ public class Map
                 spaces[y * width + x].y = y;
             }
         }
-        objectLocations = new Dictionary<short, Space>();
+        objectLocations = new Util.Dictionary<short, Space>(GameConstants.MAX_ROBOTS_ON_SQUAD*2);
     }
     public void Serialize(NetworkWriter writer)
     {
@@ -126,11 +123,11 @@ public class Map
 
     public short GetIdOnSpace(Space s)
     {
-        Func<short, bool> eq = (short k) => objectLocations[k].Equals(s);
-        if (objectLocations.Keys.Any(eq))
+        if (objectLocations.ContainsValue(s))
         {
-            return objectLocations.Keys.ToList().Find((short k) => objectLocations[k].Equals(s));
-        } else
+            return objectLocations.GetKey(s);
+        }
+        else
         {
             return -1;
         }
@@ -138,8 +135,8 @@ public class Map
 
     public Vector2Int GetQueuePosition(byte i, bool isPrimary)
     {
-        Space[] queueSpaces = Array.FindAll(spaces, (Space s) => s is Queue);
-        Space queueSpace = Array.Find(queueSpaces, (Space s) => ((Queue)s).GetIndex() == i && ((Queue)s).GetIsPrimary() == isPrimary);
+        Space[] queueSpaces = Util.Filter(spaces, (Space s) => s is Queue);
+        Space queueSpace = Util.Find(queueSpaces, (Space s) => ((Queue)s).GetIndex() == i && ((Queue)s).GetIsPrimary() == isPrimary);
         return new Vector2Int(queueSpace.x, queueSpace.y);
     }
 
@@ -153,8 +150,9 @@ public class Map
         return objectLocations.ContainsValue(s);
     }
 
-    public void UpdateObjectLocation(int x, int y, short objectId) {
-        objectLocations[objectId] = VecToSpace(x,y);
+    public void UpdateObjectLocation(int x, int y, short objectId)
+    {
+        objectLocations.Put(objectId, VecToSpace(x,y));
     }
 
     public void RemoveObjectLocation(short objectId)
@@ -164,8 +162,8 @@ public class Map
 
     internal void AddToDock(short robotId, bool isPrimary)
     {
-        if (isPrimary) Dock.Item1.Add(robotId);
-        else Dock.Item2.Add(robotId);
+        if (isPrimary) dock.GetLeft().Add(robotId);
+        else dock.GetRight().Add(robotId);
     }
 
     public abstract class Space

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
 using Aws.GameLift;
 using Aws.GameLift.Server;
@@ -8,7 +7,7 @@ public class AwsApp : App
 {
     private const int MIN_PORT = 12350;
     private const int MAX_PORT = 12360;
-    private static readonly Logger log = new Logger(typeof(App));
+    private static readonly Logger log = new Logger(typeof(AwsApp).ToString());
 
     public AwsApp()
     {
@@ -27,15 +26,14 @@ public class AwsApp : App
             {
                 if (NetworkServer.Listen(port)) break;
             }
+            LogParameters paths = new LogParameters();
+            paths.LogPaths.Add(GameConstants.APP_LOG_DIR);
             GameLiftServerAPI.ProcessReady(new ProcessParameters(
                 OnGameSession,
                 OnProcessTerminate,
                 OnHealthCheck,
                 port,
-                new LogParameters(new List<string>()
-                {
-                    GameConstants.APP_LOG_DIR
-                })
+                paths
             ));
             log.Info("Listening on: " + port);
         }
