@@ -13,7 +13,12 @@ public abstract class Command
     internal const byte ATTACK_COMMAND_ID = 2;
     internal const byte SPECIAL_COMMAND_ID = 3;
 
-    internal const byte NUM_TYPES = 4;
+    internal static byte[] TYPES = new byte[] {
+        SPAWN_COMMAND_ID,
+        MOVE_COMMAND_ID,
+        ATTACK_COMMAND_ID,
+        SPECIAL_COMMAND_ID
+    };
 
     internal static string[] byteToDirectionString = new string[]{"Up", "Left", "Down", "Right"};
 

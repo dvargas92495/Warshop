@@ -119,8 +119,8 @@ public class UIController : Controller
 
     void SetPlayerPanel(Game.Player player, RobotPanelsContainerController container)
     {
-        container.Initialize(player.team.Length);
-        Util.ForEach(player.team, r => container.AddPanel(r));
+        container.Initialize(player.team.GetLength());
+        player.team.ForEach(container.AddPanel);
     }
 
     public void BindUiToRobotController(short robotId, RobotController robotController)
@@ -163,7 +163,7 @@ public class UIController : Controller
     private void EachDirectionButton(MenuItemController directionButton, MenuItemController robotButton, RobotController robotController, string commandName)
     {
         bool isSpawn = commandName.Equals(Command.GetDisplay(Command.SPAWN_COMMAND_ID));
-        byte dir = (byte) Util.FindIndex(Command.byteToDirectionString, s => s.Equals(directionButton.name));
+        byte dir = (byte) Util.ToList(Command.byteToDirectionString).FindIndex(directionButton.name);
         directionButton.SetSprite(isSpawn ? queueSprites[dir] : GetArrow(commandName + " Arrow"));
         directionButton.SetCallback(() => DirectionButtonCallback(robotButton, robotController, commandName, dir));
         directionButton.spriteRenderer.transform.localRotation = Quaternion.Euler(Vector3.up * 180 + (isSpawn ? Vector3.zero : Vector3.forward * dir * 90));
@@ -179,14 +179,14 @@ public class UIController : Controller
     private void CommandSlotClickCallback(RobotController r, int index)
     {
         ClearCommands(r.id);
-        if (r.commands[index] is Command.Spawn)
+        if (r.commands.Get(index) is Command.Spawn)
         {
-            r.commands = new Command[0];
+            r.commands.Clear();
         }
         else
         {
-            r.commands = Util.RemoveAt(r.commands, index);
-            Util.ForEach(r.commands, c => AddSubmittedCommand(c, r.id));
+            r.commands.RemoveAt(index);
+            r.commands.ForEach(c => AddSubmittedCommand(c, r.id));
         }
 
         robotButtonContainer.SetButtons(true);
@@ -233,7 +233,7 @@ public class UIController : Controller
 
     public Sprite GetArrow(string eventName)
     {
-        return Util.Find(arrows, (Sprite s) => s.name.Equals(eventName));
+        return Util.ToList(arrows).Find(s => s.name.Equals(eventName));
     }
 
     public void Splash(bool win)
@@ -258,7 +258,7 @@ public class UIController : Controller
     {
         if (g.layer == l) return;
         g.layer = l;
-        Util.ForEach(g.transform.childCount, i => ChangeLayer(g.transform.GetChild(i).gameObject, l));
+        Util.ToIntList(g.transform.childCount).ForEach(i => ChangeLayer(g.transform.GetChild(i).gameObject, l));
     }
 
 }

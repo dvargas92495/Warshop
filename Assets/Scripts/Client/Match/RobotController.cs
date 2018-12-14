@@ -16,13 +16,13 @@ public class RobotController : Controller
     internal short id { get; private set; }
     internal bool isSpawned;
     internal bool isOpponent;
-    internal SpriteRenderer[] currentEvents = new SpriteRenderer[0];
-    internal Command[] commands = new Command[0];
+    internal List<SpriteRenderer> currentEvents = new List<SpriteRenderer>();
+    internal List<Command> commands = new List<Command>();
 
     public void LoadModel(string n, short i)
     {
         id = i;
-        GameObject model = Util.Find(robotModels, g => g.name.Equals(n));
+        GameObject model = new List<GameObject>(robotModels).Find(g => g.name.Equals(n));
         if (model == null) model = defaultModel;
         GameObject baseModel = Instantiate(model, animator.transform);
     }
@@ -36,27 +36,27 @@ public class RobotController : Controller
         int num = GetNumCommandType(cmd.commandId);
         if (num < Command.limit[cmd.commandId])
         {
-            commands = Util.Add(commands, cmd);
+            commands.Add(cmd);
             callback(cmd, id);
         }
     }
 
     private int GetNumCommandType(byte t)
     {
-        return Util.Count(commands, c => c.commandId == t);
+        return commands.Count(c => c.commandId == t);
     }
 
     internal void ShowMenuOptions(ButtonContainerController m)
     {
-        if (!isSpawned &&commands.Length == 0)
+        if (!isSpawned &&commands.GetLength() == 0)
         {
-            Util.ForEach(Command.NUM_TYPES, t => m.GetByName(Command.GetDisplay((byte)t)).SetActive(t == Command.SPAWN_COMMAND_ID));
+            new List<byte>(Command.TYPES).ForEach(t => m.GetByName(Command.GetDisplay(t)).SetActive(t == Command.SPAWN_COMMAND_ID));
         }
         else
         {
-            Util.ForEach(Command.NUM_TYPES, t =>
+            new List<byte>(Command.TYPES).ForEach(t =>
             {
-                int num = GetNumCommandType((byte)t);
+                int num = GetNumCommandType(t);
                 bool active = num < Command.limit[t] && !t.Equals(typeof(Command.Spawn));
                 MenuItemController item = m.GetByName(Command.GetDisplay((byte)t));
                 item.SetActive(active);
@@ -157,8 +157,8 @@ public class RobotController : Controller
         Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;
         SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
         addedEvent.sprite = eventType;
-        addedEvent.sortingOrder += currentEvents.Length;
-        currentEvents = Util.Add(currentEvents, addedEvent);
+        addedEvent.sortingOrder += currentEvents.GetLength();
+        currentEvents.Add(addedEvent);
         return addedEvent;
     }
 
@@ -171,7 +171,7 @@ public class RobotController : Controller
 
     public void clearEvents()
     {
-        Util.ForEach(currentEvents, i => Destroy(i.gameObject));
-        currentEvents = new SpriteRenderer[0];
+        currentEvents.ForEach(i => Destroy(i.gameObject));
+        currentEvents = new List<SpriteRenderer>();
     }
 }

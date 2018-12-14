@@ -8,7 +8,7 @@ public class SquadPanelController : Controller
     public RobotSquadImageController robotSquadImage;
     public Transform squadPanelRobotHolder;
 
-    private RobotSquadImageController[] squadRobots = new RobotSquadImageController[0];
+    private List<RobotSquadImageController> squadRobots = new List<RobotSquadImageController>();
 
     public void SetAddCallback(UnityAction<SquadPanelController> callback)
     {
@@ -18,22 +18,22 @@ public class SquadPanelController : Controller
     public RobotSquadImageController AddRobotSquadImage()
     {
         RobotSquadImageController addedRobot = Instantiate(robotSquadImage, squadPanelRobotHolder);
-        squadRobots = Util.Add(squadRobots, addedRobot);
+        squadRobots.Add(addedRobot);
         return addedRobot;
     }
 
     public void RemoveRobotSquadImage(RobotSquadImageController removedRobot)
     {
-        squadRobots = Util.Remove(squadRobots, removedRobot);
+        squadRobots.Remove(removedRobot);
     }
 
     public string[] GetSquadRobotNames()
     {
-        return Util.Map(squadRobots, (RobotSquadImageController r) => r.name.Trim());
+        return squadRobots.Map(r => r.name.Trim()).ToArray();
     }
 
     public int GetNumRobots()
     {
-        return squadRobots.Length;
+        return squadRobots.GetLength();
     }
 }

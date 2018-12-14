@@ -11,7 +11,7 @@ public class BoardController : Controller
 
     private BatteryController myBattery;
     private BatteryController opponentBattery;
-    private TileController[] allLocations;
+    private List<TileController> allLocations;
 
     void Awake()
     {
@@ -20,7 +20,7 @@ public class BoardController : Controller
 
     public void InitializeBoard(Map board)
     {
-        allLocations = Util.Map(board.spaces, InitializeTile);
+        allLocations = Util.ToList(board.spaces).Map(InitializeTile);
         
         myDock.transform.position = new Vector3(0, -1);
         opponentDock.transform.position = new Vector3(board.width - 1, board.height);
@@ -62,7 +62,7 @@ public class BoardController : Controller
 
     private TileController FindTile(float x, float y)
     {
-        return Util.Find(allLocations, t => t.transform.position.x == x && t.transform.position.y == y);
+        return allLocations.Find(t => t.transform.position.x == x && t.transform.position.y == y);
     }
 
     public BatteryController GetMyBattery()
@@ -77,7 +77,7 @@ public class BoardController : Controller
 
     public TileController[] GetAllTiles()
     {
-        return allLocations;
+        return allLocations.ToArray();
     }
 
     public void SetMyBattery(BatteryController batteryController)

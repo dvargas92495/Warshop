@@ -20,7 +20,7 @@ public class AwsApp : App
                 MsgType.Connect, MsgType.Disconnect, Messages.ACCEPT_PLAYER_SESSION, Messages.START_LOCAL_GAME,
                 Messages.START_GAME, Messages.SUBMIT_COMMANDS, Messages.END_GAME,
             };
-            Util.ForEach(messageTypes, messageType => NetworkServer.RegisterHandler(messageType, GetHandler(messageType)));
+            Util.ToList(messageTypes).ForEach(messageType => NetworkServer.RegisterHandler(messageType, GetHandler(messageType)));
             int port = MIN_PORT;
             for (; port < MAX_PORT; port++)
             {

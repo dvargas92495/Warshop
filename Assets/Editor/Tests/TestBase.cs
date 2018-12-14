@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TestBase
@@ -27,7 +26,7 @@ public class TestBase
 
     public void BeforeEachTest()
     {
-        BeforeEachTest(new Dictionary<short, Vector2Int>());
+        BeforeEachTest(new Dictionary<short, Vector2Int>(0));
     }
 
     public void BeforeEachTest(Dictionary<short, Vector2Int> pos)
@@ -35,11 +34,11 @@ public class TestBase
         Action<Game.Player, bool> reset = (Game.Player p, bool isPrimary) =>
         {
             p.battery = GameConstants.POINTS_TO_WIN;
-            Array.ForEach(p.team, (Robot r) =>
+            p.team.ForEach(r =>
             {
                 r.health = r.startingHealth;
-                r.position = pos.ContainsKey(r.id) ? pos[r.id] : Map.NULL_VEC;
-                if (pos.ContainsKey(r.id)) testgame.board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
+                r.position = pos.Contains(r.id) ? pos.Get(r.id) : Map.NULL_VEC;
+                if (pos.Contains(r.id)) testgame.board.UpdateObjectLocation(r.position.x, r.position.y, r.id);
                 else testgame.board.RemoveObjectLocation(r.id);
             });
         };
@@ -70,11 +69,11 @@ public class TestBase
 
     internal static List<GameEvent> SimulateCommands(params Command[] cmds)
     {
-        Util.List<Command> primaryCmds = new Util.List<Command>();
-        Util.List<Command> secondaryCmds = new Util.List<Command>();
+        List<Command> primaryCmds = new List<Command>();
+        List<Command> secondaryCmds = new List<Command>();
         Array.ForEach(cmds, (Command c) =>
         {
-            if (Array.Exists(testgame.primary.team, (Robot r) => r.id == c.robotId)) primaryCmds.Add(c);
+            if (testgame.primary.team.Any(r => r.id == c.robotId)) primaryCmds.Add(c);
             else secondaryCmds.Add(c);
         });
         testgame.primary.StoreCommands(primaryCmds);

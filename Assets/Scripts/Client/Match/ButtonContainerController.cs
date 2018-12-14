@@ -9,7 +9,7 @@ public class ButtonContainerController : Controller
 
     public void EachMenuItem(UnityAction<MenuItemController> a)
     {
-        Util.ForEach(menuItems, a);
+        Util.ToList(menuItems).ForEach(a);
     }
 
     public void EachMenuItemSet(UnityAction<MenuItemController> a)
@@ -36,7 +36,7 @@ public class ButtonContainerController : Controller
     public void AddRobotButton(MenuItemController robotButton)
     {
         robotButton.transform.localPosition = Vector3.right * (menuItems.Length%4 * 3 - 4.5f);
-        Util.Add(menuItems, robotButton);
+        menuItems = Util.Add(menuItems, robotButton);
     }
 
     public MenuItemController Get(int index)
@@ -46,6 +46,6 @@ public class ButtonContainerController : Controller
 
     public MenuItemController GetByName(string name)
     {
-        return Util.Find(menuItems, m => m.name.Equals(name));
+        return Util.ToList(menuItems).Find(m => m.name.Equals(name));
     }
 }

@@ -6,8 +6,8 @@ public class HistoryState
     byte turnNumber;
     byte priority;
     byte commandType;
-    Util.Dictionary<short, RobotState> robots;
-    TileState[] tiles;
+    Dictionary<short, RobotState> robots;
+    List<TileState> tiles;
     int myScore;
     int opponentScore;
 
@@ -17,8 +17,8 @@ public class HistoryState
         public Vector3 rotation;
         public short health;
         public short attack;
-        public CurrentEvent[] currentEvents;
-        public Cmd[] commands;
+        public List<CurrentEvent> currentEvents;
+        public List<Cmd> commands;
 
         public class CurrentEvent
         {
@@ -46,9 +46,9 @@ public class HistoryState
         commandType = c;
     }
 
-    public void SerializeRobots(Util.Dictionary<short, RobotController> robotControllers)
+    public void SerializeRobots(Dictionary<short, RobotController> robotControllers)
     {
-        robots = new Util.Dictionary<short, RobotState>(robotControllers.GetLength());
+        robots = new Dictionary<short, RobotState>(robotControllers.GetLength());
         robotControllers.ForEachValue(SerializeRobot);
     }
 
@@ -59,8 +59,8 @@ public class HistoryState
         state.rotation = r.transform.rotation.eulerAngles;
         state.health = r.GetHealth();
         state.attack = r.GetAttack();
-        state.currentEvents = Util.Map(r.currentEvents, SerializeCurrentEvent);
-        state.commands = Util.Map(r.commands, SerializeCmd);
+        state.currentEvents = r.currentEvents.Map(SerializeCurrentEvent);
+        state.commands = r.commands.Map(SerializeCmd);
         robots.Add(r.id, state);
     }
 
@@ -83,7 +83,7 @@ public class HistoryState
 
     public void SerializeTiles(TileController[] tileControllers)
     {
-        tiles = Util.Map(tileControllers, SerializeTile);
+        tiles = new List<TileController>(tileControllers).Map(SerializeTile);
     }
 
     private TileState SerializeTile(TileController t)
@@ -99,7 +99,7 @@ public class HistoryState
         opponentScore = opponents;
     }
 
-    public void DeserializeRobots(Util.Dictionary<short, RobotController> robotControllers, UnityAction<Command, short> addCommandCallback)
+    public void DeserializeRobots(Dictionary<short, RobotController> robotControllers, UnityAction<Command, short> addCommandCallback)
     {
         robots.ForEach((id, state) => DeserializeRobot(robotControllers.Get(id), state, addCommandCallback));
     }
@@ -110,9 +110,9 @@ public class HistoryState
         r.transform.rotation = Quaternion.Euler(state.rotation);
         r.displayHealth(state.health);
         r.displayAttack(state.attack);
-        r.currentEvents = Util.Map(state.currentEvents, c => DeserializeCurrentEvent(c, r));
-        r.commands = new Command[0];
-        Util.ForEach(state.commands, c => DeserializeCmd(c, r, addCommandCallback));
+        r.currentEvents = state.currentEvents.Map(c => DeserializeCurrentEvent(c, r));
+        r.commands = new List<Command>();
+        state.commands.ForEach(c => DeserializeCmd(c, r, addCommandCallback));
     }
 
     private SpriteRenderer DeserializeCurrentEvent(RobotState.CurrentEvent c, RobotController r)
@@ -130,7 +130,7 @@ public class HistoryState
 
     public void DeserializeTiles(TileController[] tileControllers)
     {
-        Util.ForEach(tileControllers, tiles, DeserializeTile);
+        new List<TileController>(tileControllers).ForEach(tiles, DeserializeTile);
     }
 
     private void DeserializeTile(TileController t, TileState state)

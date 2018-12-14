@@ -18,9 +18,9 @@ public class StatsController : Controller
         FillStats(evt.secondaryTeamStats, opponentTeam);
     }
 
-    private void FillStats(Util.Dictionary<short, Game.RobotStat> teamStats, Text[] g)
+    private void FillStats(Dictionary<short, Game.RobotStat> teamStats, Text[] g)
     {
-        Util.ForEach(g, t => t.gameObject.SetActive(false));
+        Util.ToList(g).ForEach(t => t.gameObject.SetActive(false));
         teamStats.ForEach((i, robotStat) => FillRobotStat(g[i], robotStat));
     }
 

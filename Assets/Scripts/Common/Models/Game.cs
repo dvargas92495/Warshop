@@ -7,8 +7,7 @@ public class Game
     public Player primary = new Player();
     public Player secondary = new Player();
     internal string gameSessionId;
-    Robot[] allRobots = new Robot[0];
-    internal Util.List<GameEvent> endOfTurnEvents = new Util.List<GameEvent>();
+    internal List<GameEvent> endOfTurnEvents = new List<GameEvent>();
     public Map board;
     internal short nextRobotId;
     internal byte turn = 1;
@@ -28,11 +27,8 @@ public class Game
             board.AddToDock(r.id, isPrimary);
             robots[i] = r;
         }
-        allRobots = new Robot[allRobots.Length + robots.Length];
-        robots.CopyTo(allRobots, 0);
         if (!isPrimary)
         {
-            primary.team.CopyTo(allRobots, robots.Length);
             secondary = new Player(robots, n);
             secondary.connectionId = cid;
         } else
@@ -42,9 +38,9 @@ public class Game
         }
     }
 
-    internal Util.List<int> connectionIds()
+    internal List<int> connectionIds()
     {
-        Util.List<int> ids = new Util.List<int>();
+        List<int> ids = new List<int>();
         ids.Add(primary.connectionId);
         if (!ids.Contains(secondary.connectionId)) ids.Add(secondary.connectionId);
         return ids;
@@ -56,8 +52,8 @@ public class Game
         Messages.GameReadyMessage resp = new Messages.GameReadyMessage();
         resp.isPrimary = forPrimary;
         resp.board = board;
-        resp.myTeam = (forPrimary ? primary.team : secondary.team);
-        resp.opponentTeam = (forPrimary ? secondary.team : primary.team);
+        resp.myTeam = (forPrimary ? primary.team : secondary.team).ToArray();
+        resp.opponentTeam = (forPrimary ? secondary.team : primary.team).ToArray();
         resp.opponentname = (forPrimary ? secondary.name : primary.name);
         return resp;
     }
@@ -66,30 +62,30 @@ public class Game
     {
         internal string name;
         public short battery = GameConstants.POINTS_TO_WIN;
-        public Robot[] team;
-        internal Util.Dictionary<short, RobotStat> teamStats;
+        public List<Robot> team;
+        internal Dictionary<short, RobotStat> teamStats;
         internal bool ready;
         internal bool joined;
-        internal Util.List<Command> commands;
+        internal List<Command> commands;
         internal int connectionId;
         internal Player(){}
         internal Player(Robot[] t, string n)
         {
-            team = t;
-            teamStats = new Util.Dictionary<short, RobotStat>(t.Length);
-            Util.ForEach(team, r => teamStats.Add(r.id, new RobotStat() { name = r.name }));
+            team = new List<Robot>(t);
+            teamStats = new Dictionary<short, RobotStat>(t.Length);
+            team.ForEach(r => teamStats.Add(r.id, new RobotStat() { name = r.name }));
             name = n;
             joined = true;
         }
-        public void StoreCommands(Util.List<Command> cmds)
+        public void StoreCommands(List<Command> cmds)
         {
             commands = cmds;
             commands.ForEach((Command c) => c.owner = name);
             ready = true;
         }
-        internal Util.List<Command> FetchCommands()
+        internal List<Command> FetchCommands()
         {
-            Util.List<Command> cmds = new Util.List<Command>(commands);
+            List<Command> cmds = new List<Command>(commands);
             ready = false;
             commands.Clear();
             return cmds;
@@ -98,7 +94,7 @@ public class Game
 
     internal class RobotTurnObject
     {
-        internal Util.Dictionary<byte, byte> num = new Util.Dictionary<byte, byte>(Command.NUM_TYPES);
+        internal Dictionary<byte, byte> num = new Dictionary<byte, byte>(Command.TYPES.Length);
         internal byte priority;
         internal bool isActive;
         internal RobotTurnObject(byte p)
@@ -137,21 +133,21 @@ public class Game
         return turnNumber;
     }
 
-    public Util.List<GameEvent> CommandsToEvents()
+    public List<GameEvent> CommandsToEvents()
     {
-        Util.List<Command> commands = new Util.List<Command>();
+        List<Command> commands = new List<Command>();
         commands.Add(primary.FetchCommands());
         commands.Add(secondary.FetchCommands());
-        Util.Dictionary<byte, Util.Set<Command>> priorityToCommands = new Util.Dictionary<byte, Util.Set<Command>>(GameConstants.MAX_PRIORITY + 1);
-        Util.Dictionary<short, RobotTurnObject> robotIdToTurnObject = new Util.Dictionary<short, RobotTurnObject>(primary.team.Length + secondary.team.Length);
-        Util.ForEach(allRobots, r => {
+        Dictionary<byte, Set<Command>> priorityToCommands = new Dictionary<byte, Set<Command>>(GameConstants.MAX_PRIORITY + 1);
+        Dictionary<short, RobotTurnObject> robotIdToTurnObject = new Dictionary<short, RobotTurnObject>(primary.team.GetLength() + secondary.team.GetLength());
+        primary.team.Concat(secondary.team).ForEach(r => {
             RobotTurnObject rto = new RobotTurnObject(r.priority);
             rto.isActive = board.IsSpaceOccupied(r.position);
             robotIdToTurnObject.Add(r.id, rto);
         });
         for (int p = GameConstants.MAX_PRIORITY; p >= 0; p--)
         {
-            priorityToCommands.Add((byte)p, new Util.Set<Command>(robotIdToTurnObject.GetLength()));
+            priorityToCommands.Add((byte)p, new Set<Command>(robotIdToTurnObject.GetLength()));
         }
         commands.ForEach((Command c) =>
         {
@@ -161,11 +157,11 @@ public class Game
                 robotIdToTurnObject.Get(c.robotId).priority--;
             }
         });
-        Util.List<GameEvent> events = new Util.List<GameEvent>();
+        List<GameEvent> events = new List<GameEvent>();
         for (int p = GameConstants.MAX_PRIORITY; p >= 0; p--)
         {
-            Util.Set<Command> currentCmds = priorityToCommands.Get((byte)p);
-            Util.List<GameEvent> priorityEvents = p == 0 ? processEndOfTurn() : new Util.List<GameEvent>();
+            Set<Command> currentCmds = priorityToCommands.Get((byte)p);
+            List<GameEvent> priorityEvents = p == 0 ? processEndOfTurn() : new List<GameEvent>();
 
             priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.SPAWN_COMMAND_ID));
             priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.MOVE_COMMAND_ID));
@@ -179,8 +175,8 @@ public class Game
                 GameEvent.End e = new GameEvent.End();
                 e.primaryLost = primary.battery <= 0;
                 e.secondaryLost = secondary.battery <= 0;
-                e.primaryBattery = (short)Util.Max(primary.battery, 0);
-                e.secondaryBattery = (short)Util.Max(secondary.battery, 0);
+                e.primaryBattery = (short)Math.Max(primary.battery, 0);
+                e.secondaryBattery = (short)Math.Max(secondary.battery, 0);
                 e.turnCount = turn;
                 e.timeTaken = 0;
                 e.primaryTeamStats = primary.teamStats;
@@ -192,10 +188,10 @@ public class Game
         return events;
     }
 
-    private Util.List<GameEvent> processCommands(Util.Set<Command> allCommands, Util.Dictionary<short, RobotTurnObject> robotIdToTurnObject, byte t)
+    private List<GameEvent> processCommands(Set<Command> allCommands, Dictionary<short, RobotTurnObject> robotIdToTurnObject, byte t)
     {
-        Util.List<GameEvent> events = new Util.List<GameEvent>();
-        Util.Set<Command> commands = new Util.Set<Command>(allCommands.Filter(c => c.commandId == t));
+        List<GameEvent> events = new List<GameEvent>();
+        Set<Command> commands = new Set<Command>(allCommands.Filter(c => c.commandId == t));
         commands.ForEach((Command c) =>
         {
             bool isPrimary = c.owner.Equals(primary.name);
@@ -206,7 +202,7 @@ public class Game
             }
         });
 
-        Util.Dictionary<short, Util.List<GameEvent>> idsToWantedEvents = new Util.Dictionary<short, Util.List<GameEvent>>(robotIdToTurnObject.GetLength());
+        Dictionary<short, List<GameEvent>> idsToWantedEvents = new Dictionary<short, List<GameEvent>>(robotIdToTurnObject.GetLength());
         commands.ForEach((Command c) =>
         {
             Robot primaryRobot = GetRobot(c.robotId);
@@ -238,10 +234,10 @@ public class Game
         idsToWantedEvents.ForEachValue(evts => events.Add(evts));
         events.ForEach(Update);
 
-        Util.ReturnAction<Robot[], bool, Util.List<GameEvent>> processPriorityFinish = (Robot[] team, bool isPrimary) =>
+        ReturnAction<List<Robot>, bool, List<GameEvent>> processPriorityFinish = (team, isPrimary) =>
         {
-            Util.List<GameEvent> evts = new Util.List<GameEvent>();
-            Util.ForEach(team, (Robot r) =>
+            List<GameEvent> evts = new List<GameEvent>();
+            team.ForEach(r =>
             {
                 if (r.health <= 0)
                 {
@@ -272,9 +268,9 @@ public class Game
         return events;
     }
 
-    private Util.List<GameEvent> processEndOfTurn()
+    private List<GameEvent> processEndOfTurn()
     {
-        Util.List<GameEvent> events = new Util.List<GameEvent>();
+        List<GameEvent> events = new List<GameEvent>();
         endOfTurnEvents.ForEach((GameEvent e) =>
         {
             if (e is GameEvent.Damage)
@@ -291,7 +287,7 @@ public class Game
         return events;
     }
 
-    private void processBatteryLoss(Util.List<GameEvent> evts, byte p)
+    private void processBatteryLoss(List<GameEvent> evts, byte p)
     {
         evts.ForEach((GameEvent e) =>
         {
@@ -303,7 +299,7 @@ public class Game
         });
     }
 
-    private bool Validate(Util.List<GameEvent> events)
+    private bool Validate(List<GameEvent> events)
     {
         bool valid = true;
         events.ForEach((GameEvent g) =>
@@ -314,7 +310,7 @@ public class Game
         return valid;
     }
 
-    private bool Validate(Util.List<GameEvent> events, GameEvent g)
+    private bool Validate(List<GameEvent> events, GameEvent g)
     {
         if (g is GameEvent.Move) return Validate(events, (GameEvent.Move)g);
         else if (g is GameEvent.Push) return Validate(events, (GameEvent.Push)g);
@@ -323,12 +319,12 @@ public class Game
         return true;
     }
 
-    private bool Validate(Util.List<GameEvent> events, GameEvent.Move g)
+    private bool Validate(List<GameEvent> events, GameEvent.Move g)
     {
         int index = events.FindIndex(g);
         if (events.GetLength() > index + 1 && events.Get(index + 1) is GameEvent.Push) return true;
         if (!g.success) return true;
-        Util.ReturnAction<string, bool> generateBlockEvent = (string s) =>
+        ReturnAction<string, bool> generateBlockEvent = (string s) =>
         {
             Robot r = GetRobot(g.primaryRobotId);
             g.success = false;
@@ -396,7 +392,7 @@ public class Game
         return true;
     }
 
-    private bool Validate(Util.List<GameEvent> events, GameEvent.Push g)
+    private bool Validate(List<GameEvent> events, GameEvent.Push g)
     {
         int index = events.FindIndex(g);
         if (events.GetLength() > index + 4 && events.Get(index + 4) is GameEvent.Block && g.success)
@@ -415,13 +411,13 @@ public class Game
         return true;
     }
 
-    private bool Validate(Util.List<GameEvent> events, GameEvent.Attack g)
+    private bool Validate(List<GameEvent> events, GameEvent.Attack g)
     {
         int index = events.FindIndex(g);
         if (events.GetLength() > index + 1 && (events.Get(index + 1) is GameEvent.Battery || events.Get(index+1) is GameEvent.Miss || events.Get(index+1) is GameEvent.Damage)) return true;
         Robot attacker = GetRobot(g.primaryRobotId);
         bool hitABattery = false;
-        Util.ForEach(g.locs, (Vector2Int v) =>
+        g.locs.ForEach(v =>
         {
             if (board.IsBattery(v))
             {
@@ -437,26 +433,26 @@ public class Game
                 hitABattery = true;
             }
         });
-        Robot[] victims = Util.Filter(allRobots, (robot) => Util.Contains(g.locs, robot.position));
-        if (victims.Length == 0 && !hitABattery)
+        List<Robot> victims = primary.team.Concat(secondary.team).Filter(robot => g.locs.Contains(robot.position));
+        if (victims.GetLength() == 0 && !hitABattery)
         {
             GameEvent.Miss evt = new GameEvent.Miss();
             evt.primaryRobotId = g.primaryRobotId;
             evt.locs = g.locs;
             events.Add(evt, index + 1);
         }
-        else if (victims.Length > 0)
+        else if (victims.GetLength() > 0)
         {
-            Util.ForEach(victims, (Robot r) =>
+            victims.ForEach(r =>
             {
-                Util.List<GameEvent> evts = attacker.Damage(r);
+                List<GameEvent> evts = attacker.Damage(r);
                 events.Add(evts, index + 1);
             });
         }
         return true;
     }
 
-    private bool Validate(Util.List<GameEvent> events, GameEvent.Spawn g)
+    private bool Validate(List<GameEvent> events, GameEvent.Spawn g)
     {
         int index = events.FindIndex(g);
         if (board.IsSpaceOccupied(g.destinationPos))
@@ -472,12 +468,12 @@ public class Game
         return true;
     }
 
-    private bool AreValidTogether(Util.Dictionary<short, Util.List<GameEvent>> idsToWantedEvents)
+    private bool AreValidTogether(Dictionary<short, List<GameEvent>> idsToWantedEvents)
     {
         bool valid = true;
-        Util.ReturnAction<string, Vector2Int, UnityAction<short>> generateBlockEvent = (string blocker, Vector2Int space) => new UnityAction<short>((short key) =>
+        ReturnAction<string, Vector2Int, UnityAction<short>> generateBlockEvent = (string blocker, Vector2Int space) => new UnityAction<short>((short key) =>
         {
-            Util.List<GameEvent> wanted = idsToWantedEvents.Get(key);
+            List<GameEvent> wanted = idsToWantedEvents.Get(key);
             GameEvent.Block block = new GameEvent.Block();
             block.blockingObject = blocker;
             GameEvent original = wanted.Find((GameEvent e) =>
@@ -530,7 +526,7 @@ public class Game
         });
 
         //Then do multiple robots contest for one position check
-        Util.Dictionary<Vector2Int, Util.List<short>> spaceToIds = new Util.Dictionary<Vector2Int, Util.List<short>>(board.spaces.Length);
+        Dictionary<Vector2Int, List<short>> spaceToIds = new Dictionary<Vector2Int, List<short>>(board.spaces.Length);
         idsToWantedEvents.ForEach((key, evts) =>
         {
             evts.ForEach((GameEvent e) =>
@@ -546,7 +542,7 @@ public class Game
                 if (!newspace.Equals(Map.NULL_VEC) && e.success)
                 {
                     if (spaceToIds.Contains(newspace)) spaceToIds.Get(newspace).Add(key);
-                    else spaceToIds.Add(newspace, new Util.List<short>(key));
+                    else spaceToIds.Add(newspace, new List<short>(key));
                 }
             });
         });
@@ -560,14 +556,14 @@ public class Game
         });
 
         //Then do multiple damage on one robot check
-        Util.Dictionary<short, Util.List<GameEvent.Damage>> idsToDamages = new Util.Dictionary<short, Util.List<GameEvent.Damage>>(allRobots.Length);
+        Dictionary<short, List<GameEvent.Damage>> idsToDamages = new Dictionary<short, List<GameEvent.Damage>>(primary.team.GetLength() + secondary.team.GetLength());
         idsToWantedEvents.ForEachValue(evts =>
         {
             evts.ForEach((GameEvent g) => {
                 if (g is GameEvent.Damage) {
                     if (!idsToDamages.Contains(g.primaryRobotId))
                     {
-                        idsToDamages.Add(g.primaryRobotId, new Util.List<GameEvent.Damage>((GameEvent.Damage)g));
+                        idsToDamages.Add(g.primaryRobotId, new List<GameEvent.Damage>((GameEvent.Damage)g));
                     } else
                     {
                         idsToDamages.Get(g.primaryRobotId).Add((GameEvent.Damage)g);
@@ -575,7 +571,7 @@ public class Game
                 }
             });
         });
-        idsToDamages.ForEachValue((Util.List<GameEvent.Damage> damages) =>
+        idsToDamages.ForEachValue((List<GameEvent.Damage> damages) =>
         {
             for (int i = 1; i < damages.GetLength(); i++)
             {
@@ -637,6 +633,6 @@ public class Game
 
     private Robot GetRobot(short id)
     {
-        return Util.Find(allRobots, (Robot r) => r.id == id);
+        return primary.team.Concat(secondary.team).Find(r => r.id == id);
     }
 }

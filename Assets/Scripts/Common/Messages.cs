@@ -41,9 +41,9 @@ public class Messages {
             writer.Write(isPrimary);
             writer.Write(opponentname);
             writer.Write(myTeam.Length);
-            Util.ForEach(myTeam, (Robot robot) => robot.Serialize(writer));
+            Util.ToList(myTeam).ForEach(robot => robot.Serialize(writer));
             writer.Write(opponentTeam.Length);
-            Util.ForEach(opponentTeam, (Robot robot) => robot.Serialize(writer));
+            Util.ToList(opponentTeam).ForEach(robot => robot.Serialize(writer));
             board.Serialize(writer);
         }
         public override void Deserialize(NetworkReader reader)
@@ -70,7 +70,7 @@ public class Messages {
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(commands.Length);
-            Util.ForEach(commands, (Command cmd) => cmd.Serialize(writer));
+            Util.ToList(commands).ForEach(cmd => cmd.Serialize(writer));
             writer.Write(owner);
         }
         public override void Deserialize(NetworkReader reader)
@@ -90,7 +90,7 @@ public class Messages {
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(events.Length);
-            Util.ForEach(events, (GameEvent evt) =>
+            Util.ToList(events).ForEach(evt =>
             {
                 evt.Serialize(writer);
                 evt.FinishMessage(writer);

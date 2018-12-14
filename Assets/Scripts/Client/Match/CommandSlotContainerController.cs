@@ -6,11 +6,11 @@ public class CommandSlotContainerController : Controller
     public CommandSlotController commandSlot;
     public Sprite defaultArrow;
 
-    private CommandSlotController[] commandSlots;
+    private List<CommandSlotController> commandSlots;
 
     public void Initialize(short robotId, byte robotPriority)
     {
-        commandSlots = Util.Map(Util.Int(GameConstants.MAX_PRIORITY), c => InitializeCommand(c, robotId, robotPriority));
+        commandSlots = Util.ToIntList(GameConstants.MAX_PRIORITY).Map(c => InitializeCommand(c, robotId, robotPriority));
     }
 
     private CommandSlotController InitializeCommand(int c, short robotId, byte robotPriority)
@@ -24,13 +24,13 @@ public class CommandSlotContainerController : Controller
 
     public void BindCommandClickCallback(RobotController r, UnityAction<RobotController, int> clickCallback)
     {
-        Util.ForEach(commandSlots.Length, i => commandSlots[i].BindClickCallback(defaultArrow, () => clickCallback(r, i)));
+        Util.ToIntList(commandSlots.GetLength()).ForEach(i => commandSlots.Get(i).BindClickCallback(defaultArrow, () => clickCallback(r, i)));
     }
 
     public void ClearCommands()
     {
         bool clickable = true;
-        Util.ForEach(commandSlots, child => {
+        commandSlots.ForEach(child => {
             child.deletable = false;
             child.Arrow.sprite = defaultArrow;
             if (!child.Closed())
@@ -44,7 +44,7 @@ public class CommandSlotContainerController : Controller
 
     public void HighlightCommand(byte commandId, byte p)
     {
-        CommandSlotController cmd = commandSlots[GameConstants.MAX_PRIORITY - p];
+        CommandSlotController cmd = commandSlots.Get(GameConstants.MAX_PRIORITY - p);
         if (cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(commandId)))
         {
             cmd.Highlight();
@@ -53,7 +53,7 @@ public class CommandSlotContainerController : Controller
 
     public void ColorCommandsSubmitted()
     {
-        Util.ForEach(commandSlots, cmd =>
+        commandSlots.ForEach(cmd =>
         {
             if (!cmd.Closed()) cmd.Submit();
         });
@@ -62,7 +62,7 @@ public class CommandSlotContainerController : Controller
     public int AddSubmittedCommandAndReturnPowerConsumed(Command cmd, Sprite s)
     {
         bool setNext = false;
-        return Util.Reduce(commandSlots, 0, (powerConsumed, child) =>
+        return commandSlots.Reduce(0, (powerConsumed, child) =>
         {
             if (child.IsNext())
             {
@@ -84,6 +84,6 @@ public class CommandSlotContainerController : Controller
 
     public void DestroyCommandMenu()
     {
-        Util.ForEach(commandSlots, child => child.Arrow.gameObject.SetActive(true));
+        commandSlots.ForEach(child => child.Arrow.gameObject.SetActive(true));
     }
 }

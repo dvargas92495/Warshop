@@ -30,7 +30,7 @@ public class SetupController : Controller
         backButton.onClick.AddListener(EnterLobby);
 
         robotRosterPanel.SetMaximizeCallback(maximizeSelection);
-        Util.ForEach(robotDir, robotRosterPanel.AddRobotImage);
+        Util.ToList(robotDir).ForEach(robotRosterPanel.AddRobotImage);
     }
 
     void EnterLobby()

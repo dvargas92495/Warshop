@@ -8,8 +8,8 @@ public class Map
     internal int width { get; set; }
     internal int height { get; set; }
     internal Space[] spaces;
-    private Util.Tuple<Util.Set<short>, Util.Set<short>> dock = new Util.Tuple<Util.Set<short>, Util.Set<short>>(new Util.Set<short>(GameConstants.MAX_ROBOTS_ON_SQUAD), new Util.Set<short>(GameConstants.MAX_ROBOTS_ON_SQUAD));
-    private Util.Dictionary<short, Space> objectLocations;
+    private Tuple<Set<short>, Set<short>> dock = new Tuple<Set<short>, Set<short>>(new Set<short>(GameConstants.MAX_ROBOTS_ON_SQUAD), new Set<short>(GameConstants.MAX_ROBOTS_ON_SQUAD));
+    private Dictionary<short, Space> objectLocations;
 
     private Map(int w, int h)
     {
@@ -21,7 +21,7 @@ public class Map
     public Map(string content)
     {
         string[] lines = content.Split('\n');
-        int[] boardDimensions = Util.Map(lines[0].Trim().Split(null), int.Parse);
+        int[] boardDimensions = Util.ToList(lines[0].Trim().Split(null)).Map(int.Parse).ToArray();
         width = boardDimensions[0];
         height = boardDimensions[1];
         spaces = new Space[width*height];
@@ -35,7 +35,7 @@ public class Map
                 spaces[y * width + x].y = y;
             }
         }
-        objectLocations = new Util.Dictionary<short, Space>(GameConstants.MAX_ROBOTS_ON_SQUAD*2);
+        objectLocations = new Dictionary<short, Space>(GameConstants.MAX_ROBOTS_ON_SQUAD*2);
     }
     public void Serialize(NetworkWriter writer)
     {
@@ -135,8 +135,8 @@ public class Map
 
     public Vector2Int GetQueuePosition(byte i, bool isPrimary)
     {
-        Space[] queueSpaces = Util.Filter(spaces, (Space s) => s is Queue);
-        Space queueSpace = Util.Find(queueSpaces, (Space s) => ((Queue)s).GetIndex() == i && ((Queue)s).GetIsPrimary() == isPrimary);
+        Space[] queueSpaces = Util.ToList(spaces).Filter(s => s is Queue).ToArray();
+        Space queueSpace = Util.ToList(queueSpaces).Find(s => ((Queue)s).GetIndex() == i && ((Queue)s).GetIsPrimary() == isPrimary);
         return new Vector2Int(queueSpace.x, queueSpace.y);
     }
 

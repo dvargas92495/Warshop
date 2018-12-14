@@ -86,46 +86,46 @@ public class Robot
         SILVER = 2,
         BRONZE = 1
     }
-    internal Vector2Int[] GetVictimLocations(byte dir)
+    internal List<Vector2Int> GetVictimLocations(byte dir)
     {
-        return new Vector2Int[] { position + Command.DirectionToVector(dir) };
+        return Util.ToList(position + Command.DirectionToVector(dir));
     }
 
-    internal Util.List<GameEvent> Spawn(Vector2Int pos, bool isPrimary)
+    internal List<GameEvent> Spawn(Vector2Int pos, bool isPrimary)
     {
         GameEvent.Spawn evt = new GameEvent.Spawn();
         evt.destinationPos = pos;
         evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_SPAWN_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_SPAWN_POWER);
-        return new Util.List<GameEvent>(evt);
+        evt.primaryBattery = isPrimary ? GameConstants.DEFAULT_SPAWN_POWER : (short)0;
+        evt.secondaryBattery = isPrimary ? (short)0 : GameConstants.DEFAULT_SPAWN_POWER;
+        return new List<GameEvent>(evt);
     }
-    internal virtual Util.List<GameEvent> Move(byte dir, bool isPrimary)
+    internal virtual List<GameEvent> Move(byte dir, bool isPrimary)
     {
         GameEvent.Move evt = new GameEvent.Move();
         evt.sourcePos = position;
         evt.destinationPos = position + Command.DirectionToVector(dir);
         evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER);
-        return new Util.List<GameEvent>(evt);
+        evt.primaryBattery = isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0;
+        evt.secondaryBattery = isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER;
+        return new List<GameEvent>(evt);
     }
-    internal virtual Util.List<GameEvent> Attack(byte dir, bool isPrimary)
+    internal virtual List<GameEvent> Attack(byte dir, bool isPrimary)
     {
         GameEvent.Attack evt = new GameEvent.Attack();
         evt.locs = GetVictimLocations(dir);
         evt.primaryRobotId = id;
         evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
         evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
-        return new Util.List<GameEvent>(evt);
+        return new List<GameEvent>(evt);
     }
-    internal virtual Util.List<GameEvent> Damage(Robot victim)
+    internal virtual List<GameEvent> Damage(Robot victim)
     {
         GameEvent.Damage evt = new GameEvent.Damage();
         evt.primaryRobotId = victim.id;
         evt.damage = attack;
         evt.remainingHealth = (short)(victim.health - attack);
-        return new Util.List<GameEvent>(evt);
+        return new List<GameEvent>(evt);
     }
 
     private class Slinkbot : Robot
@@ -169,9 +169,9 @@ public class Robot
         )
         { }
 
-        internal override Util.List<GameEvent> Damage(Robot victim)
+        internal override List<GameEvent> Damage(Robot victim)
         {
-            Util.List<GameEvent> events = base.Damage(victim);
+            List<GameEvent> events = base.Damage(victim);
             GameEvent.Poison evt = new GameEvent.Poison();
             evt.primaryRobotId = victim.id;
             events.Add(evt);

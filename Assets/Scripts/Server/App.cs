@@ -143,16 +143,16 @@ public abstract class App
         try
         {
             Game.Player p = (appgame.primary.name.Equals(msg.owner) ? appgame.primary : appgame.secondary);
-            p.StoreCommands(new Util.List<Command>(msg.commands));
+            p.StoreCommands(Util.ToList(msg.commands));
             if (appgame.primary.ready && appgame.secondary.ready)
             {
                 Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();
-                Util.List<GameEvent> events = appgame.CommandsToEvents();
+                List<GameEvent> events = appgame.CommandsToEvents();
                 resp.events = events.ToArray();
                 resp.turn = appgame.GetTurn();
                 appgame.connectionIds().ForEach(cid =>
                 {
-                    if (cid != appgame.primary.connectionId && cid == appgame.secondary.connectionId) Util.ForEach(resp.events, (GameEvent g) => g.Flip());
+                    if (cid != appgame.primary.connectionId && cid == appgame.secondary.connectionId) Util.ToList(resp.events).ForEach(g => g.Flip());
                     Send(cid, Messages.TURN_EVENTS, resp);
                 });
             }

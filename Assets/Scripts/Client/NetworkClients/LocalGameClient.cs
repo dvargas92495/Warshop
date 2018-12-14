@@ -26,7 +26,7 @@ public class LocalGameClient : GameClient
         GetHandler(msgType)(netMsg);
     }
 
-    internal void SendLocalGameRequest(string[] myRobots, string[] opponentRobots, string myname, string opponentname, UnityAction<Robot[], Robot[], string, Map> readyCallback)
+    internal void SendLocalGameRequest(string[] myRobots, string[] opponentRobots, string myname, string opponentname, UnityAction<List<Robot>, List<Robot>, string, Map> readyCallback)
     {
         Messages.StartLocalGameMessage msg = new Messages.StartLocalGameMessage();
         msg.myRobots = myRobots;

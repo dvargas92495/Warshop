@@ -3,7 +3,7 @@ using UnityEngine.Networking;
 
 public abstract class GameClient
 {
-    protected UnityAction<Robot[], Robot[], string, Map> gameReadyCallback;
+    protected UnityAction<List<Robot>, List<Robot>, string, Map> gameReadyCallback;
     internal static string username;
     private static Logger log = new Logger(typeof(GameClient).ToString());
 
@@ -42,7 +42,7 @@ public abstract class GameClient
     {
         Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
         log.Info("Received Game Information");
-        gameReadyCallback(msg.myTeam, msg.opponentTeam, msg.opponentname, msg.board);
+        gameReadyCallback(Util.ToList(msg.myTeam), Util.ToList(msg.opponentTeam), msg.opponentname, msg.board);
     }
 
     protected void OnTurnEvents(NetworkMessage netMsg)

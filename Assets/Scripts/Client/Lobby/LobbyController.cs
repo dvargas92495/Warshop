@@ -59,7 +59,7 @@ public class LobbyController : Controller
     void DeactivateButtons()
     {
         newGameSessionUI.DeactivateButton();
-        Util.ForEach(gameSessionUIs, g => g.DeactivateButton());
+        Util.ToList(gameSessionUIs).ForEach(g => g.DeactivateButton());
     }
 
     void LoadInitial()

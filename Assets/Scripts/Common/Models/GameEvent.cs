@@ -159,26 +159,25 @@ public abstract class GameEvent
     public class Attack : GameEvent
     {
         internal const byte EVENT_ID = 3;
-        internal Vector2Int[] locs; 
+        internal List<Vector2Int> locs; 
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(locs.Length);
-            for (int i = 0; i < locs.Length; i++)
+            writer.Write(locs.GetLength());
+            locs.ForEach(l =>
             {
-                writer.Write(locs[i].x);
-                writer.Write(locs[i].y);
-            }
+                writer.Write(l.x);
+                writer.Write(l.y);
+            });
         }
         public new static Attack Deserialize(NetworkReader reader)
         {
             Attack evt = new Attack();
             int length = reader.ReadInt32();
-            evt.locs = new Vector2Int[length];
+            evt.locs = new List<Vector2Int>();
             for (int i = 0;i < length; i++)
             {
-                evt.locs[i].x = reader.ReadInt32();
-                evt.locs[i].y = reader.ReadInt32();
+                evt.locs.Add(new Vector2Int(reader.ReadInt32(), reader.ReadInt32()));
             }
             return evt;
         }
@@ -245,26 +244,25 @@ public abstract class GameEvent
     public class Miss : GameEvent
     {
         internal const byte EVENT_ID = 6;
-        internal Vector2Int[] locs;
+        internal List<Vector2Int> locs;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(locs.Length);
-            for (int i = 0; i < locs.Length; i++)
+            writer.Write(locs.GetLength());
+            locs.ForEach(l =>
             {
-                writer.Write(locs[i].x);
-                writer.Write(locs[i].y);
-            }
+                writer.Write(l.x);
+                writer.Write(l.y);
+            });
         }
         public new static Miss Deserialize(NetworkReader reader)
         {
             Miss evt = new Miss();
             int length = reader.ReadInt32();
-            evt.locs = new Vector2Int[length];
+            evt.locs = new List<Vector2Int>();
             for (int i = 0; i < length; i++)
             {
-                evt.locs[i].x = reader.ReadInt32();
-                evt.locs[i].y = reader.ReadInt32();
+                evt.locs.Add(new Vector2Int(reader.ReadInt32(), reader.ReadInt32()));
             }
             return evt;
         }
@@ -387,8 +385,8 @@ public abstract class GameEvent
         internal bool secondaryLost;
         internal short turnCount;
         internal int timeTaken;
-        internal Util.Dictionary<short, Game.RobotStat> primaryTeamStats;
-        internal Util.Dictionary<short, Game.RobotStat> secondaryTeamStats;
+        internal Dictionary<short, Game.RobotStat> primaryTeamStats;
+        internal Dictionary<short, Game.RobotStat> secondaryTeamStats;
 
         public override void Serialize(NetworkWriter writer)
         {
@@ -419,7 +417,7 @@ public abstract class GameEvent
             evt.secondaryLost = reader.ReadBoolean();
             evt.turnCount = reader.ReadInt16();
             evt.timeTaken = reader.ReadInt32();
-            evt.primaryTeamStats = new Util.Dictionary<short, Game.RobotStat>(reader.ReadInt32());
+            evt.primaryTeamStats = new Dictionary<short, Game.RobotStat>(reader.ReadInt32());
             for (int i = 0; i < evt.primaryTeamStats.GetLength(); i++)
             {
                 short k = reader.ReadInt16();
@@ -427,7 +425,7 @@ public abstract class GameEvent
                 stat.Deserialize(reader);
                 evt.primaryTeamStats.Add(k, stat);
             }
-            evt.secondaryTeamStats = new Util.Dictionary<short, Game.RobotStat>(reader.ReadInt32());
+            evt.secondaryTeamStats = new Dictionary<short, Game.RobotStat>(reader.ReadInt32());
             for (int i = 0; i < evt.secondaryTeamStats.GetLength(); i++)
             {
                 short k = reader.ReadInt16();
@@ -442,23 +440,24 @@ public abstract class GameEvent
     public class Collision : GameEvent
     {
         internal const byte EVENT_ID = 14;
-        internal short[] collidingRobots;
+        internal List<short> collidingRobots;
         internal Vector2Int deniedPos;
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-            writer.Write(collidingRobots.Length);
-            Util.ForEach(collidingRobots, writer.Write);
+            writer.Write(collidingRobots.GetLength());
+            collidingRobots.ForEach(writer.Write);
             writer.Write(deniedPos.x);
             writer.Write(deniedPos.y);
         }
         public new static Collision Deserialize(NetworkReader reader)
         {
             Collision evt = new Collision();
-            evt.collidingRobots = new short[reader.ReadInt32()];
-            for(int i = 0; i < evt.collidingRobots.Length; i++)
+            evt.collidingRobots = new List<short>();
+            int length = reader.ReadInt32();
+            for (int i = 0; i < length; i++)
             {
-                evt.collidingRobots[i] = reader.ReadInt16();
+                evt.collidingRobots.Add(reader.ReadInt16());
             }
             evt.deniedPos = new Vector2Int();
             evt.deniedPos.x = reader.ReadInt32();

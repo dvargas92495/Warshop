@@ -24,7 +24,7 @@ public class AwsGameClient : GameClient
             short[] messageTypes = new short[] {
                 MsgType.Connect, MsgType.Disconnect, MsgType.Error, Messages.GAME_READY, Messages.TURN_EVENTS, Messages.WAITING_COMMANDS, Messages.SERVER_ERROR,
             };
-            Util.ForEach(messageTypes, messageType => client.RegisterHandler(messageType, GetHandler(messageType)));
+            Util.ToList(messageTypes).ForEach(messageType => client.RegisterHandler(messageType, GetHandler(messageType)));
             client.RegisterHandler(MsgType.Connect, OnConnect);
             client.RegisterHandler(MsgType.Disconnect, OnDisconnect);
             client.Connect(ip, port);
@@ -70,7 +70,7 @@ public class AwsGameClient : GameClient
         client.Connect(ip, port);
     }
 
-    internal void SendGameRequest(string[] myRobots, string myname, UnityAction<Robot[], Robot[], string, Map> readyCallback)
+    internal void SendGameRequest(string[] myRobots, string myname, UnityAction<List<Robot>, List<Robot>, string, Map> readyCallback)
     {
         Messages.StartGameMessage msg = new Messages.StartGameMessage();
         msg.myName = myname;
