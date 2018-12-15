@@ -16,7 +16,7 @@ public class LobbyController : Controller
     {
         AwsLambdaClient.SendFindAvailableGamesRequest(FindAvailableGamesCallback);
 
-        newGameSessionUI.SetUsername(GameClient.username);
+        newGameSessionUI.SetUsername(ProfileController.username);
         newGameSessionUI.SetPlayCallback(NewGame);
         backButton.onClick.AddListener(LoadInitial);
     }
@@ -40,14 +40,14 @@ public class LobbyController : Controller
         DeactivateButtons();
         bool isPrivate = newGameSessionUI.GetPrivacy();
         string password = newGameSessionUI.GetPassword();
-        AwsLambdaClient.SendCreateGameRequest(isPrivate, GameClient.username, password, SetupGame);
+        AwsLambdaClient.SendCreateGameRequest(isPrivate, ProfileController.username, password, SetupGame);
     }
 
     void JoinGame(GameSessionUiController match, string gameSessionId)
     {
         DeactivateButtons();
         string password = match.GetPassword();
-        AwsLambdaClient.SendJoinGameRequest(gameSessionId, GameClient.username, password, SetupGame);
+        AwsLambdaClient.SendJoinGameRequest(gameSessionId, ProfileController.username, password, SetupGame);
     }
 
     void SetupGame(string playerSessionId, string ipAddress, int port)

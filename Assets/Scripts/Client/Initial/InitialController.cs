@@ -18,7 +18,8 @@ public class InitialController : Controller
         enterLocalMatchButton.onClick.AddListener(EnterLocalMatch);
         profileButton.onClick.AddListener(EnterProfile);
 
-        usernameField.text = GameClient.username;
+        usernameField.text = ProfileController.username;
+        OnUsernameFieldEdit(usernameField.text);
         usernameField.onValueChanged.AddListener(OnUsernameFieldEdit);
     }
 
@@ -28,12 +29,11 @@ public class InitialController : Controller
         enterLobbyButton.interactable = valid;
         enterLocalMatchButton.interactable = valid;
         profileButton.interactable = valid;
+        ProfileController.username = usernameField.text;
     }
 
     void EnterLobby()
     {
-        GameClient.username = usernameField.text;
-
         enterLobbyButton.interactable = false;
         usernameField.interactable = false;
 

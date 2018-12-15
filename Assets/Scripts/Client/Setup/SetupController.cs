@@ -89,7 +89,7 @@ public class SetupController : Controller
     {
         statusModal.ShowLoading();
         string[] myRosterStrings = mySquadPanel.GetSquadRobotNames();
-        BaseGameManager.SendPlayerInfo(myRosterStrings, GameClient.username);
+        BaseGameManager.SendPlayerInfo(myRosterStrings, ProfileController.username);
     }
 
     void UpdateStarText()

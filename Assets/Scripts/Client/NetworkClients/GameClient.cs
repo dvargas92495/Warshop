@@ -4,7 +4,6 @@ using UnityEngine.Networking;
 public abstract class GameClient
 {
     protected UnityAction<List<Robot>, List<Robot>, string, Map> gameReadyCallback;
-    internal static string username;
     private static Logger log = new Logger(typeof(GameClient).ToString());
 
     protected abstract void Send(short msgType, MessageBase message);
