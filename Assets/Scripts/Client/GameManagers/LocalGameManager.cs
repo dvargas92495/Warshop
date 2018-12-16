@@ -1,6 +1,7 @@
 ﻿public class LocalGameManager : BaseGameManager
 {
     private bool myturn;
+    private const string opponentName = "Opponent";
 
     internal LocalGameManager()
     {
@@ -8,13 +9,14 @@
         myturn = true;
     }
 
-    protected new void InitializeSetupImpl(SetupController sc)
+    protected override void InitializeSetupImpl(SetupController sc)
     {
         base.InitializeSetupImpl(sc);
         sc.opponentSquadPanel.gameObject.SetActive(true);
         sc.opponentSquadPanel.SetAddCallback(sc.AddSelectedToOpponentSquad);
+        sc.backButton.onClick.AddListener(sc.EnterInitial);
         gameClient.AsLocal().ConnectToGameServer();
-        
+        /*
         if (sc.playtest != null)
         {
             string[] lines = sc.playtest.text.Split('\n');
@@ -25,12 +27,13 @@
             setupController.statusModal.ShowLoading();
             //SendPlayerInfo(myname, op, mybots, opbots);
         }
+        */
     }
 
-    protected new void SendPlayerInfoImpl(string[] myRobotNames, string username)
+    protected override void SendPlayerInfoImpl(string[] myRobotNames, string username)
     {
         myPlayer = new Game.Player(new Robot[0], username);
-        opponentPlayer = new Game.Player(new Robot[0], setupController.opponentName.text);
+        opponentPlayer = new Game.Player(new Robot[0], opponentName);
         string[] opponentRobotNames = setupController.opponentSquadPanel.GetSquadRobotNames();
         gameClient.AsLocal().SendLocalGameRequest(myRobotNames, opponentRobotNames, myPlayer.name, opponentPlayer.name, LoadBoard);
     }
@@ -44,7 +47,7 @@
         gameClient.SendSubmitCommands(commands, username);
     }
 
-    protected new void PlayEvents(GameEvent[] events, byte t)
+    protected override void PlayEvents(GameEvent[] events, byte t)
     {
         uiController.actionButtonContainer.SetButtons(false);
         uiController.robotButtonContainer.SetButtons(false);

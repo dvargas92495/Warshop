@@ -36,7 +36,7 @@ public abstract class BaseGameManager
         instance.InitializeSetupImpl(sc);
     }
 
-    protected void InitializeSetupImpl(SetupController sc)
+    protected virtual void InitializeSetupImpl(SetupController sc)
     {
         setupController = sc;
     }
@@ -46,7 +46,7 @@ public abstract class BaseGameManager
         instance.SendPlayerInfoImpl(myRobotNames, username);
     }
 
-    protected void SendPlayerInfoImpl(string[] myRobotNames, string username)
+    protected virtual void SendPlayerInfoImpl(string[] myRobotNames, string username)
     {
         myPlayer = new Game.Player(new Robot[0], username);
     }
@@ -131,7 +131,7 @@ public abstract class BaseGameManager
         return returnCommands;
     }
 
-    protected void PlayEvents(GameEvent[] events, byte t)
+    protected virtual void PlayEvents(GameEvent[] events, byte t)
     {
         turnNumber = t;
         uiController.LightUpPanel(true, false);

@@ -29,7 +29,7 @@ public class SquadPanelController : Controller
 
     public string[] GetSquadRobotNames()
     {
-        return squadRobots.Map(r => r.name.Trim()).ToArray();
+        return squadRobots.Map(r => r.GetName()).ToArray();
     }
 
     public int GetNumRobots()

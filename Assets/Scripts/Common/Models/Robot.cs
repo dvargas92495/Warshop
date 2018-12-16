@@ -12,6 +12,9 @@ public class Robot
     internal Rating rating;
     public short id;
     public Vector2Int position;
+
+    private static Logger log = new Logger(typeof(Robot).ToString());
+
     internal Robot(string _name, string _description)
     {
         name = _name;
@@ -30,16 +33,8 @@ public class Robot
     {
         switch(robotName)
         {
-            case Slinkbot._name:
-                return new Slinkbot();
-            case Pithon._name:
-                return new Pithon();
-            case Virusbot._name:
-                return new Virusbot();
             case Jaguar._name:
                 return new Jaguar();
-            case Flybot._name:
-                return new Flybot();
             case BronzeGrunt._name:
                 return new BronzeGrunt();
             case SilverGrunt._name:
@@ -49,7 +44,8 @@ public class Robot
             case PlatinumGrunt._name:
                 return new PlatinumGrunt();
             default:
-               return null;
+                log.Error("Invalid Robot name: " + robotName);
+                return null;
         }
     }
     public void Serialize(NetworkWriter writer)
@@ -86,12 +82,12 @@ public class Robot
         SILVER = 2,
         BRONZE = 1
     }
-    internal List<Vector2Int> GetVictimLocations(byte dir)
+    internal virtual List<Vector2Int> GetVictimLocations(byte dir)
     {
         return Util.ToList(position + Command.DirectionToVector(dir));
     }
 
-    internal List<GameEvent> Spawn(Vector2Int pos, bool isPrimary)
+    internal virtual List<GameEvent> Spawn(Vector2Int pos, bool isPrimary)
     {
         GameEvent.Spawn evt = new GameEvent.Spawn();
         evt.destinationPos = pos;
@@ -126,70 +122,6 @@ public class Robot
         evt.damage = attack;
         evt.remainingHealth = (short)(victim.health - attack);
         return new List<GameEvent>(evt);
-    }
-
-    private class Slinkbot : Robot
-    {
-        internal const string _name = "Slinkbot";
-        internal const string _description = "Forward Moves are 2 Spaces";
-        internal Slinkbot() : base(
-            _name,
-            _description,
-            6, 4, 3,
-            Rating.SILVER
-        )
-        {}
-
-        /*internal override List<GameEvent> Move(byte dir, bool isPrimary)
-        {
-            List<GameEvent> events = base.Move(dir, isPrimary);
-            GameEvent.Move first = events[0] as GameEvent.Move;
-            Vector2Int diff = first.destinationPos - first.sourcePos;
-            if (IsFacing(diff))
-            {
-                GameEvent.Move second = new GameEvent.Move();
-                second.primaryRobotId = first.primaryRobotId;
-                second.sourcePos = first.destinationPos;
-                second.destinationPos = first.destinationPos + diff;
-                events.Add(second);
-            }
-            return events;
-        }Oh shit what is Slinkbot's ability now?? lol*/
-    }
-
-    private class Pithon : Robot
-    {
-        internal const string _name = "Pithon";
-        internal const string _description = "Poison";
-        internal Pithon() : base(
-            _name,
-            _description,
-            6, 6, 2,
-            Rating.SILVER
-        )
-        { }
-
-        internal override List<GameEvent> Damage(Robot victim)
-        {
-            List<GameEvent> events = base.Damage(victim);
-            GameEvent.Poison evt = new GameEvent.Poison();
-            evt.primaryRobotId = victim.id;
-            events.Add(evt);
-            return events;
-        }
-    }
-
-    private class Virusbot : Robot
-    {
-        internal const string _name = "Virusbot";
-        internal const string _description = "Enemies damaged by this bot cannot move next turn";
-        internal Virusbot() : base(
-            _name,
-            _description,
-            7, 4, 1,
-            Rating.SILVER
-        )
-        { }
     }
 
     private class Jaguar : Robot
@@ -237,19 +169,6 @@ public class Robot
                 }
             }
         }*/
-    }
-
-    private class Flybot : Robot
-    {
-        internal const string _name = "Flybot";
-        internal const string _description = "Can't be damaged, poisoned";
-        internal Flybot() : base(
-            _name,
-            _description,
-            6, 6, 2,
-            Rating.SILVER
-        )
-        { }
     }
 
     private class BronzeGrunt : Robot

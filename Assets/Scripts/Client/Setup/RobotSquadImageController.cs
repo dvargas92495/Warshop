@@ -28,4 +28,9 @@ public class RobotSquadImageController : Controller
     {
         return rating;
     }
+
+    public string GetName()
+    {
+        return robotImage.sprite.name;
+    }
 }

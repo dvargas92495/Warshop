@@ -7,16 +7,15 @@ public class SetupController : Controller
 {
     public Button backButton;
     public Button startGameButton;
-    public InputField opponentName;
     public MaximizedRosterRobotController maximizedRosterRobot;
     public RobotRosterPanelController robotRosterPanel;
     public SceneReference lobbyScene;
+    public SceneReference initialScene;
     public Sprite[] robotDir;
     public SquadPanelController mySquadPanel;
     public SquadPanelController opponentSquadPanel;
     public StatusModalController statusModal;
     public Text starText;
-    public TextAsset playtest;
 
     private byte myStarCount = 0;
     
@@ -25,17 +24,19 @@ public class SetupController : Controller
         BaseGameManager.InitializeSetup(this);
         
         mySquadPanel.SetAddCallback(AddSelectedToMySquad);
-
         startGameButton.onClick.AddListener(StartGame);
-        backButton.onClick.AddListener(EnterLobby);
-
         robotRosterPanel.SetMaximizeCallback(maximizeSelection);
         Util.ToList(robotDir).ForEach(robotRosterPanel.AddRobotImage);
     }
 
-    void EnterLobby()
+    public void EnterLobby()
     {
         SceneManager.LoadScene(lobbyScene);
+    }
+
+    public void EnterInitial()
+    {
+        SceneManager.LoadScene(initialScene);
     }
 
     public void maximizeSelection(Sprite selectedRobot)
@@ -81,7 +82,7 @@ public class SetupController : Controller
 
     public void RemoveAddedFromSquad(RobotSquadImageController robot, SquadPanelController panel)
     {
-        Destroy(robot);
+        Destroy(robot.gameObject);
         panel.RemoveRobotSquadImage(robot);
     }
 

@@ -12,6 +12,7 @@ public class LocalGameClient : GameClient
 
     internal void ConnectToGameServer()
     {
+        localApp = new LocalApp(this);
         localApp.Receive(MsgType.Connect, Messages.EMPTY);
     }
 

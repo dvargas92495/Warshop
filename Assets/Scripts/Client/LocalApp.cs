@@ -7,6 +7,11 @@ public class LocalApp : App
 
     private static readonly Logger log = new Logger(typeof(LocalApp).ToString());
 
+    internal LocalApp(LocalGameClient client)
+    {
+        gameClient = client;
+    }
+
     protected override void Send(int connId, short msgType, MessageBase msg)
     {
         gameClient.Receive(msgType, msg);

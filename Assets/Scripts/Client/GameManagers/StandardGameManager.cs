@@ -5,13 +5,14 @@
         gameClient = new AwsGameClient(playerSessionId, ipAddress, port);
     }
 
-    protected new void InitializeSetupImpl(SetupController sc)
+    protected override void InitializeSetupImpl(SetupController sc)
     {
         base.InitializeSetupImpl(sc);
+        sc.backButton.onClick.AddListener(sc.EnterLobby);
         gameClient.AsAws().ConnectToGameServer(setupController.statusModal.DisplayError);
     }
 
-    protected new void SendPlayerInfoImpl(string[] myRobotNames, string username)
+    protected override void SendPlayerInfoImpl(string[] myRobotNames, string username)
     {
         base.SendPlayerInfoImpl(myRobotNames, username);
         gameClient.AsAws().SendGameRequest(myRobotNames, myPlayer.name, LoadBoard);
