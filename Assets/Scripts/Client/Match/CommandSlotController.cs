@@ -3,8 +3,8 @@ using UnityEngine.Events;
 
 public class CommandSlotController : Controller
 {
-    public SpriteRenderer Arrow;
-    public SpriteRenderer Delete;
+    public SpriteRenderer arrow;
+    public SpriteRenderer delete;
     internal bool deletable;
 
     private UnityAction myClick;
@@ -16,12 +16,12 @@ public class CommandSlotController : Controller
 
     void OnMouseEnter()
     {
-        Delete.gameObject.SetActive(deletable);
+        delete.gameObject.SetActive(deletable);
     }
 
     void OnMouseExit()
     {
-        Delete.gameObject.SetActive(false);
+        delete.gameObject.SetActive(false);
     }
 
     void OnMouseUp()
@@ -33,10 +33,10 @@ public class CommandSlotController : Controller
     {
         if (i > p)
         {
-            Arrow.color = NO_COMMAND;
+            arrow.color = NO_COMMAND;
         }else if (i == p)
         {
-            Arrow.color = NEXT_COMMAND;
+            arrow.color = NEXT_COMMAND;
         }
         deletable = false;
     }
@@ -47,51 +47,51 @@ public class CommandSlotController : Controller
             if (deletable)
             {
                 clickCallback();
-                deletable = !Arrow.sprite.Equals(defaultArrow);
-                Delete.gameObject.SetActive(deletable);
+                deletable = !arrow.sprite.Equals(defaultArrow);
+                delete.gameObject.SetActive(deletable);
             }
         };
     }
 
     internal void Open()
     {
-        Arrow.color = OPEN_COMMAND;
-        Arrow.transform.localRotation = Quaternion.identity;
+        arrow.color = OPEN_COMMAND;
+        arrow.transform.localRotation = Quaternion.identity;
     }
 
     internal bool Opened()
     {
-        return Arrow.color.Equals(OPEN_COMMAND);
+        return arrow.color.Equals(OPEN_COMMAND);
     }
 
     internal bool Closed()
     {
-        return Arrow.color.Equals(NO_COMMAND);
+        return arrow.color.Equals(NO_COMMAND);
     }
 
     internal void Highlight()
     {
-        Arrow.color = HIGHLIGHTED_COMMAND;
+        arrow.color = HIGHLIGHTED_COMMAND;
     }
 
     internal bool Highlighted()
     {
-        return Arrow.color.Equals(HIGHLIGHTED_COMMAND);
+        return arrow.color.Equals(HIGHLIGHTED_COMMAND);
     }
 
     internal void Submit()
     {
-        Arrow.color = SUBMITTED_COMMAND;
+        arrow.color = SUBMITTED_COMMAND;
         deletable = false;
     }
 
     internal void Next()
     {
-        Arrow.color = NEXT_COMMAND;
+        arrow.color = NEXT_COMMAND;
     }
 
     internal bool IsNext()
     {
-        return Arrow.color.Equals(NEXT_COMMAND);
+        return arrow.color.Equals(NEXT_COMMAND);
     }
 }

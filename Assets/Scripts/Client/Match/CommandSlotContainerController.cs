@@ -16,7 +16,7 @@ public class CommandSlotContainerController : Controller
     private CommandSlotController InitializeCommand(int c, short robotId, byte robotPriority)
     {
         CommandSlotController cmd = Instantiate(commandSlot, transform);
-        cmd.Initialize(robotId, c, robotPriority);
+        cmd.Initialize(robotId, c + 1, robotPriority);
         cmd.transform.localScale = new Vector3(1, 1.0f / GameConstants.MAX_PRIORITY, 1);
         cmd.transform.localPosition = new Vector3(0, 1.0f / GameConstants.MAX_PRIORITY * (c + 1.5f) - 0.5f, 0);
         return cmd;
@@ -24,7 +24,8 @@ public class CommandSlotContainerController : Controller
 
     public void BindCommandClickCallback(RobotController r, UnityAction<RobotController, int> clickCallback)
     {
-        Util.ToIntList(commandSlots.GetLength()).ForEach(i => commandSlots.Get(i).BindClickCallback(defaultArrow, () => clickCallback(r, i)));
+        int offset = commandSlots.FindIndex(c => c.IsNext());
+        Util.ToIntList(commandSlots.GetLength()).ForEach(i => commandSlots.Get(i).BindClickCallback(defaultArrow, () => clickCallback(r, i - offset)));
     }
 
     public void ClearCommands()
@@ -32,7 +33,7 @@ public class CommandSlotContainerController : Controller
         bool clickable = true;
         commandSlots.ForEach(child => {
             child.deletable = false;
-            child.Arrow.sprite = defaultArrow;
+            child.arrow.sprite = defaultArrow;
             if (!child.Closed())
             {
                 child.Open();
@@ -45,7 +46,7 @@ public class CommandSlotContainerController : Controller
     public void HighlightCommand(byte commandId, byte p)
     {
         CommandSlotController cmd = commandSlots.Get(GameConstants.MAX_PRIORITY - p);
-        if (cmd.Arrow.sprite.name.StartsWith(Command.GetDisplay(commandId)))
+        if (cmd.arrow.sprite.name.StartsWith(Command.GetDisplay(commandId)))
         {
             cmd.Highlight();
         }
@@ -62,28 +63,28 @@ public class CommandSlotContainerController : Controller
     public int AddSubmittedCommandAndReturnPowerConsumed(Command cmd, Sprite s)
     {
         bool setNext = false;
-        return commandSlots.Reduce(0, (powerConsumed, child) =>
+        return commandSlots.Reverse().Reduce(0, (powerConsumed, child) =>
         {
             if (child.IsNext())
             {
                 child.Open();
-                child.Arrow.sprite = s;
-                child.Arrow.transform.localRotation = cmd is Command.Spawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * cmd.direction * 90);
+                child.arrow.sprite = s;
+                child.arrow.transform.localRotation = cmd is Command.Spawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * cmd.direction * 90);
                 child.deletable = true;
             }
-            if (child.Closed() && !setNext)
+            else if (child.Opened() && !setNext && !child.deletable)
             {
                 child.Next();
                 setNext = true;
                 return powerConsumed;
             }
-            if (child.Closed()) return powerConsumed;
+            if (child.Closed() || !child.deletable) return powerConsumed;
             return powerConsumed + Command.power[cmd.commandId];
         });
     }
 
     public void DestroyCommandMenu()
     {
-        commandSlots.ForEach(child => child.Arrow.gameObject.SetActive(true));
+        commandSlots.ForEach(child => child.arrow.gameObject.SetActive(true));
     }
 }

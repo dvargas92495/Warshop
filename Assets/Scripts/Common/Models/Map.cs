@@ -45,7 +45,10 @@ public class Map
         {
             for (int x = 0; x < width; x++)
             {
-                spaces[y * width + x].Serialize(writer);
+                Space s = spaces[y * width + x];
+                s.Serialize(writer);
+                writer.Write(s.x);
+                writer.Write(s.y);
             }
         }
     }
@@ -58,7 +61,10 @@ public class Map
         {
             for (int x = 0; x < width; x++)
             {
-                map.spaces[y * width + x] = Space.Deserialize(reader);
+                Space s = Space.Deserialize(reader);
+                s.x = reader.ReadInt32();
+                s.y = reader.ReadInt32();
+                map.spaces[y * width + x] = s; 
             }
         }
         return map;

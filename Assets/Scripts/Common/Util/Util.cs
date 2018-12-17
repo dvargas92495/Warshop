@@ -285,4 +285,14 @@ public class Util
         }
         return false;
     }
+
+    protected static T[] Reverse<T>(T[] arr)
+    {
+        T[] returnArr = new T[arr.Length];
+        for (int i = arr.Length - 1; i >= 0; i--)
+        {
+            returnArr[arr.Length - 1 - i] = arr[i];
+        }
+        return returnArr;
+    }
 }

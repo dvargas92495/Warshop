@@ -17,6 +17,8 @@ public class UIController : Controller
     public ButtonContainerController actionButtonContainer;
     public LayerMask boardLayer;
     public LayerMask selectedLayer;
+    public LayerMask myPlayerLayer;
+    public LayerMask opponentPlayerLayer;
     public MenuItemController submitCommands;
     public MenuItemController stepBackButton;
     public MenuItemController stepForwardButton;
@@ -108,19 +110,20 @@ public class UIController : Controller
     private void SetOpponentPlayerPanel(Game.Player player)
     {
         opponentsPlayerName.text = player.name;
-        SetPlayerPanel(player, opponentsRobots);
+        SetPlayerPanel(player, opponentsRobots, opponentPlayerLayer);
     }
 
     private void SetMyPlayerPanel(Game.Player player)
     {
         myPlayerName.text = player.name;
-        SetPlayerPanel(player, myRobots);
+        SetPlayerPanel(player, myRobots, myPlayerLayer);
     }
 
-    void SetPlayerPanel(Game.Player player, RobotPanelsContainerController container)
+    void SetPlayerPanel(Game.Player player, RobotPanelsContainerController container, LayerMask layer)
     {
         container.Initialize(player.team.GetLength());
         player.team.ForEach(container.AddPanel);
+        ChangeLayer(container.gameObject, layer);
     }
 
     public void BindUiToRobotController(short robotId, RobotController robotController)
@@ -164,7 +167,7 @@ public class UIController : Controller
     {
         bool isSpawn = commandName.Equals(Command.GetDisplay(Command.SPAWN_COMMAND_ID));
         byte dir = (byte) Util.ToList(Command.byteToDirectionString).FindIndex(directionButton.name);
-        directionButton.SetSprite(isSpawn ? queueSprites[dir] : GetArrow(commandName + " Arrow"));
+        directionButton.SetSprite(isSpawn ? queueSprites[dir] : GetArrow(commandName));
         directionButton.SetCallback(() => DirectionButtonCallback(robotButton, robotController, commandName, dir));
         directionButton.spriteRenderer.transform.localRotation = Quaternion.Euler(Vector3.up * 180 + (isSpawn ? Vector3.zero : Vector3.forward * dir * 90));
         directionButton.spriteRenderer.color = isSpawn ? Color.gray : Color.white;
@@ -212,7 +215,7 @@ public class UIController : Controller
 
     public void AddSubmittedCommand(Command cmd, short id)
     {
-        Sprite s = cmd is Command.Spawn ? queueSprites[cmd.direction] : GetArrow(cmd.ToString());
+        Sprite s = cmd is Command.Spawn ? queueSprites[cmd.direction] : GetArrow(Command.GetDisplay(cmd.commandId));
         myRobots.AddSubmittedCommand(cmd, id, s);
         submitCommands.Activate();
     }
@@ -256,9 +259,13 @@ public class UIController : Controller
 
     private void ChangeLayer(GameObject g, int l)
     {
-        if (g.layer == l) return;
+        ChangeLayerHelper(g, Math.Log2(l));
+    }
+
+    private void ChangeLayerHelper(GameObject g, int l)
+    {
         g.layer = l;
-        Util.ToIntList(g.transform.childCount).ForEach(i => ChangeLayer(g.transform.GetChild(i).gameObject, l));
+        Util.ToIntList(g.transform.childCount).ForEach(i => ChangeLayerHelper(g.transform.GetChild(i).gameObject, l));
     }
 
 }

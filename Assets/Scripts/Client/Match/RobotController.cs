@@ -50,11 +50,11 @@ public class RobotController : Controller
     {
         if (!isSpawned &&commands.GetLength() == 0)
         {
-            new List<byte>(Command.TYPES).ForEach(t => m.GetByName(Command.GetDisplay(t)).SetActive(t == Command.SPAWN_COMMAND_ID));
+            Util.ToList(Command.TYPES).ForEach(t => m.GetByName(Command.GetDisplay(t)).SetActive(t == Command.SPAWN_COMMAND_ID));
         }
         else
         {
-            new List<byte>(Command.TYPES).ForEach(t =>
+            Util.ToList(Command.TYPES).ForEach(t =>
             {
                 int num = GetNumCommandType(t);
                 bool active = num < Command.limit[t] && !t.Equals(typeof(Command.Spawn));

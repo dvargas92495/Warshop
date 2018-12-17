@@ -7,7 +7,7 @@ public class BoardController : Controller
     public DockController opponentDock;
     public RobotController robotBase;
     public TileController tile;
-    public Light CeilingLight;
+    public Light ceilingLight;
 
     private BatteryController myBattery;
     private BatteryController opponentBattery;
@@ -21,9 +21,6 @@ public class BoardController : Controller
     public void InitializeBoard(Map board)
     {
         allLocations = Util.ToList(board.spaces).Map(InitializeTile);
-        
-        myDock.transform.position = new Vector3(0, -1);
-        opponentDock.transform.position = new Vector3(board.width - 1, board.height);
 
         InitializeLights(board.width, board.height);
     }
@@ -112,7 +109,7 @@ public class BoardController : Controller
         {
             for (int x = 1; x < width; x += 2)
             {
-                Light l = Instantiate(CeilingLight, transform);
+                Light l = Instantiate(ceilingLight, transform);
                 l.transform.position += new Vector3(x - 0.5f, y);
             }
         }

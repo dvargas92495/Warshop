@@ -33,6 +33,7 @@ public abstract class BaseGameManager
 
     public static void InitializeSetup(SetupController sc)
     {
+        if (instance == null) InitializeLocal();
         instance.InitializeSetupImpl(sc);
     }
 
@@ -75,7 +76,7 @@ public abstract class BaseGameManager
 
     private void InitializeRobots()
     {
-        robotControllers = new Dictionary<short, RobotController>(GameConstants.MAX_ROBOTS_ON_SQUAD*2);
+        robotControllers = new Dictionary<short, RobotController>(myPlayer.team.GetLength() + opponentPlayer.team.GetLength());
         InitializePlayerRobots(myPlayer, boardController.myDock);
         InitializePlayerRobots(opponentPlayer, boardController.opponentDock);
     }
@@ -91,6 +92,7 @@ public abstract class BaseGameManager
         r.isOpponent = dock.Equals(boardController.opponentDock);
         robotControllers.Add(r.id, r);
         r.transform.localPosition = dock.PlaceInBelt();
+        r.transform.localRotation = Quaternion.Euler(0, 0, r.isOpponent ? 180 : 0);
     }
 
     public static void InitializeUI(UIController ui)

@@ -21,6 +21,7 @@ public class List<T> : Util
 
     public T Get(int i)
     {
+
         return items[i];
     }
 
@@ -58,6 +59,11 @@ public class List<T> : Util
     public int FindIndex(T item)
     {
         return FindIndex(items, item);
+    }
+
+    public int FindIndex(ReturnAction<T, bool> callback)
+    {
+        return FindIndex(items, callback);
     }
 
     public void Remove(T item)
@@ -153,5 +159,10 @@ public class List<T> : Util
     public U Reduce<U>(U initialValue, ReturnAction<U, T, U> callback)
     {
         return Reduce(items, initialValue, callback);
+    }
+
+    public List<T> Reverse()
+    {
+        return new List<T>(Reverse(items));
     }
 }

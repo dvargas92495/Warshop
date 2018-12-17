@@ -20,9 +20,9 @@ public class TileController : Controller
 
     public void LoadTile(Map.Space s, UnityAction<BatteryController> primaryCallback, UnityAction<BatteryController> secondaryCallback)
     {
-        s.accept(this);
         primaryBatterySetterCallback = primaryCallback;
         secondaryBatterySetterCallback = secondaryCallback;
+        s.accept(this);
     }
 
     public void LoadBlankTile(Map.Blank s)
@@ -37,12 +37,14 @@ public class TileController : Controller
 
         if (s.GetIsPrimary())
         {
-            newBattery.coreRenderer.material = opponentCore;
-            secondaryBatterySetterCallback(newBattery);
+            primaryBatterySetterCallback(newBattery);
         }
         else
         {
-            primaryBatterySetterCallback(newBattery);
+            newBattery.coreRenderer.material = opponentCore;
+            newBattery.transform.Rotate(0, 180, 0);
+            newBattery.score.transform.Rotate(0, 180, 0);
+            secondaryBatterySetterCallback(newBattery);
         }
     }
 

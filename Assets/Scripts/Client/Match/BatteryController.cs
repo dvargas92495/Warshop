@@ -8,6 +8,6 @@ public class BatteryController : Controller
 
     void Start()
     {
-        scoreMeshRenderer.sortingOrder = 1;
+        scoreMeshRenderer.sortingOrder = 2;
     }
 }

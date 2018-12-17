@@ -15,7 +15,7 @@ public class DockController : Controller
                 break;
             }
         }
-        return Vector3.right * i + Vector3.back * 1.001f;
+        return Vector3.right * i + Vector3.back * .2f;
     }
 
     public void RemoveFromBelt(Vector3 localPos)
