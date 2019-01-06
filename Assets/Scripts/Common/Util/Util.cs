@@ -3,6 +3,8 @@ using UnityEngine.Events;
 
 public class Util
 {
+    private static readonly Logger log = new Logger(typeof(Util).ToString());
+
     public static List<U> ToList<U>(params U[] items)
     {
         return new List<U>(items);
@@ -196,7 +198,12 @@ public class Util
 
     protected static int FindIndex<T>(T[] arr, T item)
     {
-        return FindIndex(arr, i => i.Equals(item));
+        int index = FindIndex(arr, i => i.Equals(item));
+        if (index == -1)
+        {
+            log.Error("Could not find item " + item + " in " + ToArrayString(arr, ","));
+        }
+        return index;
     }
 
     protected static T Reduce<T,U>(U[] arr, T initialValue, ReturnAction<T, U, T> callback)

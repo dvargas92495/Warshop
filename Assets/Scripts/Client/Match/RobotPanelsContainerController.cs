@@ -13,6 +13,11 @@ public class RobotPanelsContainerController : Controller
         robotIdToPanels = new Dictionary<short, RobotPanelController>(teamSize);
     }
 
+    public bool Contains(short id)
+    {
+        return robotIdToPanels.Contains(id);
+    }
+
     public void AddPanel(Robot r)
     {
         RobotPanelController panel = Instantiate(RobotPanel, transform);

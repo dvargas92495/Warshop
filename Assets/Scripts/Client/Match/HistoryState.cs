@@ -99,12 +99,12 @@ public class HistoryState
         opponentScore = opponents;
     }
 
-    public void DeserializeRobots(Dictionary<short, RobotController> robotControllers, UnityAction<Command, short> addCommandCallback)
+    public void DeserializeRobots(Dictionary<short, RobotController> robotControllers, UnityAction<Command, short, bool> addCommandCallback)
     {
         robots.ForEach((id, state) => DeserializeRobot(robotControllers.Get(id), state, addCommandCallback));
     }
 
-    private void DeserializeRobot(RobotController r, RobotState state, UnityAction<Command, short> addCommandCallback)
+    private void DeserializeRobot(RobotController r, RobotState state, UnityAction<Command, short, bool> addCommandCallback)
     {
         r.transform.position = state.position;
         r.transform.rotation = Quaternion.Euler(state.rotation);
@@ -123,7 +123,7 @@ public class HistoryState
         return s;
     }
 
-    private void DeserializeCmd(RobotState.Cmd cmd, RobotController r, UnityAction<Command, short> callback)
+    private void DeserializeCmd(RobotState.Cmd cmd, RobotController r, UnityAction<Command, short, bool> callback)
     {
         r.AddRobotCommand(cmd.name, cmd.dir, callback);
     }

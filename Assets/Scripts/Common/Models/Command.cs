@@ -57,15 +57,15 @@ public abstract class Command
         switch (commandId)
         {
             case SPAWN_COMMAND_ID:
-                return "Spawn";
+                return typeof(Spawn).Name;
             case MOVE_COMMAND_ID:
-                return "Move";
+                return typeof(Move).Name;
             case ATTACK_COMMAND_ID:
-                return "Attack";
+                return typeof(Attack).Name;
             case SPECIAL_COMMAND_ID:
-                return "Special";
+                return typeof(Special).Name;
             default:
-                return "Invalid";
+                return typeof(Command).Name;
         }
     }
 
@@ -74,7 +74,12 @@ public abstract class Command
     protected internal string display { get; protected set; }
     protected internal byte direction { get; protected set; }
     protected internal byte commandId { get; protected set; }
-    public Command(){ }
+    public Command(byte dir, byte id)
+    {
+        direction = dir;
+        commandId = id;
+        display = GetDisplay(commandId);
+    }
     public void Serialize(NetworkWriter writer)
     {
         writer.Write(commandId);
@@ -116,41 +121,21 @@ public abstract class Command
 
     public class Spawn : Command
     {
-        public Spawn(byte dir)
-        {
-            direction = dir;
-            commandId = SPAWN_COMMAND_ID;
-            display = GetDisplay(commandId);
-        }
+        public Spawn(byte dir) : base(dir, SPAWN_COMMAND_ID) { }
     }
 
     public class Move : Command
     {
-        public Move(byte dir)
-        {
-            direction = dir;
-            commandId = MOVE_COMMAND_ID;
-            display = GetDisplay(commandId);
-        }
+        public Move(byte dir) : base(dir, MOVE_COMMAND_ID) { }
     }
 
     public class Attack : Command
     {
-        public Attack(byte dir)
-        {
-            direction = dir;
-            commandId = ATTACK_COMMAND_ID;
-            display = GetDisplay(commandId);
-        }
+        public Attack(byte dir) : base(dir, ATTACK_COMMAND_ID) { }
     }
 
     internal class Special : Command
     {
-        public Special(byte dir)
-        {
-            direction = dir;
-            commandId = SPECIAL_COMMAND_ID;
-            display = GetDisplay(commandId);
-        }
+        public Special(byte dir) : base(dir, SPECIAL_COMMAND_ID) { }
     }
 }

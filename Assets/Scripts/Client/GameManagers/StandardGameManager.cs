@@ -20,7 +20,7 @@
 
     protected override void SubmitCommands()
     {
-        Command[] commands = GetSubmittedCommands();
+        Command[] commands = GetSubmittedCommands(robotControllers.ToValueList());
         uiController.actionButtonContainer.SetButtons(false);
         uiController.robotButtonContainer.SetButtons(false);
         gameClient.SendSubmitCommands(commands, myPlayer.name);

@@ -62,14 +62,10 @@ MonoBehaviour:
   battery: {fileID: 114516795605733698, guid: 9a3db92b6b120f8488d98c64b12fb5ff, type: 3}
   queueMarker: {fileID: 1876748846819744, guid: 7d72de74c17c1bb45af234002e5af9e0,
     type: 3}
-  userSpawnTileTextMaterial: {fileID: 2100000, guid: c28038670ef15434f887a9957b69bc1e,
-    type: 2}
-  opponentSpawnTileTextMaterial: {fileID: 2100000, guid: d7c95eaf00268624b9dbef86f4351252,
-    type: 2}
   baseTile: {fileID: 2100000, guid: 7aa1e75bf5e0e514a8c49e6e5cf91236, type: 2}
   userBaseTile: {fileID: 2100000, guid: c3954acba22942f4a87c3f2975fa9702, type: 2}
   opponentBaseTile: {fileID: 2100000, guid: 42bf17ec753258549ad282863832aad1, type: 2}
-  opponentCore: {fileID: 2100000, guid: 85561106fe63a234999323789f295271, type: 2}
+  opponentCore: {fileID: 2100000, guid: ac0a83a70d2fed145ae21860f0d34799, type: 2}
   meshRenderer: {fileID: 23841780573513384}
   spawnTileText: {fileID: 114021522439281750, guid: 6565701cfaec4cf4b81dbc922faf8695,
     type: 3}

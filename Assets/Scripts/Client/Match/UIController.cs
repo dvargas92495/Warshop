@@ -133,7 +133,9 @@ public class UIController : Controller
         robotButton.SetSprite(container.GetSprite(robotId));
         robotButton.SetCallback(() => RobotButtonCallback(robotButton, robotController, robotId));
         robotButton.gameObject.SetActive(!robotController.isOpponent);
-        robotButtonContainer.AddRobotButton(robotButton);
+        int teamLength = Util.ToList(robotButtonContainer.menuItems).Count(m => m.gameObject.activeInHierarchy == !robotController.isOpponent);
+        robotButton.transform.localPosition = Vector3.right * (teamLength % 4 * 3 - 4.5f);
+        robotButtonContainer.menuItems = Util.Add(robotButtonContainer.menuItems, robotButton);
 
         container.BindCommandClickCallback(robotController, CommandSlotClickCallback);
     }
@@ -177,11 +179,12 @@ public class UIController : Controller
     {
         robotController.AddRobotCommand(commandName, dir, AddSubmittedCommand);
         RobotButtonSelect(robotButton, robotController);
+        commandButtonContainer.ClearSelected();
     }
 
     private void CommandSlotClickCallback(RobotController r, int index)
     {
-        ClearCommands(r.id);
+        ClearCommands(r.id, r.isOpponent);
         if (r.commands.Get(index) is Command.Spawn)
         {
             r.commands.Clear();
@@ -189,7 +192,7 @@ public class UIController : Controller
         else
         {
             r.commands.RemoveAt(index);
-            r.commands.ForEach(c => AddSubmittedCommand(c, r.id));
+            r.commands.ForEach(c => AddSubmittedCommand(c, r.id, r.isOpponent));
         }
 
         robotButtonContainer.SetButtons(true);
@@ -198,25 +201,29 @@ public class UIController : Controller
         directionButtonContainer.EachMenuItem(m => m.ClearSprite());
     }
 
-    public void ClearCommands(short id)
+    public void ClearCommands(short id, bool isOpponent)
     {
-        myRobots.ClearCommands(id);
+        RobotPanelsContainerController robotPanelsContainer = isOpponent ? opponentsRobots : myRobots;
+        robotPanelsContainer.ClearCommands(id);
     }
 
     public void HighlightCommands(byte commandId, byte p)
     {
         myRobots.HighlightCommands(commandId, p);
+        opponentsRobots.HighlightCommands(commandId, p);
     }
 
-    public void ColorCommandsSubmitted(short id)
+    public void ColorCommandsSubmitted(short id, bool isOpponent)
     {
-        myRobots.ColorCommandsSubmitted(id);
+        RobotPanelsContainerController robotPanelsContainer = isOpponent ? opponentsRobots : myRobots;
+        robotPanelsContainer.ColorCommandsSubmitted(id);
     }
 
-    public void AddSubmittedCommand(Command cmd, short id)
+    public void AddSubmittedCommand(Command cmd, short id, bool isOpponent)
     {
         Sprite s = cmd is Command.Spawn ? queueSprites[cmd.direction] : GetArrow(Command.GetDisplay(cmd.commandId));
-        myRobots.AddSubmittedCommand(cmd, id, s);
+        RobotPanelsContainerController robotPanelsContainer = isOpponent ? opponentsRobots : myRobots;
+        robotPanelsContainer.AddSubmittedCommand(cmd, id, s);
         submitCommands.Activate();
     }
 

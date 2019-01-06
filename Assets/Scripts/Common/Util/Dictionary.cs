@@ -74,9 +74,19 @@ public class Dictionary<T, U> : Util
     public void Remove(T key)
     {
         int i = GetIndex(key);
-        vals[i] = default(U);
-        keys[i] = default(T);
+        vals[i] = default;
+        keys[i] = default;
         entries[i] = false;
+    }
+
+    public List<U> ToValueListFiltered(ReturnAction<U, bool> callback)
+    {
+        return new List<U>(Filter(vals, callback));
+    }
+
+    public List<U> ToValueList()
+    {
+        return new List<U>(vals);
     }
 
     public bool AnyValue(ReturnAction<U, bool> callback)

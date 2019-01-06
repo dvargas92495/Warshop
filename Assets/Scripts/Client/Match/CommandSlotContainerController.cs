@@ -25,13 +25,13 @@ public class CommandSlotContainerController : Controller
     public void BindCommandClickCallback(RobotController r, UnityAction<RobotController, int> clickCallback)
     {
         int offset = commandSlots.FindIndex(c => c.IsNext());
-        Util.ToIntList(commandSlots.GetLength()).ForEach(i => commandSlots.Get(i).BindClickCallback(defaultArrow, () => clickCallback(r, i - offset)));
+        Util.ToIntList(commandSlots.GetLength()).ForEach(i => commandSlots.Get(i).BindClickCallback(defaultArrow, () => clickCallback(r, offset - i)));
     }
 
     public void ClearCommands()
     {
         bool clickable = true;
-        commandSlots.ForEach(child => {
+        commandSlots.Reverse().ForEach(child => {
             child.deletable = false;
             child.arrow.sprite = defaultArrow;
             if (!child.Closed())
@@ -65,12 +65,19 @@ public class CommandSlotContainerController : Controller
         bool setNext = false;
         return commandSlots.Reverse().Reduce(0, (powerConsumed, child) =>
         {
-            if (child.IsNext())
+            if (child.Closed()) return powerConsumed;
+            else if (child.Opened() && child.deletable)
+            {
+                byte commandId = Util.ToList(Command.TYPES).Find(id => child.arrow.sprite.name.Equals(Command.GetDisplay(id)));
+                return powerConsumed + Command.power[commandId];
+            }
+            else if (child.IsNext())
             {
                 child.Open();
                 child.arrow.sprite = s;
                 child.arrow.transform.localRotation = cmd is Command.Spawn ? Quaternion.identity : Quaternion.Euler(Vector3.forward * cmd.direction * 90);
                 child.deletable = true;
+                return powerConsumed + Command.power[cmd.commandId];
             }
             else if (child.Opened() && !setNext && !child.deletable)
             {
@@ -78,8 +85,7 @@ public class CommandSlotContainerController : Controller
                 setNext = true;
                 return powerConsumed;
             }
-            if (child.Closed() || !child.deletable) return powerConsumed;
-            return powerConsumed + Command.power[cmd.commandId];
+            else return powerConsumed;
         });
     }
 

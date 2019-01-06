@@ -114,10 +114,10 @@ public abstract class BaseGameManager
 
     protected abstract void SubmitCommands();
 
-    protected Command[] GetSubmittedCommands()
+    protected Command[] GetSubmittedCommands(List<RobotController> robotsToSubmit)
     {
         uiController.LightUpPanel(true, true);
-        List<Command> commands = robotControllers.ReduceEachValue(new List<Command>(), AddCommands);
+        List<Command> commands = robotsToSubmit.Reduce(new List<Command>(), AddCommands);
         uiController.commandButtonContainer.SetButtons(false);
         uiController.directionButtonContainer.SetButtons(false);
         uiController.submitCommands.Deactivate();
@@ -128,7 +128,7 @@ public abstract class BaseGameManager
     {
         robot.commands.ForEach(c => c.robotId = robot.id);
         List<Command> returnCommands = commands.Concat(robot.commands);
-        uiController.ColorCommandsSubmitted(robot.id);
+        uiController.ColorCommandsSubmitted(robot.id, robot.isOpponent);
         uiController.ChangeToBoardLayer(robot);
         return returnCommands;
     }
@@ -256,7 +256,7 @@ public abstract class BaseGameManager
     private void SetupRobotTurn(RobotController r)
     {
         r.gameObject.SetActive(true);
-        uiController.ClearCommands(r.id);
+        uiController.ClearCommands(r.id, r.isOpponent);
         r.commands.Clear();
     }
 
@@ -278,8 +278,8 @@ public abstract class BaseGameManager
 
     private void RefillCommands(RobotController r)
     {
-        uiController.ClearCommands(r.id);
-        r.commands.ForEach(c => uiController.AddSubmittedCommand(c, r.id));
+        uiController.ClearCommands(r.id, r.isOpponent);
+        r.commands.ForEach(c => uiController.AddSubmittedCommand(c, r.id, r.isOpponent));
     }
 
     public void BackToPresent()

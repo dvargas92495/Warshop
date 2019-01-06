@@ -31,13 +31,13 @@ public class RobotController : Controller
      * Robot Model Before Turn Methods *
      ***********************************/
 
-    internal void AddRobotCommand(Command cmd, UnityAction<Command, short> callback)
+    internal void AddRobotCommand(Command cmd, UnityAction<Command, short, bool> callback)
     {
         int num = GetNumCommandType(cmd.commandId);
         if (num < Command.limit[cmd.commandId])
         {
             commands.Add(cmd);
-            callback(cmd, id);
+            callback(cmd, id, isOpponent);
         }
     }
 
@@ -48,7 +48,7 @@ public class RobotController : Controller
 
     internal void ShowMenuOptions(ButtonContainerController m)
     {
-        if (!isSpawned &&commands.GetLength() == 0)
+        if (!isSpawned && commands.GetLength() == 0)
         {
             Util.ToList(Command.TYPES).ForEach(t => m.GetByName(Command.GetDisplay(t)).SetActive(t == Command.SPAWN_COMMAND_ID));
         }
@@ -58,13 +58,13 @@ public class RobotController : Controller
             {
                 int num = GetNumCommandType(t);
                 bool active = num < Command.limit[t] && !t.Equals(typeof(Command.Spawn));
-                MenuItemController item = m.GetByName(Command.GetDisplay((byte)t));
+                MenuItemController item = m.GetByName(Command.GetDisplay(t));
                 item.SetActive(active);
             });
         }
     }
 
-    internal void AddRobotCommand(string name, byte dir, UnityAction<Command, short> callback)
+    internal void AddRobotCommand(string name, byte dir, UnityAction<Command, short, bool> callback)
     {
         if (name.Equals(Command.GetDisplay(Command.SPAWN_COMMAND_ID)))
         {

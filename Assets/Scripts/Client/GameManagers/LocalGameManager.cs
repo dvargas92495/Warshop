@@ -40,7 +40,8 @@
 
     protected override void SubmitCommands()
     {
-        Command[] commands = GetSubmittedCommands();
+        List<RobotController> robotsToSubmit = robotControllers.ToValueListFiltered(r => r.isOpponent == !myturn);
+        Command[] commands = GetSubmittedCommands(robotsToSubmit);
         uiController.robotButtonContainer.EachMenuItem(m => m.gameObject.SetActive(!m.gameObject.activeInHierarchy));
         string username = myturn ? myPlayer.name : opponentPlayer.name;
         myturn = false;

@@ -28,15 +28,14 @@ public class ButtonContainerController : Controller
         selectedMenuItem = menuItem;
     }
 
+    public void ClearSelected()
+    {
+        selectedMenuItem = null;
+    }
+
     public void ClearSprites()
     {
         EachMenuItem(m => m.ClearSprite());
-    }
-
-    public void AddRobotButton(MenuItemController robotButton)
-    {
-        robotButton.transform.localPosition = Vector3.right * (menuItems.Length%4 * 3 - 4.5f);
-        menuItems = Util.Add(menuItems, robotButton);
     }
 
     public MenuItemController Get(int index)

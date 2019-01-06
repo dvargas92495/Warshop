@@ -2,6 +2,8 @@
 
 public class List<T> : Util
 {
+    private static readonly Logger log = new Logger(typeof(List<T>).ToString());
+
     private T[] items;
 
     public List()
@@ -21,7 +23,10 @@ public class List<T> : Util
 
     public T Get(int i)
     {
-
+        if (i < 0 || i > items.Length)
+        {
+            log.Error("Invalid index " + i + " for array " + ToArrayString(items, ","));
+        }
         return items[i];
     }
 
