@@ -7,8 +7,8 @@ using log4net.Core;
 using log4net.Config;
 using log4net;
 
-class Logger {
-
+public class Logger
+{
     internal ILog log;
     private static bool configured;
 
@@ -91,6 +91,21 @@ class Logger {
             BasicConfigurator.Configure(appender);
         }
         configured = true;
+    }
+
+    public static void SetupForTests()
+    {
+        PatternLayout layout = new PatternLayout
+        {
+            ConversionPattern = "%logger - %message%newline"
+        };
+        layout.ActivateOptions();
+        UnityAppender unityAppender = new UnityAppender
+        {
+            Layout = layout
+        };
+        unityAppender.ActivateOptions();
+        BasicConfigurator.Configure(unityAppender);
     }
 
     internal static void ConfigureNewGame(string gameSessionId)

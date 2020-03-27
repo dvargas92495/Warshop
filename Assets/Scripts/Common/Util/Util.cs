@@ -3,8 +3,6 @@ using UnityEngine.Events;
 
 public class Util
 {
-    private static readonly Logger log = new Logger(typeof(Util).ToString());
-
     public static List<U> ToList<U>(params U[] items)
     {
         return new List<U>(items);
@@ -13,6 +11,18 @@ public class Util
     public static List<int> ToIntList(int length)
     {
         return ToList(Int(length));
+    }
+
+    public static List<T> ToList<T>(int length, ReturnAction<T> callback)
+    {
+        T[] newArr = new T[length];
+        int index = 0;
+        ForEach(newArr, o =>
+        {
+            newArr[index] = callback();
+            index++;
+        });
+        return new List<T>(newArr);
     }
 
     protected static int[] Int(int length)
@@ -121,6 +131,7 @@ public class Util
         {
             if (!oldItem.Equals(item))
             {
+                if (index >= newArr.Length) throw new ZException("Could not find item {0} in array {1}", item, ToArrayString(arr));
                 newArr[index] = oldItem;
                 index++;
             }
@@ -178,19 +189,29 @@ public class Util
         return false;
     }
 
+    protected static bool All<T>(T[] arr, ReturnAction<T, bool> callback)
+    {
+        foreach (T item in arr)
+        {
+            if (!callback(item)) return false;
+        }
+        return true;
+    }
+
     protected static T Find<T>(T[] arr, ReturnAction<T, bool> callback)
     {
         foreach (T item in arr)
         {
             if (callback(item)) return item;
         }
-        return default(T);
+        return default;
     }
 
     protected static int FindIndex<T>(T[] arr, ReturnAction<T, bool> callback)
     {
         for (int i=0; i<arr.Length; i++)
         {
+            if (arr[i] == null) throw new ZException("Null value in array while finding: {0}", ToArrayString(arr));
             if (callback(arr[i])) return i;
         }
         return -1;
@@ -199,10 +220,7 @@ public class Util
     protected static int FindIndex<T>(T[] arr, T item)
     {
         int index = FindIndex(arr, i => i.Equals(item));
-        if (index == -1)
-        {
-            log.Error("Could not find item " + item + " in " + ToArrayString(arr, ","));
-        }
+        if (index == -1) throw new ZException("Could not find item {0} in [{1}]", item, ToArrayString(arr));
         return index;
     }
 
@@ -273,24 +291,26 @@ public class Util
         return returnArr;
     }
 
+    protected static string ToArrayString<T>(T[] arr)
+    {
+        return ToArrayString(arr, ",");
+    }
+
     protected static string ToArrayString<T>(T[] arr, string delim)
     {
         string s = "";
+        if (arr.Length == 0) return s;
         foreach(T item in arr)
         {
-            s += item.ToString();
+            s += item == null ? "null" : item.ToString();
             s += delim;
         }
-        return s;
+        return s.Substring(0, s.Length - delim.Length);
     }
 
     protected static bool Contains<T>(T[] arr, T item)
     {
-        foreach(T i in arr)
-        {
-            if (i.Equals(item)) return true;
-        }
-        return false;
+        return Any(arr, i => (i != null && i.Equals(item)) || (i == null && item == null));
     }
 
     protected static T[] Reverse<T>(T[] arr)

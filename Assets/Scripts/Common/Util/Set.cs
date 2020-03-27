@@ -35,11 +35,17 @@ public class Set<T> : Util
 
     public Set<T> Filter(ReturnAction<T, bool> callback)
     {
+        if (count < items.Length) throw new ZException("Null values present in Set: {0}", ToArrayString(items)); 
         return new Set<T>(Filter(items, callback));
     }
 
     public void ForEach(UnityAction<T> callback)
     {
         ForEach(Filter(items, i => i != null), callback);
+    }
+
+    public int GetLength()
+    {
+        return items.Length;
     }
 }

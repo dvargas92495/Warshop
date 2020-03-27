@@ -7,7 +7,7 @@ public class ProfileController : Controller
     public Text usernameText;
     public SceneReference initialScene;
 
-    public static string username;
+    internal static string username;
 
     void Start ()
     {

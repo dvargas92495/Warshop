@@ -23,12 +23,13 @@ public class Dictionary<T, U> : Util
 
     public void Put(T key, U val)
     {
-        vals[GetIndex(key)] = val;
+        if (Contains(key)) vals[GetIndex(key)] = val;
+        else Add(key, val);
     }
 
     public bool Contains(T key)
     {
-        return Contains(keys, key);
+        return Contains(keys, key) && entries[GetIndex(key)];
     }
 
     public bool ContainsValue(U val)
@@ -38,7 +39,14 @@ public class Dictionary<T, U> : Util
 
     public U Get(T key)
     {
-        return vals[GetIndex(key)];
+        U item = vals[GetIndex(key)];
+        if (item == null) throw new ZException("Couldn't get value for key {0}. In keys {1} but not in vals {2}", key, ToArrayString(keys), ToArrayString(vals));
+        return item;
+    }
+
+    public U Get(ReturnAction<U, bool> callback)
+    {
+        return Find(vals, callback);
     }
 
     public T GetKey(U val)
@@ -53,7 +61,14 @@ public class Dictionary<T, U> : Util
 
     public int GetIndex(T key)
     {
-        return FindIndex(keys, key);
+        try
+        {
+            return FindIndex(keys, key);
+        }
+        catch (ZException)
+        {
+            throw new ZException("Could not get index with key {0} from keys[{1}]", key, ToArrayString(keys));
+        }
     }
 
     public void ForEach(UnityAction<T, U> callback)
@@ -73,10 +88,18 @@ public class Dictionary<T, U> : Util
 
     public void Remove(T key)
     {
-        int i = GetIndex(key);
-        vals[i] = default;
-        keys[i] = default;
-        entries[i] = false;
+        if (Contains(key))
+        {
+            int i = GetIndex(key);
+            vals[i] = default;
+            keys[i] = default;
+            entries[i] = false;
+        }
+    }
+
+    public List<T> ToKeyListFiltered(ReturnAction<T, bool> callback)
+    {
+        return new List<T>(Filter(keys, callback));
     }
 
     public List<U> ToValueListFiltered(ReturnAction<U, bool> callback)
@@ -91,10 +114,18 @@ public class Dictionary<T, U> : Util
 
     public bool AnyValue(ReturnAction<U, bool> callback)
     {
-        foreach (U val in vals)
-        {
-            if (callback(val)) return true;
-        }
-        return false;
+        return Any(vals, callback);
+    }
+
+    public int CountValues(ReturnAction<U, bool> callback)
+    {
+        return Count(vals, callback);
+    }
+
+    public override string ToString()
+    {
+        string s = "{";
+        ForEach((k, v) => s += string.Format("{0}:{1},", k, v));
+        return s.Substring(0, s.Length - 1) + "}";
     }
 }

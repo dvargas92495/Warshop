@@ -9,7 +9,6 @@ public class Map
     internal int height { get; set; }
     internal Space[] spaces;
     private Tuple<Set<short>, Set<short>> dock = new Tuple<Set<short>, Set<short>>(new Set<short>(GameConstants.MAX_ROBOTS_ON_SQUAD), new Set<short>(GameConstants.MAX_ROBOTS_ON_SQUAD));
-    private Dictionary<short, Space> objectLocations;
 
     private Map(int w, int h)
     {
@@ -35,7 +34,6 @@ public class Map
                 spaces[y * width + x].y = y;
             }
         }
-        objectLocations = new Dictionary<short, Space>(GameConstants.MAX_ROBOTS_ON_SQUAD*2);
     }
     public void Serialize(NetworkWriter writer)
     {
@@ -122,48 +120,11 @@ public class Map
         else return true;
     }
 
-    public short GetIdOnSpace(Vector2Int v)
-    {
-        return GetIdOnSpace(VecToSpace(v));
-    }
-
-    public short GetIdOnSpace(Space s)
-    {
-        if (objectLocations.ContainsValue(s))
-        {
-            return objectLocations.GetKey(s);
-        }
-        else
-        {
-            return -1;
-        }
-    }
-
     public Vector2Int GetQueuePosition(byte i, bool isPrimary)
     {
         Space[] queueSpaces = Util.ToList(spaces).Filter(s => s is Queue).ToArray();
         Space queueSpace = Util.ToList(queueSpaces).Find(s => ((Queue)s).GetIndex() == i && ((Queue)s).GetIsPrimary() == isPrimary);
         return new Vector2Int(queueSpace.x, queueSpace.y);
-    }
-
-    public bool IsSpaceOccupied(Vector2Int v)
-    {
-        return IsSpaceOccupied(VecToSpace(v));
-    }
-
-    public bool IsSpaceOccupied(Space s)
-    {
-        return objectLocations.ContainsValue(s);
-    }
-
-    public void UpdateObjectLocation(int x, int y, short objectId)
-    {
-        objectLocations.Put(objectId, VecToSpace(x,y));
-    }
-
-    public void RemoveObjectLocation(short objectId)
-    {
-        objectLocations.Remove(objectId);
     }
 
     internal void AddToDock(short robotId, bool isPrimary)
@@ -309,4 +270,3 @@ public class Map
 
     }
 }
-

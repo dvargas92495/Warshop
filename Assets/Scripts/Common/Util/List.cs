@@ -91,6 +91,19 @@ public class List<T> : Util
         items = Filter(items, (T item) => !callback(item));
     }
 
+    public T RemoveFirst(ReturnAction<T, bool> callback)
+    {
+        T item = Find(callback);
+        if (item == null) throw new ZException("Could not find item to remove in {0}", ToArrayString(items));
+        Remove(item);
+        return item;
+    }
+
+    public override string ToString()
+    {
+        return ToArrayString(items);
+    }
+
     public string ToString(string delim)
     {
         return ToArrayString(items, delim);
@@ -119,6 +132,11 @@ public class List<T> : Util
     public void Add(List<T> l, int i)
     {
         items = Add(items, l.items, i);
+    }
+
+    public bool All(ReturnAction<T, bool> callback)
+    {
+        return All(items, callback);
     }
 
     public bool Any(ReturnAction<T, bool> callback)
@@ -169,5 +187,22 @@ public class List<T> : Util
     public List<T> Reverse()
     {
         return new List<T>(Reverse(items));
+    }
+
+    public Set<U> ToSet<U>(ReturnAction<T,U> callback)
+    {
+        return new Set<U>(Map(items, callback));
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!obj.GetType().Equals(GetType())) return false;
+        List<T> other = (List<T>)obj;
+        return other.items.Length == items.Length && ToIntList(items.Length).All(i => items[i].Equals(other.items[i]));
+    }
+
+    public override int GetHashCode()
+    {
+        return Reduce(0, (total, item) => total + item.GetHashCode());
     }
 }

@@ -172,6 +172,6 @@ public class RobotController : Controller
     public void clearEvents()
     {
         currentEvents.ForEach(i => Destroy(i.gameObject));
-        currentEvents = new List<SpriteRenderer>();
+        currentEvents.Clear();
     }
 }

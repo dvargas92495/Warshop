@@ -8,21 +8,12 @@ public abstract class Command
     public const byte DOWN = 2;
     public const byte RIGHT = 3;
 
-    internal const byte SPAWN_COMMAND_ID = 0;
-    internal const byte MOVE_COMMAND_ID = 1;
-    internal const byte ATTACK_COMMAND_ID = 2;
-    internal const byte SPECIAL_COMMAND_ID = 3;
+    public const byte SPAWN_COMMAND_ID = 0;
+    public const byte MOVE_COMMAND_ID = 1;
+    public const byte ATTACK_COMMAND_ID = 2;
+    public const byte SPECIAL_COMMAND_ID = 3;
 
-    internal static byte[] TYPES = new byte[] {
-        SPAWN_COMMAND_ID,
-        MOVE_COMMAND_ID,
-        ATTACK_COMMAND_ID,
-        SPECIAL_COMMAND_ID
-    };
-
-    internal static string[] byteToDirectionString = new string[]{"Up", "Left", "Down", "Right"};
-
-    internal static byte[] limit = new byte[] 
+    internal static byte[] limit = new byte[]
     {
         GameConstants.DEFAULT_SPAWN_LIMIT,
         GameConstants.DEFAULT_MOVE_LIMIT,
@@ -36,6 +27,16 @@ public abstract class Command
         GameConstants.DEFAULT_ATTACK_POWER,
         GameConstants.DEFAULT_SPECIAL_POWER
     };
+
+    internal static byte[] TYPES = new byte[] {
+        SPAWN_COMMAND_ID,
+        MOVE_COMMAND_ID,
+        ATTACK_COMMAND_ID,
+        SPECIAL_COMMAND_ID
+    };
+
+    internal static string[] byteToDirectionString = new string[]{"Up", "Left", "Down", "Right"};
+    
     internal static Vector2Int DirectionToVector(byte dir)
     {
         switch (dir)
@@ -116,7 +117,7 @@ public abstract class Command
 
     public override string ToString()
     {
-        return display + " " + byteToDirectionString[direction];
+        return string.Format("{0}-{1} {2}", robotId, display, byteToDirectionString[direction]);
     }
 
     public class Spawn : Command

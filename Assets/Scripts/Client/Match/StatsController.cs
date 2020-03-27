@@ -10,9 +10,9 @@ public class StatsController : Controller
 
     public void Initialize(GameEvent.End evt)
     {
-        myScore.text = evt.primaryBattery.ToString();
-        opponentScore.text = evt.secondaryBattery.ToString();
-        timeText.text = "Number of turns: " + evt.turnCount + "\t Time of game: " + evt.timeTaken;
+        myScore.text = evt.primaryBatteryCost.ToString();
+        opponentScore.text = evt.secondaryBatteryCost.ToString();
+        timeText.text = "Number of turns: " + evt.turnCount;
 
         FillStats(evt.primaryTeamStats, myTeam);
         FillStats(evt.secondaryTeamStats, opponentTeam);

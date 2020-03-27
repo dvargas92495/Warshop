@@ -3,13 +3,13 @@ using UnityEngine.Networking;
 
 public class Robot
 {
-    internal readonly string name;
-    internal readonly string description;
-    internal byte priority;
+    public readonly string name;
+    public readonly string description;
+    public byte priority;
     public short startingHealth;
     public short health;
     public short attack;
-    internal Rating rating;
+    public Rating rating;
     public short id;
     public Vector2Int position;
 
@@ -75,7 +75,7 @@ public class Robot
         robot.position.y = reader.ReadInt32();
         return robot;
     }
-    internal enum Rating
+    public enum Rating
     {
         PLATINUM = 4,
         GOLD = 3,
@@ -89,36 +89,36 @@ public class Robot
 
     internal virtual List<GameEvent> Spawn(Vector2Int pos, bool isPrimary)
     {
-        GameEvent.Spawn evt = new GameEvent.Spawn();
+        SpawnEvent evt = new SpawnEvent();
         evt.destinationPos = pos;
-        evt.primaryRobotId = id;
-        evt.primaryBattery = isPrimary ? GameConstants.DEFAULT_SPAWN_POWER : (short)0;
-        evt.secondaryBattery = isPrimary ? (short)0 : GameConstants.DEFAULT_SPAWN_POWER;
+        evt.robotId = id;
+        if (isPrimary) evt.primaryBatteryCost = GameConstants.DEFAULT_SPAWN_POWER;
+        else evt.secondaryBatteryCost = GameConstants.DEFAULT_SPAWN_POWER;
         return new List<GameEvent>(evt);
     }
     internal virtual List<GameEvent> Move(byte dir, bool isPrimary)
     {
-        GameEvent.Move evt = new GameEvent.Move();
+        MoveEvent evt = new MoveEvent();
         evt.sourcePos = position;
         evt.destinationPos = position + Command.DirectionToVector(dir);
-        evt.primaryRobotId = id;
-        evt.primaryBattery = isPrimary ? GameConstants.DEFAULT_MOVE_POWER : (short)0;
-        evt.secondaryBattery = isPrimary ? (short)0 : GameConstants.DEFAULT_MOVE_POWER;
+        evt.robotId = id;
+        if (isPrimary) evt.primaryBatteryCost = GameConstants.DEFAULT_MOVE_POWER;
+        else evt.secondaryBatteryCost = GameConstants.DEFAULT_MOVE_POWER;
         return new List<GameEvent>(evt);
     }
     internal virtual List<GameEvent> Attack(byte dir, bool isPrimary)
     {
-        GameEvent.Attack evt = new GameEvent.Attack();
+        AttackEvent evt = new AttackEvent();
         evt.locs = GetVictimLocations(dir);
-        evt.primaryRobotId = id;
-        evt.primaryBattery = (isPrimary ? GameConstants.DEFAULT_ATTACK_POWER : (short)0);
-        evt.secondaryBattery = (isPrimary ? (short)0 : GameConstants.DEFAULT_ATTACK_POWER);
+        evt.robotId = id;
+        if (isPrimary) evt.primaryBatteryCost = GameConstants.DEFAULT_ATTACK_POWER;
+        else evt.secondaryBatteryCost = GameConstants.DEFAULT_ATTACK_POWER;
         return new List<GameEvent>(evt);
     }
     internal virtual List<GameEvent> Damage(Robot victim)
     {
-        GameEvent.Damage evt = new GameEvent.Damage();
-        evt.primaryRobotId = victim.id;
+        DamageEvent evt = new DamageEvent();
+        evt.robotId = victim.id;
         evt.damage = attack;
         evt.remainingHealth = (short)(victim.health - attack);
         return new List<GameEvent>(evt);
