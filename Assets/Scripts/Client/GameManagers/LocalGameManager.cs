@@ -45,7 +45,7 @@
         uiController.robotButtonContainer.EachMenuItem(m => m.gameObject.SetActive(!m.gameObject.activeInHierarchy));
         string username = myturn ? myPlayer.name : opponentPlayer.name;
         myturn = false;
-        gameClient.SendSubmitCommands(commands, username);
+        gameClient.SendSubmitCommands(commands, username, PlayEvents);
     }
 
     protected override void PlayEvents(GameEvent[] events, byte t)

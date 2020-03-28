@@ -23,6 +23,6 @@
         Command[] commands = GetSubmittedCommands(robotControllers.ToValueList());
         uiController.actionButtonContainer.SetButtons(false);
         uiController.robotButtonContainer.SetButtons(false);
-        gameClient.SendSubmitCommands(commands, myPlayer.name);
+        gameClient.SendSubmitCommands(commands, myPlayer.name, PlayEvents);
     }
 }
