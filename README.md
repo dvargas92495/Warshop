@@ -19,4 +19,5 @@ A multiplayer same-turn strategy RPG where your team of robots battle those of o
         1. Windows Build Support
     1. Go to projects and hit New+
     1. Select Warshop and set the correct version
-1. 
+1. Go to Assets/Screens and double click 'Initial'
+1. Press Play!

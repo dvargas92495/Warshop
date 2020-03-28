@@ -4,9 +4,9 @@ using UnityEngine.Networking;
 public class PushEvent : GameEvent
 {
     internal const byte EVENT_ID = 5;
-    internal short robotId;
-    internal short victim;
-    internal Vector2Int direction;
+    public short robotId;
+    public short victim;
+    public Vector2Int direction;
 
     public override void Serialize(NetworkWriter writer)
     {

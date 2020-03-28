@@ -70,64 +70,64 @@ public class RobotTestsBase
         return new SpawnEvent() { destinationPos = v, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = true };
     }
 
-    internal static SpawnEvent FailSpawnEvent(Vector2Int v, short robotId, byte p, int pb, int sb)
+    internal static SpawnEvent FailSpawnEvent(Vector2Int v, short r, byte p, int pb, int sb)
     {
-        return new SpawnEvent(v, robotId, p, (short)pb, (short)sb, false);
+        return new SpawnEvent() { destinationPos = v, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = false };
     }
 
-    internal static MoveEvent SuccessMoveEvent(Vector2Int vs, Vector2Int vd, short robotId, int p, int pb, int sb)
+    internal static MoveEvent SuccessMoveEvent(Vector2Int vs, Vector2Int vd, short r, byte p, int pb, int sb)
     {
-        return new MoveEvent(vs, vd, robotId, (byte) p, (short)pb, (short)sb, true);
+        return new MoveEvent() { sourcePos = vs, destinationPos = vd, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = true };
     }
 
-    internal static MoveEvent FailMoveEvent(Vector2Int vs, Vector2Int vd, short robotId, byte p, int pb, int sb)
+    internal static MoveEvent FailMoveEvent(Vector2Int vs, Vector2Int vd, short r, byte p, int pb, int sb)
     {
-        return new MoveEvent(vs, vd, robotId, p, (short)pb, (short)sb, false);
+        return new MoveEvent() { sourcePos = vs, destinationPos = vd, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = false };
     }
 
     internal static AttackEvent SuccessAttackEvent(Vector2Int l, short r, byte p, int pb, int sb)
     {
-        return new AttackEvent(l, r, p, (short)pb, (short)sb, true);
+        return new AttackEvent() { locs = new List<Vector2Int>(l), robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = true };
     }
 
     internal static MissEvent SuccessMissEvent(Vector2Int l, short r, byte p)
     {
-        return new MissEvent(l, r, p, 0, 0, true);
+        return new MissEvent() { locs = new List<Vector2Int>(l), robotId = r, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true };
     }
 
-    internal static BlockEvent SuccessBlockEvent(Vector2Int v, short robotId, string blocker, byte p)
+    internal static BlockEvent SuccessBlockEvent(Vector2Int v, short r, string blocker, byte p)
     {
-        return new BlockEvent(robotId, blocker, v, p, 0, 0, true);
+        return new BlockEvent() { robotId = r, blockingObject = blocker, deniedPos = v, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true };
     }
     
-    internal static DamageEvent SuccessDamageEvent(short robotId, short h, int rh, byte p)
+    internal static DamageEvent SuccessDamageEvent(short r, short h, int rh, byte p)
     {
-        return new DamageEvent(robotId, h, (short) rh, p, 0, 0, true);
+        return new DamageEvent() { robotId = r, damage = h, remainingHealth = (short) rh, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true };
     }
 
-    internal static PushEvent SuccessPushEvent(short robotId, short v, Vector2Int d, byte p)
+    internal static PushEvent SuccessPushEvent(short r, short v, Vector2Int d, byte p)
     {
-        return new PushEvent(robotId, v, d, p, 0, 0, true);
+        return new PushEvent() {robotId = r, victim = v, direction = d, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true};
     }
 
-    internal static PushEvent FailPushEvent(short robotId, short v, Vector2Int d, byte p)
+    internal static PushEvent FailPushEvent(short r, short v, Vector2Int d, byte p)
     {
-        return new PushEvent(robotId, v, d, p, 0, 0, false);
+        return new PushEvent(){robotId = r, victim = v, direction = d, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = false};
     }
 
     internal static ResolveEvent SpawnResolveEvent(int p)
     {
-        return new ResolveEvent(Command.SPAWN_COMMAND_ID, (byte) p);
+        return new ResolveEvent() { commandType = Command.SPAWN_COMMAND_ID, priority = (byte) p};
     }
 
     internal static ResolveEvent MoveResolveEvent(int p)
     {
-        return new ResolveEvent(Command.MOVE_COMMAND_ID, (byte)p);
+        return new ResolveEvent() { commandType = Command.MOVE_COMMAND_ID, priority = (byte) p};
     }
 
     internal static ResolveEvent AttackResolveEvent(int p)
     {
-        return new ResolveEvent(Command.ATTACK_COMMAND_ID, (byte)p);
+        return new ResolveEvent() { commandType = Command.ATTACK_COMMAND_ID, priority = (byte) p};
     }
 
     internal static List<GameEvent> SimulateCommands(params Command[] cmds)

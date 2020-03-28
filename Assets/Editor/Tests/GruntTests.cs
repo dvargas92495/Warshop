@@ -102,8 +102,8 @@ public class GruntTests : RobotTestsBase
             SuccessMoveEvent(primaryStart, primaryStart + Vector2Int.up, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_MOVE_POWER, 0),
             SuccessMoveEvent(secondaryStart, secondaryStart + Vector2Int.down, secondaryBronze.id, secondaryBronze.priority, 0, GameConstants.DEFAULT_MOVE_POWER),
             MoveResolveEvent(primaryBronze.priority),
-            SuccessMoveEvent(primaryStart + Vector2Int.up, primaryExpected, primaryBronze.id, primaryBronze.priority - 1, GameConstants.DEFAULT_MOVE_POWER, 0),
-            SuccessMoveEvent(secondaryStart + Vector2Int.down, secondaryExpected, secondaryBronze.id, secondaryBronze.priority - 1, 0, GameConstants.DEFAULT_MOVE_POWER),
+            SuccessMoveEvent(primaryStart + Vector2Int.up, primaryExpected, primaryBronze.id, (byte)(primaryBronze.priority - 1), GameConstants.DEFAULT_MOVE_POWER, 0),
+            SuccessMoveEvent(secondaryStart + Vector2Int.down, secondaryExpected, secondaryBronze.id, (byte)(secondaryBronze.priority - 1), 0, GameConstants.DEFAULT_MOVE_POWER),
             MoveResolveEvent(primaryBronze.priority - 1)
         );
         Assert.AreEqual(primaryExpected, primaryBronze.position);
@@ -516,8 +516,8 @@ public class GruntTests : RobotTestsBase
             AttackCommand(Command.RIGHT, primaryBronze.id)
         );
         Assert.AreEqual(3, events.GetLength());
-        Assert.IsInstanceOf<GameEvent.Attack>(events.Get(0));
-        Assert.IsInstanceOf<GameEvent.Battery>(events.Get(1));
+        Assert.IsInstanceOf<AttackEvent>(events.Get(0));
+        // Assert.IsInstanceOf<GameEvent.Battery>(events.Get(1));
         Assert.AreEqual(expected, testgame.secondary.battery);
     }
     /*

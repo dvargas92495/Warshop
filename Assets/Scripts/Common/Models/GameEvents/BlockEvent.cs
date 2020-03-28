@@ -6,9 +6,9 @@ public class BlockEvent : GameEvent
     internal const byte EVENT_ID = 4;
     public const string WALL = "Wall";
     public const string BATTERY = "Battery";
-    internal string blockingObject;
-    internal Vector2Int deniedPos;
-    internal short robotId;
+    public string blockingObject;
+    public Vector2Int deniedPos;
+    public short robotId;
 
     public override void Serialize(NetworkWriter writer)
     {

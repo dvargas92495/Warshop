@@ -4,8 +4,8 @@ using UnityEngine.Networking;
 public class AttackEvent : GameEvent
 {
     internal const byte EVENT_ID = 3;
-    internal List<Vector2Int> locs;
-    internal short robotId;
+    public List<Vector2Int> locs;
+    public short robotId;
 
     public override void Serialize(NetworkWriter writer)
     {

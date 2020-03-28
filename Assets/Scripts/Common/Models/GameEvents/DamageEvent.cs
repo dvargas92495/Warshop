@@ -3,9 +3,9 @@
 public class DamageEvent : GameEvent
 {
     internal const byte EVENT_ID = 11;
-    internal short robotId;
-    internal short damage;
-    internal short remainingHealth;
+    public short robotId;
+    public short damage;
+    public short remainingHealth;
 
     public override void Serialize(NetworkWriter writer)
     {

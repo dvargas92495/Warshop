@@ -3,7 +3,7 @@
 public class ResolveEvent : GameEvent
 {
     internal const byte EVENT_ID = 12;
-    internal byte commandType;
+    public byte commandType;
 
     public override void Serialize(NetworkWriter writer)
     {

@@ -352,9 +352,10 @@ public class Game
     private bool Validate(List<GameEvent> events, AttackEvent g)
     {
         int index = events.FindIndex(g);
-        if (events.GetLength() > index + 1 && (events.Get(index + 1) is GameEvent.Battery || events.Get(index+1) is MissEvent || events.Get(index+1) is DamageEvent)) return true;
+        if (events.GetLength() > index + 1 && (/*events.Get(index + 1) is GameEvent.Battery || */events.Get(index+1) is MissEvent || events.Get(index+1) is DamageEvent)) return true;
         Robot attacker = GetRobot(g.robotId);
         bool hitABattery = false;
+        /*
         g.locs.ForEach(v =>
         {
             if (board.IsBattery(v))
@@ -370,6 +371,7 @@ public class Game
                 hitABattery = true;
             }
         });
+        */
         List<Robot> victims = primary.team.Concat(secondary.team).Filter(robot => g.locs.Contains(robot.position));
         if (victims.GetLength() == 0 && !hitABattery)
         {

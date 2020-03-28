@@ -224,11 +224,11 @@ public abstract class BaseGameManager
                 primaryRobot.displayHealth(((DamageEvent)e).remainingHealth);
             }
             else if (e is MissEvent) ((MissEvent)e).locs.ForEach(v => robotControllers.Get(((MissEvent)e).robotId).displayEvent(uiController.GetArrow("Missed Attack"), v, callback, false));
-            else if (e is GameEvent.Battery)
+           /*else if (e is GameEvent.Battery)
             {
                 //Vector3 pos = (((GameEvent.Battery)e).isPrimary ? boardController.GetMyBattery(): boardController.GetOpponentBattery()).transform.position;
                 //primaryRobot.displayEvent(uiController.GetArrow("Damage"), new Vector2Int((int)pos.x, (int)pos.y), callback, false);
-            }
+            }*/
             else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displayEvent(null, new Vector2Int(((SpawnEvent)e).destinationPos.x, ((SpawnEvent)e).destinationPos.y), callback, false);
             else goNext = true;
             log.Info(e.ToString());

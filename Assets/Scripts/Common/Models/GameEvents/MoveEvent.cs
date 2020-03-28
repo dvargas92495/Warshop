@@ -4,9 +4,9 @@ using UnityEngine.Networking;
 public class MoveEvent : GameEvent
 {
     internal const byte EVENT_ID = 2;
-    internal Vector2Int sourcePos;
-    internal Vector2Int destinationPos;
-    internal short robotId;
+    public Vector2Int sourcePos;
+    public Vector2Int destinationPos;
+    public short robotId;
 
     public override void Serialize(NetworkWriter writer)
     {
