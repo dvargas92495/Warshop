@@ -144,7 +144,6 @@ public abstract class App
         {
             Game.Player p = (appgame.primary.name.Equals(msg.owner) ? appgame.primary : appgame.secondary);
             p.StoreCommands(Util.ToList(msg.commands));
-            log.Info("primary" + appgame.primary.ready + " | secondary" + appgame.secondary.ready);
             if (appgame.primary.ready && appgame.secondary.ready)
             {
                 Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();

@@ -16,18 +16,6 @@
         sc.opponentSquadPanel.SetAddCallback(sc.AddSelectedToOpponentSquad);
         sc.backButton.onClick.AddListener(sc.EnterInitial);
         gameClient.AsLocal().ConnectToGameServer();
-        /*
-        if (sc.playtest != null)
-        {
-            string[] lines = sc.playtest.text.Split('\n');
-            string[] mybots = lines[1].Trim().Split(',');
-            string[] opbots = lines[2].Trim().Split(',');
-            string myname = lines[3];
-            string op = lines[4];
-            setupController.statusModal.ShowLoading();
-            //SendPlayerInfo(myname, op, mybots, opbots);
-        }
-        */
     }
 
     protected override void SendPlayerInfoImpl(string[] myRobotNames, string username)
@@ -48,13 +36,13 @@
         gameClient.SendSubmitCommands(commands, username, PlayEvents);
     }
 
-    protected override void PlayEvents(GameEvent[] events, byte t)
+    protected override void PlayEvents(GameEvent[] events)
     {
         uiController.actionButtonContainer.SetButtons(false);
         uiController.robotButtonContainer.SetButtons(false);
         uiController.commandButtonContainer.SetButtons(false);
         uiController.directionButtonContainer.SetButtons(false);
-        base.PlayEvents(events, t);
+        base.PlayEvents(events);
         myturn = true;
     }
 }

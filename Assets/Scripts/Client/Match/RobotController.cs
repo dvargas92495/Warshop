@@ -84,38 +84,61 @@ public class RobotController : Controller
      * Robot UI During Turn Methods *
      ********************************/
 
-    public void animate(string name, UnityAction interpreterCallback, UnityAction robotCallback)
+    public void animate(string name, UnityAction robotCallback)
     {
+        animatorHelper.animatorCallback = robotCallback;
         animator.Play(name);
-        animatorHelper.animatorCallback = () =>
-        {
-            robotCallback();
-            interpreterCallback();
-        };
     }
 
-    public void displayMove(Vector2Int v, UnityAction callback, UnityAction<RobotController, int, int> robotCallback)
+    // LEGACY
+    public SpriteRenderer displayEvent(Sprite eventName, Vector2Int targetLoc, bool relative = true)
     {
-        animate("Move" + getDir(v), callback, () => robotCallback(this, v.x, v.y));
+        Sprite eventType = eventName == null ? eventArrow.sprite : eventName;
+        Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
+        loc.z = -1;
+        Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;
+        SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
+        addedEvent.sprite = eventType;
+        addedEvent.sortingOrder += currentEvents.GetLength();
+        currentEvents.Add(addedEvent);
+        return addedEvent;
     }
-
-    public void displayAttack(Vector2Int v, UnityAction callback)
+    
+    //LEGACY
+    public void displayEvent(Sprite eventName, Vector2Int targetLoc, UnityAction callback, bool relative = true)
     {
-        animate("Attack" + getDir(v), callback, () => {});
+        SpriteRenderer addedEvent = displayEvent(eventName, targetLoc, relative);
+        // addedEvent.animator.Play("EventIndicator");
+        // addedEvent.AnimatorHelper.animatorCallback = callback;
     }
 
-    public void displaySpawn(Vector2Int v, UnityAction callback, UnityAction robotCallback)
+    public void displaySpawnRequest(UnityAction robotCallback)
     {
-        animate("Default", callback, () => robotCallback());
+        animate("Default", robotCallback);
     }
 
-    public void displayDeath(short health, UnityAction callback, UnityAction robotCallback)
+    public void displaySpawn(Vector2Int v, UnityAction<RobotController> robotCallback)
+    {
+        animate("Default", () => robotCallback(this));
+    }
+
+    public void displayMove(Vector2Int v, UnityAction<RobotController> robotCallback)
+    {
+        animate("Move" + getDir(v), () => robotCallback(this));
+    }
+
+    public void displayAttack(Vector2Int v, UnityAction<RobotController> robotCallback)
+    {
+        animate("Attack" + getDir(v), () => robotCallback(this));
+    }
+
+    public void displayDeath(short health, UnityAction<RobotController> robotCallback)
     {
         Debug.Log(id);
-        animate("Death", callback, () => {
+        animate("Death", () => {
             displayHealth(health);
             gameObject.SetActive(false);
-            robotCallback();
+            robotCallback(this);
         });
     }
 
@@ -147,26 +170,6 @@ public class RobotController : Controller
         if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.up) dir = "Up";
         if (v - new Vector2Int((int)transform.position.x, (int)transform.position.y) == Vector2Int.down) dir = "Down";
         return dir;
-    }
-
-    public SpriteRenderer displayEvent(Sprite eventName, Vector2Int targetLoc, bool relative = true)
-    {
-        Sprite eventType = eventName == null ? eventArrow.sprite : eventName;
-        Vector3 loc = relative ? new Vector3((transform.position.x + targetLoc.x) / 2, (transform.position.y + targetLoc.y) / 2) : new Vector3(targetLoc.x, targetLoc.y);
-        loc.z = -1;
-        Quaternion rot = relative ? Quaternion.LookRotation(Vector3.forward, loc - transform.position) : Quaternion.identity;
-        SpriteRenderer addedEvent = Instantiate(eventArrow, loc, rot, transform);
-        addedEvent.sprite = eventType;
-        addedEvent.sortingOrder += currentEvents.GetLength();
-        currentEvents.Add(addedEvent);
-        return addedEvent;
-    }
-
-    public void displayEvent(Sprite eventName, Vector2Int targetLoc, UnityAction callback, bool relative = true)
-    {
-        SpriteRenderer addedEvent = displayEvent(eventName, targetLoc, relative);
-        // addedEvent.animator.Play("EventIndicator");
-        // addedEvent.AnimatorHelper.animatorCallback = callback;
     }
 
     public void clearEvents()

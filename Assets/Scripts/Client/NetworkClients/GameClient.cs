@@ -4,7 +4,7 @@ using UnityEngine.Networking;
 public abstract class GameClient
 {
     protected UnityAction<List<Robot>, List<Robot>, string, Map> gameReadyCallback;
-    protected UnityAction<GameEvent[], byte> onTurnCallback;
+    protected UnityAction<GameEvent[]> onTurnCallback;
     private static Logger log = new Logger(typeof(GameClient).ToString());
 
     protected abstract void Send(short msgType, MessageBase message);
@@ -49,7 +49,7 @@ public abstract class GameClient
     {
         log.Info("Received Turn Events");
         Messages.TurnEventsMessage msg = netMsg.ReadMessage<Messages.TurnEventsMessage>();
-        onTurnCallback(msg.events, msg.turn);
+        onTurnCallback(msg.events);
     }
 
     protected void OnOpponentWaiting(NetworkMessage netMsg)
@@ -63,7 +63,7 @@ public abstract class GameClient
         log.Fatal(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
     }
     
-    internal void SendSubmitCommands (Command[] commands, string owner, UnityAction<GameEvent[], byte> callback) {
+    internal void SendSubmitCommands (Command[] commands, string owner, UnityAction<GameEvent[]> callback) {
         Messages.SubmitCommandsMessage msg = new Messages.SubmitCommandsMessage();
         msg.commands = commands;
         msg.owner = owner;

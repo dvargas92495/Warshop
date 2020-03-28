@@ -93,6 +93,12 @@ public class BoardController : Controller
         opponentBattery.score.text = b.ToString();
     }
 
+    public void DiffBattery(int a, int b)
+    {
+        myBattery.score.text = (GetMyBatteryScore() - a).ToString();
+        opponentBattery.score.text = (GetOpponentBatteryScore() - b).ToString();
+    }
+
     public int GetMyBatteryScore()
     {
         return int.Parse(myBattery.score.text);
