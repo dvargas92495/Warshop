@@ -18,4 +18,21 @@
     {
         return _right;
     }
+
+    public override string ToString()
+    {
+        return "{ " + _left.ToString() + " | " + _right.ToString() + " }"; 
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!obj.GetType().Equals(GetType())) return false;
+        Tuple<L,R> other = (Tuple<L,R>)obj;
+        return _left.Equals(other._left) && _right.Equals(other._right);
+    }
+
+    public override int GetHashCode()
+    {
+        return _left.GetHashCode() + _right.GetHashCode();
+    }
 }

@@ -114,12 +114,12 @@ public class RobotController : Controller
 
     public void displaySpawnRequest(UnityAction robotCallback)
     {
-        animate("Default", robotCallback);
+        animate("SpawnRequest", robotCallback);
     }
 
-    public void displaySpawn(Vector2Int v, UnityAction<RobotController> robotCallback)
+    public void displaySpawn(Vector2Int v, UnityAction robotCallback)
     {
-        animate("Default", () => robotCallback(this));
+        animate("Spawn", robotCallback);
     }
 
     public void displayMove(Vector2Int v, UnityAction<RobotController> robotCallback)

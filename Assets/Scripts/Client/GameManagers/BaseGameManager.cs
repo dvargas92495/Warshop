@@ -143,7 +143,24 @@ public abstract class BaseGameManager
         log.Info(e.ToString());
         
         boardController.DiffBattery(e.primaryBatteryCost, e.secondaryBatteryCost);
-        if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(() => PlayEvent(events, index+1));
+        if (e is ResolveSpawnEvent) {
+            List<Tuple<short, Vector2Int>> robotIdToSpawn = ((ResolveSpawnEvent)e).robotIdToSpawn;
+            Counter animationsToPlay = new Counter(robotIdToSpawn.GetLength());
+            UnityAction callback = () => {
+                animationsToPlay.Decrement();
+                if (animationsToPlay.Get() == 0) {
+                    PlayEvent(events, index + 1);
+                }
+            };
+            robotIdToSpawn.ForEach(p => {
+                RobotController primaryRobot = robotControllers.Get(p.GetLeft());
+                (primaryRobot.isOpponent ? boardController.opponentDock : boardController.myDock).RemoveFromBelt(primaryRobot.transform.localPosition);
+                primaryRobot.transform.parent = boardController.transform;
+                boardController.PlaceRobot(primaryRobot, p.GetRight().x, p.GetRight().y);
+                primaryRobot.displaySpawn(p.GetRight(), callback);
+            });
+        }
+        else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(() => PlayEvent(events, index+1));
         else PlayEvent(events,index + 1);
     }
 
@@ -209,13 +226,6 @@ public abstract class BaseGameManager
         }
         */
         
-    }
-
-    private class InfoThisPriority {
-        internal List<GameEvent> events = new List<GameEvent>();
-        internal int userBattery;
-        internal int opponentBattery;
-        internal int animationsToPlay = 0;
     }
 
     private void SetupNextTurn()

@@ -250,9 +250,18 @@ public class Game
         robotIdToTurnObject.ForEach((k, rto) => rto.isActive = !GetRobot(k).position.Equals(Map.NULL_VEC));
         if (events.GetLength() > 0)
         {
-            ResolveEvent resolve = new ResolveEvent();
-            resolve.commandType = t;
-            events.Add(resolve);
+            if (t == Command.SPAWN_COMMAND_ID)
+            {
+                ResolveSpawnEvent resolve = new ResolveSpawnEvent();
+                resolve.robotIdToSpawn = events.Filter(e => e is SpawnEvent)
+                                               .Map(e => (SpawnEvent)e)
+                                               .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
+                events.Add(resolve);
+            } else {
+                ResolveEvent resolve = new ResolveEvent();
+                resolve.commandType = t;
+                events.Add(resolve);
+            }
         }
         return events;
     }

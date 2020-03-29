@@ -43,6 +43,9 @@ public abstract class GameEvent
             case BatteryEvent.EVENT_ID:
                 evt = BatteryEvent.Deserialize(reader);
                 break;
+            case Collision.EVENT_ID:
+                evt = End.Deserialize(reader);
+                break;
             case Death.EVENT_ID:
                 evt = Death.Deserialize(reader);
                 break;
@@ -58,8 +61,8 @@ public abstract class GameEvent
             case End.EVENT_ID:
                 evt = End.Deserialize(reader);
                 break;
-            case Collision.EVENT_ID:
-                evt = End.Deserialize(reader);
+            case ResolveSpawnEvent.EVENT_ID:
+                evt = ResolveSpawnEvent.Deserialize(reader);
                 break;
             default:
                 throw new ZException("Unknown Event Id to deserialize: " + eventId);
@@ -208,7 +211,7 @@ public abstract class GameEvent
 
     public class Collision : GameEvent
     {
-        internal const byte EVENT_ID = 14;
+        internal const byte EVENT_ID = 8;
         internal List<short> collidingRobots;
         internal Vector2Int deniedPos;
         public override void Serialize(NetworkWriter writer)
