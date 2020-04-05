@@ -257,6 +257,13 @@ public class Game
                                                .Map(e => (SpawnEvent)e)
                                                .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
                 events.Add(resolve);
+            } else if (t == Command.MOVE_COMMAND_ID)
+            {
+                ResolveMoveEvent resolve = new ResolveMoveEvent();
+                resolve.robotIdToMove = events.Filter(e => e is MoveEvent)
+                                               .Map(e => (MoveEvent)e)
+                                               .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
+                events.Add(resolve);
             } else {
                 ResolveEvent resolve = new ResolveEvent();
                 resolve.commandType = t;

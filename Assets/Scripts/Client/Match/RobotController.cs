@@ -127,6 +127,11 @@ public class RobotController : Controller
         animate("Move" + getDir(v), () => robotCallback(this));
     }
 
+    public void displayMoveRequest(Vector2Int v, UnityAction robotCallback)
+    {
+        animate("MoveRequest" + getDir(v), robotCallback);
+    }
+
     public void displayAttack(Vector2Int v, UnityAction<RobotController> robotCallback)
     {
         animate("Attack" + getDir(v), () => robotCallback(this));
