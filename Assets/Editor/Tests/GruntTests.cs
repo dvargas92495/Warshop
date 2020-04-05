@@ -46,8 +46,7 @@ public class GruntTests : RobotTestsBase
         );
 
         AssertExpectedGameEvents(events,
-            SuccessSpawnEvent(primaryBronzeExpectedPosition, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_SPAWN_POWER, 0),
-            SpawnResolveEvent(primaryBronze.priority)
+            SuccessSpawnEvent(primaryBronzeExpectedPosition, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_SPAWN_POWER, 0)
         );
         Assert.AreEqual(primaryBronzeExpectedPosition, primaryBronze.position);
         Assert.AreEqual(primaryExpectedScore, testgame.primary.battery);
@@ -69,8 +68,7 @@ public class GruntTests : RobotTestsBase
 
         AssertExpectedGameEvents(events,
             FailSpawnEvent(secondaryExpected, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_SPAWN_POWER, 0),
-            SuccessBlockEvent(secondaryExpected, primaryBronze.id, secondaryBronze.name, primaryBronze.priority),
-            SpawnResolveEvent(primaryBronze.priority)
+            SuccessBlockEvent(secondaryExpected, primaryBronze.id, secondaryBronze.name, primaryBronze.priority)
         );
         Assert.AreEqual(primaryExpected, primaryBronze.position);
         Assert.AreEqual(secondaryExpected, secondaryBronze.position);
@@ -101,10 +99,8 @@ public class GruntTests : RobotTestsBase
         AssertExpectedGameEvents(events,
             SuccessMoveEvent(primaryStart, primaryStart + Vector2Int.up, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_MOVE_POWER, 0),
             SuccessMoveEvent(secondaryStart, secondaryStart + Vector2Int.down, secondaryBronze.id, secondaryBronze.priority, 0, GameConstants.DEFAULT_MOVE_POWER),
-            MoveResolveEvent(primaryBronze.priority),
             SuccessMoveEvent(primaryStart + Vector2Int.up, primaryExpected, primaryBronze.id, (byte)(primaryBronze.priority - 1), GameConstants.DEFAULT_MOVE_POWER, 0),
-            SuccessMoveEvent(secondaryStart + Vector2Int.down, secondaryExpected, secondaryBronze.id, (byte)(secondaryBronze.priority - 1), 0, GameConstants.DEFAULT_MOVE_POWER),
-            MoveResolveEvent(primaryBronze.priority - 1)
+            SuccessMoveEvent(secondaryStart + Vector2Int.down, secondaryExpected, secondaryBronze.id, (byte)(secondaryBronze.priority - 1), 0, GameConstants.DEFAULT_MOVE_POWER)
         );
         Assert.AreEqual(primaryExpected, primaryBronze.position);
         Assert.AreEqual(secondaryExpected, secondaryBronze.position);
@@ -129,8 +125,7 @@ public class GruntTests : RobotTestsBase
         AssertExpectedGameEvents(events,
             FailMoveEvent(expectedPosition, expectedPosition + Vector2Int.left, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_MOVE_POWER, 0),
             SuccessBlockEvent(expectedPosition + Vector2Int.left, primaryBronze.id, BlockEvent.WALL, primaryBronze.priority),
-            SuccessDamageEvent(primaryBronze.id, 1, expectedHealth, primaryBronze.priority),
-            MoveResolveEvent(primaryBronze.priority)
+            SuccessDamageEvent(primaryBronze.id, 1, expectedHealth, primaryBronze.priority)
         );
         Assert.AreEqual(expectedPosition, primaryBronze.position);
         Assert.AreEqual(expectedHealth, primaryBronze.health);
@@ -154,8 +149,7 @@ public class GruntTests : RobotTestsBase
         AssertExpectedGameEvents(events,
             FailMoveEvent(expectedPosition, expectedPosition + Vector2Int.left, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_MOVE_POWER, 0),
             SuccessBlockEvent(expectedPosition + Vector2Int.right, primaryBronze.id, BlockEvent.BATTERY, primaryBronze.priority),
-            SuccessDamageEvent(primaryBronze.id, 1, expectedHealth, primaryBronze.priority),
-            MoveResolveEvent(primaryBronze.priority)
+            SuccessDamageEvent(primaryBronze.id, 1, expectedHealth, primaryBronze.priority)
         );
         Assert.AreEqual(expectedPosition, primaryBronze.position);
         Assert.AreEqual(expectedHealth, primaryBronze.health);
@@ -185,8 +179,7 @@ public class GruntTests : RobotTestsBase
             SuccessPushEvent(primaryBronze.id, primaryPlatinum.id, Vector2Int.up, primaryBronze.priority),
             SuccessDamageEvent(primaryBronze.id, 1, expectedBronzeHealth, primaryBronze.priority),
             SuccessDamageEvent(primaryPlatinum.id, 1, expectedPlatinumHealth, primaryBronze.priority),
-            SuccessMoveEvent(platinumStart, expectedPlatinumPosition, primaryPlatinum.id, primaryBronze.priority, 0, 0),
-            MoveResolveEvent(primaryBronze.priority)
+            SuccessMoveEvent(platinumStart, expectedPlatinumPosition, primaryPlatinum.id, primaryBronze.priority, 0, 0)
         );
         Assert.AreEqual(platinumStart, primaryBronze.position);
         Assert.AreEqual(expectedPlatinumPosition, primaryPlatinum.position);
@@ -221,8 +214,7 @@ public class GruntTests : RobotTestsBase
             SuccessBlockEvent(secondarySilver.position, primaryPlatinum.id, secondarySilver.name, primaryBronze.priority),
             SuccessDamageEvent(primaryPlatinum.id, 1, primaryPlatinum.startingHealth - 2, primaryBronze.priority),
             SuccessDamageEvent(secondarySilver.id, 1, secondarySilver.startingHealth - 1, primaryBronze.priority),
-            SuccessBlockEvent(platinumExpected, primaryBronze.id, secondarySilver.name, primaryBronze.priority),
-            MoveResolveEvent(primaryBronze.priority)
+            SuccessBlockEvent(platinumExpected, primaryBronze.id, secondarySilver.name, primaryBronze.priority)
         );
         Assert.AreEqual(primaryExpected, primaryBronze.position);
         Assert.AreEqual(secondaryExpected, secondarySilver.position);
@@ -257,8 +249,7 @@ public class GruntTests : RobotTestsBase
             SuccessDamageEvent(primaryBronze.id, 1, primaryBronze.startingHealth - 1, primaryBronze.priority),
             FailMoveEvent(secondaryExpected, primaryExpected, secondaryBronze.id, secondaryBronze.priority, 0, GameConstants.DEFAULT_MOVE_POWER),
             SuccessBlockEvent(deniedPos, secondaryBronze.id, primaryBronze.name, secondaryBronze.priority),
-            SuccessDamageEvent(secondaryBronze.id, 1, secondaryBronze.startingHealth - 1, secondaryBronze.priority),
-            MoveResolveEvent(primaryBronze.priority)
+            SuccessDamageEvent(secondaryBronze.id, 1, secondaryBronze.startingHealth - 1, secondaryBronze.priority)
         );
         Assert.AreEqual(primaryExpected, primaryBronze.position);
         Assert.AreEqual(secondaryExpected, secondaryBronze.position);
@@ -299,8 +290,7 @@ public class GruntTests : RobotTestsBase
             SuccessBlockEvent(platinumExpected, primaryGold.id, secondaryGold.name, primaryGold.priority),
             FailMoveEvent(secondaryExpected, deniedPos, secondaryGold.id, secondaryGold.priority, 0, GameConstants.DEFAULT_MOVE_POWER),
             SuccessBlockEvent(deniedPos, secondaryGold.id, primaryGold.name, secondaryGold.priority),
-            SuccessDamageEvent(secondaryGold.id, 1, secondaryGold.startingHealth - 1, secondaryGold.priority),
-            MoveResolveEvent(secondaryGold.priority)
+            SuccessDamageEvent(secondaryGold.id, 1, secondaryGold.startingHealth - 1, secondaryGold.priority)
         );
         Assert.AreEqual(primaryExpected, primaryGold.position);
         Assert.AreEqual(secondaryExpected, secondaryGold.position);
@@ -335,8 +325,7 @@ public class GruntTests : RobotTestsBase
             SuccessDamageEvent(primaryBronze.id, 1, primaryBronze.startingHealth - 1, primaryBronze.priority),
             FailMoveEvent(secondaryExpected, primaryExpected, secondaryBronze.id, secondaryBronze.priority, 0, GameConstants.DEFAULT_MOVE_POWER),
             SuccessBlockEvent(primaryExpected, secondaryBronze.id, primaryBronze.name, secondaryBronze.priority),
-            SuccessDamageEvent(secondaryBronze.id, 1, secondaryBronze.startingHealth - 1, secondaryBronze.priority),
-            MoveResolveEvent(primaryBronze.priority)
+            SuccessDamageEvent(secondaryBronze.id, 1, secondaryBronze.startingHealth - 1, secondaryBronze.priority)
         );
         Assert.AreEqual(primaryExpected, primaryBronze.position);
         Assert.AreEqual(secondaryExpected, secondaryBronze.position);
@@ -366,8 +355,7 @@ public class GruntTests : RobotTestsBase
 
         AssertExpectedGameEvents(events,
             SuccessMoveEvent(primaryStart, primaryExpected, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_MOVE_POWER, 0),
-            SuccessMoveEvent(primaryExpected, secondaryExpected, secondaryBronze.id, secondaryBronze.priority, 0, GameConstants.DEFAULT_MOVE_POWER),
-            MoveResolveEvent(primaryBronze.priority)
+            SuccessMoveEvent(primaryExpected, secondaryExpected, secondaryBronze.id, secondaryBronze.priority, 0, GameConstants.DEFAULT_MOVE_POWER)
         );
         Assert.AreEqual(primaryExpected, primaryBronze.position);
         Assert.AreEqual(secondaryExpected, secondaryBronze.position);
@@ -407,8 +395,7 @@ public class GruntTests : RobotTestsBase
             FailMoveEvent(platinumExpected, platinumExpected + Vector2Int.down, primaryPlatinum.id, secondaryGold.priority, 0, 0),
             SuccessBlockEvent(platinumExpected + Vector2Int.down, primaryPlatinum.id, BlockEvent.BATTERY, secondaryGold.priority),
             SuccessDamageEvent(primaryPlatinum.id, 1, primaryPlatinum.startingHealth - 2, secondaryGold.priority),
-            SuccessBlockEvent(platinumExpected, secondaryGold.id, BlockEvent.BATTERY, secondaryGold.priority),
-            MoveResolveEvent(primaryGold.priority)
+            SuccessBlockEvent(platinumExpected, secondaryGold.id, BlockEvent.BATTERY, secondaryGold.priority)
         );
         Assert.AreEqual(secondaryStart, primaryGold.position);
         Assert.AreEqual(secondaryExpected, secondaryGold.position);
@@ -445,8 +432,7 @@ public class GruntTests : RobotTestsBase
             SuccessDamageEvent(primaryBronze.id, 1, primaryBronze.startingHealth - 1, primaryBronze.priority),
             FailMoveEvent(secondaryExpected, platinumExpected, secondaryBronze.id, secondaryBronze.priority, 0, GameConstants.DEFAULT_MOVE_POWER),
             SuccessBlockEvent(platinumExpected, secondaryBronze.id, primaryBronze.name, secondaryBronze.priority),
-            SuccessDamageEvent(secondaryBronze.id, 1, secondaryBronze.startingHealth - 1, secondaryBronze.priority),
-            MoveResolveEvent(secondaryBronze.priority)
+            SuccessDamageEvent(secondaryBronze.id, 1, secondaryBronze.startingHealth - 1, secondaryBronze.priority)
         );
         Assert.AreEqual(primaryExpected, primaryBronze.position);
         Assert.AreEqual(secondaryExpected, secondaryBronze.position);
@@ -473,8 +459,7 @@ public class GruntTests : RobotTestsBase
 
         AssertExpectedGameEvents(events,
             SuccessAttackEvent(secondaryBronze.position, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_ATTACK_POWER, 0),
-            SuccessDamageEvent(secondaryBronze.id, primaryBronze.attack, secondaryBronze.startingHealth - primaryBronze.attack, primaryBronze.priority),
-            AttackResolveEvent(primaryBronze.priority)
+            SuccessDamageEvent(secondaryBronze.id, primaryBronze.attack, secondaryBronze.startingHealth - primaryBronze.attack, primaryBronze.priority)
         );
         Assert.AreEqual(expected, secondaryBronze.health);
         Assert.AreEqual(expectedScore, testgame.primary.battery);
@@ -497,8 +482,7 @@ public class GruntTests : RobotTestsBase
 
         AssertExpectedGameEvents(events,
             SuccessAttackEvent(expectedPosition, primaryBronze.id, primaryBronze.priority, GameConstants.DEFAULT_ATTACK_POWER, 0),
-            SuccessMissEvent(expectedPosition, primaryBronze.id, primaryBronze.priority),
-            AttackResolveEvent(primaryBronze.priority)
+            SuccessMissEvent(expectedPosition, primaryBronze.id, primaryBronze.priority)
         );
         Assert.AreEqual(expected, secondaryBronze.health);
         Assert.AreEqual(expectedScore, testgame.primary.battery);

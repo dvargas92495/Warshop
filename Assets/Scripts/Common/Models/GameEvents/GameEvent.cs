@@ -61,12 +61,6 @@ public abstract class GameEvent
             case End.EVENT_ID:
                 evt = End.Deserialize(reader);
                 break;
-            case ResolveSpawnEvent.EVENT_ID:
-                evt = ResolveSpawnEvent.Deserialize(reader);
-                break;
-            case ResolveMoveEvent.EVENT_ID:
-                evt = ResolveMoveEvent.Deserialize(reader);
-                break;
             default:
                 throw new ZException("Unknown Event Id to deserialize: " + eventId);
         }

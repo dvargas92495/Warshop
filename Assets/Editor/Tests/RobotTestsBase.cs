@@ -114,22 +114,7 @@ public class RobotTestsBase
     {
         return new PushEvent(){robotId = r, victim = v, direction = d, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = false};
     }
-
-    internal static ResolveEvent SpawnResolveEvent(int p)
-    {
-        return new ResolveEvent() { commandType = Command.SPAWN_COMMAND_ID, priority = (byte) p};
-    }
-
-    internal static ResolveEvent MoveResolveEvent(int p)
-    {
-        return new ResolveEvent() { commandType = Command.MOVE_COMMAND_ID, priority = (byte) p};
-    }
-
-    internal static ResolveEvent AttackResolveEvent(int p)
-    {
-        return new ResolveEvent() { commandType = Command.ATTACK_COMMAND_ID, priority = (byte) p};
-    }
-
+    
     internal static List<GameEvent> SimulateCommands(params Command[] cmds)
     {
         List<Command> primaryCmds = new List<Command>();

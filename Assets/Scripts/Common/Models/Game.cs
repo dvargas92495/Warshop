@@ -160,6 +160,14 @@ public class Game
             priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.MOVE_COMMAND_ID));
             priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.ATTACK_COMMAND_ID));
             priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.SPECIAL_COMMAND_ID));
+            ResolveEvent resolveEvent = new ResolveEvent();
+            resolveEvent.robotIdToSpawn = priorityEvents.Filter(e => e is SpawnEvent)
+                                                        .Map(e => (SpawnEvent)e)
+                                                        .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
+            resolveEvent.robotIdToMove = priorityEvents.Filter(e => e is MoveEvent)
+                                                       .Map(e => (MoveEvent)e)
+                                                       .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
+            priorityEvents.Add(resolveEvent);
 
             processBatteryLoss(priorityEvents, (byte)p);
             events.Add(priorityEvents);
@@ -248,28 +256,6 @@ public class Game
         events.Add(processPriorityFinish(primary.team, true));
         events.Add(processPriorityFinish(secondary.team, false));
         robotIdToTurnObject.ForEach((k, rto) => rto.isActive = !GetRobot(k).position.Equals(Map.NULL_VEC));
-        if (events.GetLength() > 0)
-        {
-            if (t == Command.SPAWN_COMMAND_ID)
-            {
-                ResolveSpawnEvent resolve = new ResolveSpawnEvent();
-                resolve.robotIdToSpawn = events.Filter(e => e is SpawnEvent)
-                                               .Map(e => (SpawnEvent)e)
-                                               .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
-                events.Add(resolve);
-            } else if (t == Command.MOVE_COMMAND_ID)
-            {
-                ResolveMoveEvent resolve = new ResolveMoveEvent();
-                resolve.robotIdToMove = events.Filter(e => e is MoveEvent)
-                                               .Map(e => (MoveEvent)e)
-                                               .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
-                events.Add(resolve);
-            } else {
-                ResolveEvent resolve = new ResolveEvent();
-                resolve.commandType = t;
-                events.Add(resolve);
-            }
-        }
         return events;
     }
 

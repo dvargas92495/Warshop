@@ -143,9 +143,10 @@ public abstract class BaseGameManager
         log.Info(e.ToString());
         
         boardController.DiffBattery(e.primaryBatteryCost, e.secondaryBatteryCost);
-        if (e is ResolveSpawnEvent) {
-            List<Tuple<short, Vector2Int>> robotIdToSpawn = ((ResolveSpawnEvent)e).robotIdToSpawn;
-            Counter animationsToPlay = new Counter(robotIdToSpawn.GetLength());
+        if (e is ResolveEvent) {
+            List<Tuple<short, Vector2Int>> robotIdToSpawn = ((ResolveEvent)e).robotIdToSpawn;
+            List<Tuple<short, Vector2Int>> robotIdToMove = ((ResolveEvent)e).robotIdToMove;
+            Counter animationsToPlay = new Counter(robotIdToSpawn.GetLength() + robotIdToMove.GetLength());
             UnityAction callback = () => {
                 animationsToPlay.Decrement();
                 if (animationsToPlay.Get() <= 0) {
@@ -159,16 +160,6 @@ public abstract class BaseGameManager
                 boardController.PlaceRobot(primaryRobot, p.GetRight().x, p.GetRight().y);
                 primaryRobot.displaySpawn(p.GetRight(), callback);
             });
-        }
-        else if (e is ResolveMoveEvent) {
-            List<Tuple<short, Vector2Int>> robotIdToMove = ((ResolveMoveEvent)e).robotIdToMove;
-            Counter animationsToPlay = new Counter(robotIdToMove.GetLength());
-            UnityAction callback = () => {
-                animationsToPlay.Decrement();
-                if (animationsToPlay.Get() == 0) {
-                    PlayEvent(events, index + 1);
-                }
-            };
             robotIdToMove.ForEach(p => {
                 RobotController primaryRobot = robotControllers.Get(p.GetLeft());
                 primaryRobot.displayMove(p.GetRight(), boardController, callback);
@@ -176,6 +167,7 @@ public abstract class BaseGameManager
         }
         else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(() => PlayEvent(events, index+1));
         else if (e is MoveEvent) robotControllers.Get(((MoveEvent)e).robotId).displayMoveRequest(((MoveEvent)e).destinationPos, () => PlayEvent(events, index+1));
+        else if (e is AttackEvent) ((AttackEvent)e).locs.ForEach(v => robotControllers.Get(((AttackEvent)e).robotId).displayAttack(v, () => PlayEvent(events, index+1)));
         else PlayEvent(events,index + 1);
     }
 
@@ -199,12 +191,6 @@ public abstract class BaseGameManager
                         primaryRobot.transform.parent = dock.transform;
                         primaryRobot.transform.localPosition = dock.PlaceInBelt();
                     });
-                    else if (evt is SpawnEvent) robotControllers.Get(((SpawnEvent)evt).robotId).displaySpawn(((SpawnEvent)evt).destinationPos, (RobotController primaryRobot) =>
-                    {
-                        (primaryRobot.isOpponent ? boardController.opponentDock : boardController.myDock).RemoveFromBelt(primaryRobot.transform.localPosition);
-                        primaryRobot.transform.parent = boardController.transform;
-                        boardController.PlaceRobot(primaryRobot, ((SpawnEvent)evt).destinationPos.x, ((SpawnEvent)evt).destinationPos.y);
-                    });
                 });
                 eventsThisPriority.Clear();
             }
@@ -219,8 +205,7 @@ public abstract class BaseGameManager
             }
             else
             {
-                if (e is AttackEvent) ((AttackEvent)e).locs.ForEach(v => robotControllers.Get(((AttackEvent)e).robotId).displayEvent(uiController.GetArrow("Attack Arrow"), v, callback));
-                else if (e is BlockEvent) robotControllers.Get(((BlockEvent)e).robotId).displayEvent(uiController.GetArrow("Collision"), ((BlockEvent)e).deniedPos, callback);
+                if (e is BlockEvent) robotControllers.Get(((BlockEvent)e).robotId).displayEvent(uiController.GetArrow("Collision"), ((BlockEvent)e).deniedPos, callback);
                 else if (e is PushEvent) robotControllers.Get(((PushEvent)e).robotId).displayEvent(uiController.GetArrow("Push"), new Vector2Int((int)robotControllers.Get(((PushEvent)e).robotId).transform.position.x, (int)robotControllers.Get(((PushEvent)e).robotId).transform.position.y) + ((PushEvent)e).direction, callback);
                 else if (e is DamageEvent)
                 {
