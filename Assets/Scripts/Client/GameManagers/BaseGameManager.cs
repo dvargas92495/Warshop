@@ -163,11 +163,7 @@ public abstract class BaseGameManager
         else if (e is ResolveMoveEvent) {
             List<Tuple<short, Vector2Int>> robotIdToMove = ((ResolveMoveEvent)e).robotIdToMove;
             Counter animationsToPlay = new Counter(robotIdToMove.GetLength());
-            UnityAction<RobotController> callback = (RobotController primaryRobot) => {
-                Tuple<short, Vector2Int> p = robotIdToMove.Find(t => t.GetLeft() == primaryRobot.id);
-                boardController.UnplaceRobot(primaryRobot);
-                boardController.PlaceRobot(primaryRobot, p.GetRight().x, p.GetRight().y);
-                primaryRobot.animator.transform.position = Vector3Int.zero;
+            UnityAction callback = () => {
                 animationsToPlay.Decrement();
                 if (animationsToPlay.Get() == 0) {
                     PlayEvent(events, index + 1);
@@ -175,7 +171,7 @@ public abstract class BaseGameManager
             };
             robotIdToMove.ForEach(p => {
                 RobotController primaryRobot = robotControllers.Get(p.GetLeft());
-                primaryRobot.displayMove(p.GetRight(), callback);
+                primaryRobot.displayMove(p.GetRight(), boardController, callback);
             });
         }
         else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(() => PlayEvent(events, index+1));

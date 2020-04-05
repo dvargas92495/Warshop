@@ -122,9 +122,13 @@ public class RobotController : Controller
         animate("Spawn", robotCallback);
     }
 
-    public void displayMove(Vector2Int v, UnityAction<RobotController> robotCallback)
+    public void displayMove(Vector2Int v, BoardController boardController, UnityAction robotCallback)
     {
-        animate("Move" + getDir(v), () => robotCallback(this));
+        animate("Move" + getDir(v), () => {
+            boardController.UnplaceRobot(this);
+            boardController.PlaceRobot(this, v.x, v.y);
+            animate("Reset", robotCallback);
+        });
     }
 
     public void displayMoveRequest(Vector2Int v, UnityAction robotCallback)
