@@ -19,6 +19,11 @@
         return _right;
     }
 
+    public void SetRight(R right)
+    {
+        _right = right;
+    }
+
     public override string ToString()
     {
         return "{ " + _left.ToString() + " | " + _right.ToString() + " }"; 

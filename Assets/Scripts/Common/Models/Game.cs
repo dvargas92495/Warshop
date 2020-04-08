@@ -141,7 +141,8 @@ public class Game
         commands.Add(primary.FetchCommands());
         commands.Add(secondary.FetchCommands());
         Dictionary<short, RobotTurnObject> robotIdToTurnObject = new Dictionary<short, RobotTurnObject>(primary.team.GetLength() + secondary.team.GetLength());
-        primary.team.Concat(secondary.team).ForEach(r => {
+        List<Robot> allRobots = primary.team.Concat(secondary.team);
+        allRobots.ForEach(r => {
             RobotTurnObject rto = new RobotTurnObject(r.id, r.priority);
             rto.isActive = !r.position.Equals(Map.NULL_VEC);
             robotIdToTurnObject.Add(r.id, rto);
@@ -154,22 +155,85 @@ public class Game
                 rto.priority--;
                 return commands.RemoveFirst(c => c.robotId == rto.robotId);
             });
-            List<GameEvent> priorityEvents = p == 0 ? processEndOfTurn() : new List<GameEvent>();
+            List<GameEvent> priorityEvents = new List<GameEvent>();
 
-            priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.SPAWN_COMMAND_ID));
-            priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.MOVE_COMMAND_ID));
-            priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.ATTACK_COMMAND_ID));
-            priorityEvents.Add(processCommands(currentCmds, robotIdToTurnObject, Command.SPECIAL_COMMAND_ID));
-            ResolveEvent resolveEvent = new ResolveEvent();
-            resolveEvent.robotIdToSpawn = priorityEvents.Filter(e => e is SpawnEvent)
-                                                        .Map(e => (SpawnEvent)e)
+            currentCmds.ForEach((Command c) =>
+            {
+                Robot primaryRobot = GetRobot(c.robotId);
+                if (!robotIdToTurnObject.Get(c.robotId).isActive && !(c is Command.Spawn))
+                {
+                    currentCmds.Remove(c);
+                }
+            });
+            currentCmds.ForEach((Command c) =>
+            {
+                Robot primaryRobot = GetRobot(c.robotId);
+                bool isPrimary = c.owner.Equals(primary.name);
+                if (c is Command.Spawn)
+                {
+                    priorityEvents.Add(primaryRobot.Spawn(board.GetQueuePosition(c.direction, isPrimary), isPrimary));
+                } else if (c is Command.Move)
+                {
+                    priorityEvents.Add(primaryRobot.Move(c.direction, isPrimary));
+                } else if (c is Command.Attack)
+                {
+                    priorityEvents.Add(primaryRobot.Attack(c.direction, isPrimary));
+                }
+            });
+
+            if (priorityEvents.GetLength() >= 0) {
+                ResolveEvent resolveEvent = new ResolveEvent();
+                resolveEvent.robotIdToSpawn = priorityEvents.Filter(e => e is SpawnEvent)
+                                                            .Map(e => (SpawnEvent)e)
+                                                            .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
+                resolveEvent.robotIdToMove = priorityEvents.Filter(e => e is MoveEvent)
+                                                        .Map(e => (MoveEvent)e)
                                                         .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
-            resolveEvent.robotIdToMove = priorityEvents.Filter(e => e is MoveEvent)
-                                                       .Map(e => (MoveEvent)e)
-                                                       .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
-            priorityEvents.Add(resolveEvent);
+                List<Tuple<short, short>> robotIdToHealth = new List<Tuple<short, short>>();
+                priorityEvents.Filter(e => e is AttackEvent)
+                            .Map(e => (AttackEvent)e)
+                            .ForEach(e => {
+                                    Robot attacker = GetRobot(e.robotId);
+                                    allRobots.Filter(robot => e.locs.Contains(robot.position))
+                                        .ForEach(r =>
+                                        {
+                                            short damage = attacker.Damage(r);
+                                            Tuple<short, short> robotAndHealth = robotIdToHealth.Find(t => t.GetLeft() == r.id);
+                                            if(robotAndHealth == null) {
+                                                robotIdToHealth.Add(new Tuple<short, short>(r.id, (short)(r.health - damage)));
+                                            } else {
+                                                robotAndHealth.SetRight((short)(robotAndHealth.GetRight() - damage));
+                                            }
+                                        });
+                            });
+                resolveEvent.robotIdToHealth = robotIdToHealth;
+                priorityEvents.Add(resolveEvent);
 
-            processBatteryLoss(priorityEvents, (byte)p);
+                // CONFLICT RESOLUTION HERE
+                
+                resolveEvent.robotIdToSpawn.ForEach(t => {
+                    GetRobot(t.GetLeft()).position = t.GetRight();
+                });
+                resolveEvent.robotIdToMove.ForEach(t => {
+                    GetRobot(t.GetLeft()).position = t.GetRight();
+                });
+                resolveEvent.robotIdToHealth.ForEach(t => {
+                    Robot r = GetRobot(t.GetLeft());
+                    r.health = t.GetRight(); 
+                });
+            }
+            
+            robotIdToTurnObject.ForEach((k, rto) => rto.isActive = !GetRobot(k).position.Equals(Map.NULL_VEC));
+
+            priorityEvents.Add(processPriorityFinish(primary.team, true));
+            priorityEvents.Add(processPriorityFinish(secondary.team, false));
+
+            priorityEvents.ForEach(e =>
+            {
+                e.priority = (byte)p;
+                primary.battery -= e.primaryBatteryCost;
+                secondary.battery -= e.secondaryBatteryCost;
+            });
             events.Add(priorityEvents);
             if (primary.battery <= 0 || secondary.battery <= 0)
             {
@@ -187,105 +251,25 @@ public class Game
         }
         return events;
     }
-
-    private List<GameEvent> processCommands(Set<Command> allCommands, Dictionary<short, RobotTurnObject> robotIdToTurnObject, byte t)
+    private List<GameEvent> processPriorityFinish(List<Robot> team, bool isPrimary)
     {
-        List<GameEvent> events = new List<GameEvent>();
-        Set<Command> commands = allCommands.Filter(c => c.commandId == t);
-        commands.ForEach((Command c) =>
+        List<GameEvent> evts = new List<GameEvent>();
+        team.ForEach(r =>
         {
-            bool isPrimary = c.owner.Equals(primary.name);
-            Robot primaryRobot = GetRobot(c.robotId);
-            if (!robotIdToTurnObject.Get(c.robotId).isActive && !(c is Command.Spawn))
+            if (r.health <= 0)
             {
-                commands.Remove(c);
+                board.AddToDock(r.id, isPrimary);
+                GameEvent.Death death = new GameEvent.Death();
+                r.health = death.returnHealth = r.startingHealth;
+                r.position = Map.NULL_VEC;
+                death.robotId = r.id;
+                death.primaryBatteryCost = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating : 0);
+                death.secondaryBatteryCost = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
+                endOfTurnEvents.Map(g => (DamageEvent)g).RemoveAll(e => e.robotId == r.id);
+                evts.Add(death);
             }
         });
-
-        Dictionary<short, List<GameEvent>> idsToWantedEvents = new Dictionary<short, List<GameEvent>>(commands.GetLength());
-        commands.ForEach((Command c) =>
-        {
-            Robot primaryRobot = GetRobot(c.robotId);
-            bool isPrimary = c.owner.Equals(primary.name);
-            if (c is Command.Spawn)
-            {
-                idsToWantedEvents.Add(c.robotId, primaryRobot.Spawn(board.GetQueuePosition(c.direction, isPrimary), isPrimary));
-            } else if (c is Command.Move)
-            {
-                idsToWantedEvents.Add(c.robotId, primaryRobot.Move(c.direction, isPrimary));
-            } else if (c is Command.Attack)
-            {
-                idsToWantedEvents.Add(c.robotId, primaryRobot.Attack(c.direction, isPrimary));
-            }
-        });
-
-        bool valid = false;
-        int loops = 0;
-        while (!valid)
-        {
-            if (loops++ > 100) throw new ZException("Max validation loop iteration reached: {0}", idsToWantedEvents);
-            valid = true;
-            idsToWantedEvents.ForEachValue(evts => valid = valid && Validate(evts));
-            if (!valid) continue;
-            valid = AreValidTogether(idsToWantedEvents);
-        }
-        idsToWantedEvents.ForEachValue(evts => events.Add(evts));
-        events.ForEach(Update);
-
-        ReturnAction<List<Robot>, bool, List<GameEvent>> processPriorityFinish = (team, isPrimary) =>
-        {
-            List<GameEvent> evts = new List<GameEvent>();
-            team.ForEach(r =>
-            {
-                if (r.health <= 0)
-                {
-                    board.AddToDock(r.id, isPrimary);
-                    GameEvent.Death death = new GameEvent.Death();
-                    r.health = death.returnHealth = r.startingHealth;
-                    r.position = Map.NULL_VEC;
-                    death.robotId = r.id;
-                    death.primaryBatteryCost = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating : 0);
-                    death.secondaryBatteryCost = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
-                    endOfTurnEvents.Map(g => (DamageEvent)g).RemoveAll(e => e.robotId == r.id);
-                    evts.Add(death);
-                }
-            });
-            return evts;
-        };
-
-        events.Add(processPriorityFinish(primary.team, true));
-        events.Add(processPriorityFinish(secondary.team, false));
-        robotIdToTurnObject.ForEach((k, rto) => rto.isActive = !GetRobot(k).position.Equals(Map.NULL_VEC));
-        return events;
-    }
-
-    private List<GameEvent> processEndOfTurn()
-    {
-        List<GameEvent> events = new List<GameEvent>();
-        endOfTurnEvents.ForEach((GameEvent e) =>
-        {
-            if (e is DamageEvent)
-            {
-                DamageEvent damageEvent = (DamageEvent)e;
-                Robot victim = GetRobot(damageEvent.robotId);
-                victim.health -= damageEvent.damage;
-                damageEvent.remainingHealth = victim.health;
-                damageEvent.primaryBatteryCost = damageEvent.secondaryBatteryCost = 0;
-                events.Add(damageEvent);
-            }
-        });
-        if (events.GetLength() > 0) events.Add(new ResolveEvent());
-        return events;
-    }
-
-    private void processBatteryLoss(List<GameEvent> evts, byte p)
-    {
-        evts.ForEach(e =>
-        {
-            e.priority = p;
-            primary.battery -= e.primaryBatteryCost;
-            secondary.battery -= e.secondaryBatteryCost;
-        });
+        return evts;
     }
 
     private bool Validate(List<GameEvent> events)
@@ -381,14 +365,6 @@ public class Game
             evt.robotId = g.robotId;
             evt.locs = g.locs;
             events.Add(evt, index + 1);
-        }
-        else if (victims.GetLength() > 0)
-        {
-            victims.ForEach(r =>
-            {
-                List<GameEvent> evts = attacker.Damage(r);
-                events.Add(evts, index + 1);
-            });
         }
         return true;
     }
@@ -584,44 +560,6 @@ public class Game
         });
 
         return valid;
-    }
-
-    private void Update(GameEvent g)
-    {
-        if (g is MoveEvent) Update((MoveEvent)g);
-        else if (g is DamageEvent) Update((DamageEvent)g);
-        else if (g is GameEvent.Poison) Update((GameEvent.Poison)g);
-        else if (g is SpawnEvent) Update((SpawnEvent)g);
-    }
-
-    private void Update(MoveEvent g)
-    {
-        if (!g.success) return;
-        Robot r = GetRobot(g.robotId);
-        r.position = g.destinationPos;
-    }
-
-    private void Update(DamageEvent g)
-    {
-        Robot r = GetRobot(g.robotId);
-        r.health = g.remainingHealth;
-    }
-
-    private void Update(GameEvent.Poison g)
-    {
-        Robot r = GetRobot(g.robotId);
-        DamageEvent evt = new DamageEvent();
-        evt.robotId = g.robotId;
-        evt.damage = 1;
-        evt.remainingHealth = (short)(r.health - 1);
-        endOfTurnEvents.Add(evt);
-    }
-
-    private void Update(SpawnEvent g)
-    {
-        if (!g.success) return;
-        Robot r = GetRobot(g.robotId);
-        r.position = g.destinationPos;
     }
 
     private Robot GetRobot(short id)

@@ -68,6 +68,7 @@ public abstract class GameEvent
         evt.primaryBatteryCost = reader.ReadInt16();
         evt.secondaryBatteryCost = reader.ReadInt16();
         evt.success = reader.ReadBoolean();
+        Debug.Log(evt);
         return evt;
     }
     public override string ToString()

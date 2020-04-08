@@ -146,6 +146,7 @@ public abstract class BaseGameManager
         if (e is ResolveEvent) {
             List<Tuple<short, Vector2Int>> robotIdToSpawn = ((ResolveEvent)e).robotIdToSpawn;
             List<Tuple<short, Vector2Int>> robotIdToMove = ((ResolveEvent)e).robotIdToMove;
+            List<Tuple<short, short>> robotIdToHealth = ((ResolveEvent)e).robotIdToHealth;
             Counter animationsToPlay = new Counter(robotIdToSpawn.GetLength() + robotIdToMove.GetLength());
             UnityAction callback = () => {
                 animationsToPlay.Decrement();
@@ -163,6 +164,10 @@ public abstract class BaseGameManager
             robotIdToMove.ForEach(p => {
                 RobotController primaryRobot = robotControllers.Get(p.GetLeft());
                 primaryRobot.displayMove(p.GetRight(), boardController, callback);
+            });
+            robotIdToHealth.ForEach(t => {
+                RobotController primaryRobot = robotControllers.Get(t.GetLeft());
+                primaryRobot.displayDamage(t.GetRight(), callback);
             });
         }
         else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(() => PlayEvent(events, index+1));

@@ -2,7 +2,7 @@
 using Aws.GameLift;
 using Aws.GameLift.Server;
 using Aws.GameLift.Server.Model;
-
+using UnityEngine;
 public abstract class App
 {
     private static App instance;
@@ -148,6 +148,7 @@ public abstract class App
             {
                 Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();
                 List<GameEvent> events = appgame.CommandsToEvents();
+                Debug.Log(events);
                 resp.events = events.ToArray();
                 resp.turn = appgame.GetTurn();
                 appgame.connectionIds().ForEach(cid =>

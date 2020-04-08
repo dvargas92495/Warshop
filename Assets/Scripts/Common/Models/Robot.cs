@@ -29,6 +29,12 @@ public class Robot
         attack = _attack;
         rating = _rating;
     }
+
+    public override string ToString()
+    {
+        return "Robot: " + name + " - " + description + " (" + attack + "," + health + ")";
+    }
+
     internal static Robot create(string robotName)
     {
         switch(robotName)
@@ -115,13 +121,9 @@ public class Robot
         else evt.secondaryBatteryCost = GameConstants.DEFAULT_ATTACK_POWER;
         return new List<GameEvent>(evt);
     }
-    internal virtual List<GameEvent> Damage(Robot victim)
+    internal virtual short Damage(Robot victim)
     {
-        DamageEvent evt = new DamageEvent();
-        evt.robotId = victim.id;
-        evt.damage = attack;
-        evt.remainingHealth = (short)(victim.health - attack);
-        return new List<GameEvent>(evt);
+        return attack;
     }
 
     private class Jaguar : Robot

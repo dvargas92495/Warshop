@@ -141,6 +141,12 @@ public class RobotController : Controller
         animate("Attack" + getDir(v), robotCallback);
     }
 
+    public void displayDamage(short h, UnityAction robotCallback)
+    {
+        displayHealth(h);
+        animate("Damage", robotCallback);
+    }
+
     public void displayDeath(short health, UnityAction<RobotController> robotCallback)
     {
         Debug.Log(id);
