@@ -39,8 +39,6 @@ public class Robot
     {
         switch(robotName)
         {
-            case Jaguar._name:
-                return new Jaguar();
             case BronzeGrunt._name:
                 return new BronzeGrunt();
             case SilverGrunt._name:
@@ -124,53 +122,6 @@ public class Robot
     internal virtual short Damage(Robot victim)
     {
         return attack;
-    }
-
-    private class Jaguar : Robot
-    {
-        internal const string _name = "Jaguar";
-        internal const string _description = "Can Move a Third Time (-1 Attack)";
-        internal Jaguar() : base(
-            _name,
-            _description,
-            6, 4, 4,
-            Rating.SILVER
-        )
-        { }
-        /*
-        internal override List<GameEvent> CheckFail(Command c, Game.RobotTurnObject rto, bool isPrimary)
-        {
-            if (c is Command.Special)
-            {
-                return base.CheckFail(c, rto, isPrimary);
-            }
-            else if (c is Command.Move)
-            {
-                if (rto.num[typeof(Command.Attack)] == Command.limit[typeof(Command.Attack)])
-                {
-                    return base.CheckFail(c, rto, isPrimary);
-                }
-                else if (rto.num[c.GetType()] < Command.limit[c.GetType()] + 1)
-                {
-                    rto.num[c.GetType()]++;
-                    return new List<GameEvent>();
-                }
-                else
-                {
-                    return new List<GameEvent>() { Fail(c, "of limit", isPrimary) };
-                }
-            } else
-            {
-                if (rto.num[typeof(Command.Move)] <= Command.limit[typeof(Command.Move)])
-                {
-                    return base.CheckFail(c, rto, isPrimary);
-                }
-                else
-                {
-                    return new List<GameEvent>() { Fail(c, "of limit", isPrimary) };
-                }
-            }
-        }*/
     }
 
     private class BronzeGrunt : Robot

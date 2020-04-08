@@ -99,11 +99,6 @@ public class RobotTestsBase
     {
         return new BlockEvent() { robotId = r, blockingObject = blocker, deniedPos = v, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true };
     }
-    
-    internal static DamageEvent SuccessDamageEvent(short r, short h, int rh, byte p)
-    {
-        return new DamageEvent() { robotId = r, damage = h, remainingHealth = (short) rh, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true };
-    }
 
     internal static PushEvent SuccessPushEvent(short r, short v, Vector2Int d, byte p)
     {

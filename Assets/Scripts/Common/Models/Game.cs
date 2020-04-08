@@ -265,7 +265,6 @@ public class Game
                 death.robotId = r.id;
                 death.primaryBatteryCost = (short)(isPrimary ? GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating : 0);
                 death.secondaryBatteryCost = (short)(isPrimary ? 0 : GameConstants.DEFAULT_DEATH_MULTIPLIER * (byte)r.rating);
-                endOfTurnEvents.Map(g => (DamageEvent)g).RemoveAll(e => e.robotId == r.id);
                 evts.Add(death);
             }
         });
@@ -299,11 +298,6 @@ public class Game
             evt.robotId = g.robotId;
             evt.blockingObject = s;
             events.Add(evt, index+1);
-            DamageEvent evt2 = new DamageEvent();
-            evt2.damage = 1;
-            evt2.robotId = g.robotId;
-            evt2.remainingHealth = (short)(r.health - 1);
-            events.Add(evt2, index + 2);
             return false;
         };
         if (board.IsVoid(g.destinationPos))
@@ -338,7 +332,6 @@ public class Game
     private bool Validate(List<GameEvent> events, AttackEvent g)
     {
         int index = events.FindIndex(g);
-        if (events.GetLength() > index + 1 && (/*events.Get(index + 1) is GameEvent.Battery || */events.Get(index+1) is MissEvent || events.Get(index+1) is DamageEvent)) return true;
         Robot attacker = GetRobot(g.robotId);
         bool hitABattery = false;
         /*
@@ -406,15 +399,6 @@ public class Game
             int size = wanted.GetLength() - index;
             wanted.RemoveAt(index + 1, size - 1);
             wanted.Add(block);
-            if (original is MoveEvent)
-            {
-                original.success = false;
-                DamageEvent d = new DamageEvent();
-                d.damage = 1;
-                d.remainingHealth = (short)(GetRobot(originalRobotId).health - 1);
-                d.robotId = originalRobotId;
-                wanted.Add(d);
-            }
         });
 
         // Check for pushing, what the hell is going on here... 
@@ -436,16 +420,6 @@ public class Game
                         push.victim = occupant.id;
                         push.direction = diff;
                         events.Add(push);
-                        DamageEvent d1 = new DamageEvent();
-                        d1.damage = 1;
-                        d1.robotId = g.robotId;
-                        d1.remainingHealth = (short)(GetRobot(g.robotId).health - 1);
-                        events.Add(d1);
-                        DamageEvent d2 = new DamageEvent();
-                        d2.damage = 1;
-                        d2.robotId = occupant.id;
-                        d2.remainingHealth = (short)(occupant.health - 1);
-                        events.Add(d2);
                         MoveEvent move = new MoveEvent();
                         move.robotId = occupant.id;
                         move.sourcePos = g.destinationPos;
@@ -463,16 +437,6 @@ public class Game
                         evt.robotId = g.robotId;
                         evt.blockingObject = occupant.name;
                         events.Add(evt, index + 1);
-                        DamageEvent evt2 = new DamageEvent();
-                        evt2.damage = 1;
-                        evt2.robotId = g.robotId;
-                        evt2.remainingHealth = (short)(r.health - 1);
-                        events.Add(evt2, index + 2);
-                        DamageEvent d2 = new DamageEvent();
-                        d2.damage = 1;
-                        d2.robotId = occupant.id;
-                        d2.remainingHealth = (short)(occupant.health - 1);
-                        events.Add(d2);
                         valid = false;
                     }
                 }
@@ -531,31 +495,6 @@ public class Game
                     List<string> otherRobotNames = idsToWantedEvents.ToKeyListFiltered(k => k != id).Map(k => GetRobot(k).name);
                     generateBlockEvent(otherRobotNames.ToString(), space)(id);
                 });
-            }
-        });
-
-        //Then do multiple damage on one robot check
-        Dictionary<short, List<DamageEvent>> idsToDamages = new Dictionary<short, List<DamageEvent>>(primary.team.GetLength() + secondary.team.GetLength());
-        idsToWantedEvents.ForEachValue(evts =>
-        {
-            evts.ForEach((GameEvent g) => {
-                if (g is DamageEvent) {
-                    DamageEvent d = (DamageEvent)g;
-                    if (!idsToDamages.Contains(d.robotId))
-                    {
-                        idsToDamages.Add(d.robotId, new List<DamageEvent>((DamageEvent)g));
-                    } else
-                    {
-                        idsToDamages.Get(d.robotId).Add((DamageEvent)g);
-                    }
-                }
-            });
-        });
-        idsToDamages.ToValueListFiltered(d => d != null).ForEach(damages =>
-        {
-            for (int i = 1; i < damages.GetLength(); i++)
-            {
-                damages.Get(i).remainingHealth = (short)(damages.Get(i - 1).remainingHealth - damages.Get(i).damage);
             }
         });
 
