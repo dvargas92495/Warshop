@@ -181,7 +181,7 @@ public class Game
                 }
             });
 
-            if (priorityEvents.GetLength() >= 0) {
+            if (priorityEvents.GetLength() > 0) {
                 ResolveEvent resolveEvent = new ResolveEvent();
                 resolveEvent.robotIdToSpawn = priorityEvents.Filter(e => e is SpawnEvent)
                                                             .Map(e => (SpawnEvent)e)

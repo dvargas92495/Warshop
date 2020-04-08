@@ -57,7 +57,7 @@ public class ResolveEvent : GameEvent
         }
         int damageLength = reader.ReadInt32();
         evt.robotIdToHealth = new List<Tuple<short, short>>();
-        for (int i = 0; i < moveLength; i++)
+        for (int i = 0; i < damageLength; i++)
         {
             short robotId = reader.ReadInt16();
             short damage = reader.ReadInt16();
@@ -68,7 +68,7 @@ public class ResolveEvent : GameEvent
 
     public override string ToString()
     {
-        return string.Format("{0}Resolved commands:\n{1}\n{2}\n{3}", base.ToString(), robotIdToSpawn, robotIdToMove, robotIdToHealth);
+        return string.Format("{0}Resolved commands:\nSpawn - {1}\nMove - {2}\nHealth - {3}", base.ToString(), robotIdToSpawn, robotIdToMove, robotIdToHealth);
     }
 
     public override bool Equals(object obj)

@@ -140,14 +140,13 @@ public abstract class BaseGameManager
             return;
         }
         GameEvent e = events[index];
-        log.Info(e.ToString());
         
         boardController.DiffBattery(e.primaryBatteryCost, e.secondaryBatteryCost);
         if (e is ResolveEvent) {
             List<Tuple<short, Vector2Int>> robotIdToSpawn = ((ResolveEvent)e).robotIdToSpawn;
             List<Tuple<short, Vector2Int>> robotIdToMove = ((ResolveEvent)e).robotIdToMove;
             List<Tuple<short, short>> robotIdToHealth = ((ResolveEvent)e).robotIdToHealth;
-            Counter animationsToPlay = new Counter(robotIdToSpawn.GetLength() + robotIdToMove.GetLength());
+            Counter animationsToPlay = new Counter(robotIdToSpawn.GetLength() + robotIdToMove.GetLength() + robotIdToHealth.GetLength());
             UnityAction callback = () => {
                 animationsToPlay.Decrement();
                 if (animationsToPlay.Get() <= 0) {
@@ -188,8 +187,7 @@ public abstract class BaseGameManager
                 history.Add(SerializeState(turnNumber, r.priority, r.commandType));
                 eventsThisPriority.ForEach(evt =>
                 {
-                    if (evt is AttackEvent) robotControllers.Get(((AttackEvent)evt).robotId).displayAttack(((AttackEvent)evt).locs.Get(0), callback);
-                    else if (evt is GameEvent.Death) robotControllers.Get(((GameEvent.Death)evt).robotId).displayDeath(((GameEvent.Death)evt).returnHealth, (RobotController primaryRobot) =>
+                    if (evt is GameEvent.Death) robotControllers.Get(((GameEvent.Death)evt).robotId).displayDeath(((GameEvent.Death)evt).returnHealth, (RobotController primaryRobot) =>
                     {
                         boardController.UnplaceRobot(primaryRobot);
                         DockController dock = !primaryRobot.isOpponent ? boardController.myDock : boardController.opponentDock;
@@ -212,12 +210,6 @@ public abstract class BaseGameManager
             {
                 if (e is BlockEvent) robotControllers.Get(((BlockEvent)e).robotId).displayEvent(uiController.GetArrow("Collision"), ((BlockEvent)e).deniedPos, callback);
                 else if (e is PushEvent) robotControllers.Get(((PushEvent)e).robotId).displayEvent(uiController.GetArrow("Push"), new Vector2Int((int)robotControllers.Get(((PushEvent)e).robotId).transform.position.x, (int)robotControllers.Get(((PushEvent)e).robotId).transform.position.y) + ((PushEvent)e).direction, callback);
-                else if (e is DamageEvent)
-                {
-                    RobotController primaryRobot = robotControllers.Get(((DamageEvent)e).robotId);
-                    primaryRobot.displayEvent(uiController.GetArrow("Damage"), new Vector2Int((int)primaryRobot.transform.position.x, (int)primaryRobot.transform.position.y), callback);
-                    primaryRobot.displayHealth(((DamageEvent)e).remainingHealth);
-                }
                 else if (e is MissEvent) ((MissEvent)e).locs.ForEach(v => robotControllers.Get(((MissEvent)e).robotId).displayEvent(uiController.GetArrow("Missed Attack"), v, callback, false));
                 else if (e is GameEvent.Battery)
                 {

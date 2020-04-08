@@ -148,7 +148,6 @@ public abstract class App
             {
                 Messages.TurnEventsMessage resp = new Messages.TurnEventsMessage();
                 List<GameEvent> events = appgame.CommandsToEvents();
-                Debug.Log(events);
                 resp.events = events.ToArray();
                 resp.turn = appgame.GetTurn();
                 appgame.connectionIds().ForEach(cid =>

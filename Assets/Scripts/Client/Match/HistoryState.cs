@@ -110,17 +110,8 @@ public class HistoryState
         r.transform.rotation = Quaternion.Euler(state.rotation);
         r.displayHealth(state.health);
         r.displayAttack(state.attack);
-        r.currentEvents = state.currentEvents.Map(c => DeserializeCurrentEvent(c, r));
         r.commands = new List<Command>();
         state.commands.ForEach(c => DeserializeCmd(c, r, addCommandCallback));
-    }
-
-    private SpriteRenderer DeserializeCurrentEvent(RobotState.CurrentEvent c, RobotController r)
-    {
-        SpriteRenderer s = r.displayEvent(c.sprite, Vector2Int.zero);
-        s.transform.position = c.position;
-        s.transform.rotation = Quaternion.Euler(c.rotation);
-        return s;
     }
 
     private void DeserializeCmd(RobotState.Cmd cmd, RobotController r, UnityAction<Command, short, bool> callback)
