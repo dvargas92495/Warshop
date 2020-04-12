@@ -6,14 +6,12 @@ public abstract class GameEvent
     public byte priority;
     public short primaryBatteryCost;
     public short secondaryBatteryCost;
-    public bool success = true;
 
     public void FinishMessage(NetworkWriter writer)
     {
         writer.Write(priority);
         writer.Write(primaryBatteryCost);
         writer.Write(secondaryBatteryCost);
-        writer.Write(success);
     }
     public abstract void Serialize(NetworkWriter writer);
     public static GameEvent Deserialize(NetworkReader reader)
@@ -40,9 +38,6 @@ public abstract class GameEvent
             case MissEvent.EVENT_ID:
                 evt = MissEvent.Deserialize(reader);
                 break;
-            case BatteryEvent.EVENT_ID:
-                evt = BatteryEvent.Deserialize(reader);
-                break;
             case Collision.EVENT_ID:
                 evt = End.Deserialize(reader);
                 break;
@@ -61,12 +56,11 @@ public abstract class GameEvent
         evt.priority = reader.ReadByte();
         evt.primaryBatteryCost = reader.ReadInt16();
         evt.secondaryBatteryCost = reader.ReadInt16();
-        evt.success = reader.ReadBoolean();
         return evt;
     }
     public override string ToString()
     {
-        return string.Format("Event({3}) at {0} costing ({1},{2}) - ", priority, primaryBatteryCost, secondaryBatteryCost, success);
+        return string.Format("Event({3}) at {0} costing ({1},{2}) - ", priority, primaryBatteryCost, secondaryBatteryCost);
     }
     public override bool Equals(object obj)
     {
@@ -74,8 +68,7 @@ public abstract class GameEvent
         GameEvent other = (GameEvent)obj;
         return priority == other.priority &&
             primaryBatteryCost == other.primaryBatteryCost &&
-            secondaryBatteryCost == other.secondaryBatteryCost &&
-            success == other.success;
+            secondaryBatteryCost == other.secondaryBatteryCost;
     }
     public void Flip()
     {
@@ -124,8 +117,6 @@ public abstract class GameEvent
         internal bool primaryLost;
         internal bool secondaryLost;
         internal short turnCount;
-        internal Dictionary<short, Game.RobotStat> primaryTeamStats;
-        internal Dictionary<short, Game.RobotStat> secondaryTeamStats;
 
         public override void Serialize(NetworkWriter writer)
         {
@@ -133,49 +124,20 @@ public abstract class GameEvent
             writer.Write(primaryLost);
             writer.Write(secondaryLost);
             writer.Write(turnCount);
-            writer.Write(primaryTeamStats.GetLength());
-            primaryTeamStats.ForEach((k, stat) =>
-            {
-                writer.Write(k);
-                stat.Serialize(writer);
-            });
-            writer.Write(secondaryTeamStats.GetLength());
-            secondaryTeamStats.ForEach((k, stat) =>
-            {
-                writer.Write(k);
-                stat.Serialize(writer);
-            });
-
-
         }
+
         public new static End Deserialize(NetworkReader reader)
         {
             End evt = new End();
             evt.primaryLost = reader.ReadBoolean();
             evt.secondaryLost = reader.ReadBoolean();
             evt.turnCount = reader.ReadInt16();
-            evt.primaryTeamStats = new Dictionary<short, Game.RobotStat>(reader.ReadInt32());
-            for (int i = 0; i < evt.primaryTeamStats.GetLength(); i++)
-            {
-                short k = reader.ReadInt16();
-                Game.RobotStat stat = new Game.RobotStat();
-                stat.Deserialize(reader);
-                evt.primaryTeamStats.Add(k, stat);
-            }
-            evt.secondaryTeamStats = new Dictionary<short, Game.RobotStat>(reader.ReadInt32());
-            for (int i = 0; i < evt.secondaryTeamStats.GetLength(); i++)
-            {
-                short k = reader.ReadInt16();
-                Game.RobotStat stat = new Game.RobotStat();
-                stat.Deserialize(reader);
-                evt.secondaryTeamStats.Add(k, stat);
-            }
             return evt;
         }
         public override string ToString()
         {
-            return string.Format("{0}Game ended in {3} turns with primary losing({1}) secondary losing({2})\nPrimary Stats: {4}\nSecondaryStats: {5}", 
-                base.ToString(), primaryLost, secondaryLost, turnCount, primaryTeamStats, secondaryTeamStats);
+            return string.Format("{0}Game ended in {3} turns with primary losing({1}) secondary losing({2})", 
+                base.ToString(), primaryLost, secondaryLost, turnCount);
         }
     }
 

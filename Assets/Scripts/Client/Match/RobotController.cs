@@ -3,7 +3,6 @@ using UnityEngine.Events;
 
 public class RobotController : Controller
 {
-    public Animator animator;
     public AnimatorHelper animatorHelper;
     public GameObject defaultModel;
     public MeshRenderer healthMeshRenderer;
@@ -23,7 +22,7 @@ public class RobotController : Controller
         id = i;
         GameObject model = new List<GameObject>(robotModels).Find(g => g.name.Equals(n));
         if (model == null) model = defaultModel;
-        GameObject baseModel = Instantiate(model, animator.transform);
+        GameObject baseModel = Instantiate(model, animatorHelper.transform);
     }
     
     /***********************************
@@ -83,51 +82,45 @@ public class RobotController : Controller
      * Robot UI During Turn Methods *
      ********************************/
 
-    public void animate(string name, UnityAction robotCallback)
-    {
-        animatorHelper.animatorCallback = robotCallback;
-        animator.Play(name);
-    }
-
     public void displaySpawnRequest(UnityAction robotCallback)
     {
-        animate("SpawnRequest", robotCallback);
+        animatorHelper.Animate("SpawnRequest", robotCallback);
     }
 
     public void displaySpawn(Vector2Int v, UnityAction robotCallback)
     {
         isSpawned = true;
-        animate("Spawn", robotCallback);
+        animatorHelper.Animate("Spawn", robotCallback);
     }
 
     public void displayMove(Vector2Int v, BoardController boardController, UnityAction robotCallback)
     {
-        animate("Move" + getDir(v), () => {
+        animatorHelper.Animate("Move" + getDir(v), () => {
             boardController.UnplaceRobot(this);
             boardController.PlaceRobot(this, v.x, v.y);
-            animate("Reset", robotCallback);
+            animatorHelper.Animate("Reset", robotCallback);
         });
     }
 
     public void displayMoveRequest(Vector2Int v, UnityAction robotCallback)
     {
-        animate("MoveRequest" + getDir(v), robotCallback);
+        animatorHelper.Animate("MoveRequest" + getDir(v), robotCallback);
     }
 
     public void displayAttack(Vector2Int v, UnityAction robotCallback)
     {
-        animate("Attack" + getDir(v), robotCallback);
+        animatorHelper.Animate("Attack" + getDir(v), robotCallback);
     }
 
     public void displayDamage(short h, UnityAction robotCallback)
     {
         displayHealth(h);
-        animate("Damage", robotCallback);
+        animatorHelper.Animate("Damage", robotCallback);
     }
 
     public void displayDeath(short health, UnityAction<RobotController> robotCallback)
     {
-        animate("Death", () => {
+        animatorHelper.Animate("Death", () => {
             displayHealth(health);
             gameObject.SetActive(false);
             robotCallback(this);

@@ -63,7 +63,6 @@ public class Game
         internal string name;
         public short battery = GameConstants.POINTS_TO_WIN;
         public List<Robot> team;
-        internal Dictionary<short, RobotStat> teamStats;
         internal bool ready;
         internal bool joined;
         internal List<Command> commands;
@@ -72,8 +71,6 @@ public class Game
         internal Player(Robot[] t, string n)
         {
             team = new List<Robot>(t);
-            teamStats = new Dictionary<short, RobotStat>(t.Length);
-            team.ForEach(r => teamStats.Add(r.id, new RobotStat() { name = r.name }));
             name = n;
             joined = true;
         }
@@ -107,25 +104,6 @@ public class Game
             num.Add(Command.ATTACK_COMMAND_ID, 0);
             num.Add(Command.SPECIAL_COMMAND_ID, 0);
         }
-    }
-
-    internal class RobotStat : MessageBase
-    {
-        internal string name;
-        internal short spawns;
-        internal short moves;
-        internal short attacks;
-        internal short specials;
-        internal short successAttackOnRobots;
-        internal short successAttackOnBattery;
-        internal short successMoves;
-        internal short successSpecials;
-        internal short successPushes;
-        internal short damageTakenFromAttacks;
-        internal short damageTakenFromCollision;
-        internal short damageTakenFromSpecial;
-        internal short numberOfKills;
-        internal short numberOfDeaths;
     }
 
     public byte GetTurn()
@@ -189,7 +167,7 @@ public class Game
                 resolveEvent.robotIdToMove = priorityEvents.Filter(e => e is MoveEvent)
                                                         .Map(e => (MoveEvent)e)
                                                         .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
-                List<Tuple<short, short>> robotIdToHealth = new List<Tuple<short, short>>();
+                resolveEvent.robotIdToHealth = new List<Tuple<short, short>>();
                 priorityEvents.Filter(e => e is AttackEvent)
                             .Map(e => (AttackEvent)e)
                             .ForEach(e => {
@@ -198,15 +176,22 @@ public class Game
                                         .ForEach(r =>
                                         {
                                             short damage = attacker.Damage(r);
-                                            Tuple<short, short> robotAndHealth = robotIdToHealth.Find(t => t.GetLeft() == r.id);
+                                            Tuple<short, short> robotAndHealth = resolveEvent.robotIdToHealth.Find(t => t.GetLeft() == r.id);
                                             if(robotAndHealth == null) {
-                                                robotIdToHealth.Add(new Tuple<short, short>(r.id, (short)(r.health - damage)));
+                                                resolveEvent.robotIdToHealth.Add(new Tuple<short, short>(r.id, (short)(r.health - damage)));
                                             } else {
                                                 robotAndHealth.SetRight((short)(robotAndHealth.GetRight() - damage));
                                             }
                                         });
+                                    e.locs.Filter(board.IsBattery).ForEach(v => {
+                                        bool isPrimaryBase = board.IsPrimary(v);
+                                        short drain = (short)(GameConstants.DEFAULT_BATTERY_MULTIPLIER * attacker.attack);
+                                        resolveEvent.primaryBatteryCost += isPrimaryBase ? drain : (short)0;
+                                        resolveEvent.secondaryBatteryCost += isPrimaryBase ? (short)0: drain;
+                                        resolveEvent.myBatteryHit = resolveEvent.myBatteryHit || isPrimaryBase;
+                                        resolveEvent.opponentBatteryHit = resolveEvent.opponentBatteryHit || !isPrimaryBase;
+                                    });
                             });
-                resolveEvent.robotIdToHealth = robotIdToHealth;
                 priorityEvents.Add(resolveEvent);
 
                 // CONFLICT RESOLUTION HERE
@@ -243,8 +228,6 @@ public class Game
                 e.primaryBatteryCost = (short)Math.Max(primary.battery, 0);
                 e.secondaryBatteryCost = (short)Math.Max(secondary.battery, 0);
                 e.turnCount = turn;
-                e.primaryTeamStats = primary.teamStats;
-                e.secondaryTeamStats = secondary.teamStats;
                 events.Add(e);
                 break;
             }
@@ -288,11 +271,9 @@ public class Game
     private bool Validate(List<GameEvent> events, MoveEvent g)
     {
         int index = events.FindIndex(g);
-        if (!g.success) return true;
         ReturnAction<string, bool> generateBlockEvent = (string s) =>
         {
             Robot r = GetRobot(g.robotId);
-            g.success = false;
             BlockEvent evt = new BlockEvent();
             evt.deniedPos = g.destinationPos;
             evt.robotId = g.robotId;
@@ -314,13 +295,11 @@ public class Game
     private bool Validate(List<GameEvent> events, PushEvent g)
     {
         int index = events.FindIndex(g);
-        if (events.GetLength() > index + 4 && events.Get(index + 4) is BlockEvent && g.success)
+        if (events.GetLength() > index + 4 && events.Get(index + 4) is BlockEvent)
         {
             BlockEvent block = new BlockEvent();
             block.blockingObject = ((BlockEvent)events.Get(index+4)).blockingObject;
             MoveEvent original = (MoveEvent)events.Get(index - 1);
-            original.success = false;
-            g.success = false;
             block.deniedPos = original.destinationPos;
             block.robotId = original.robotId;
             events.Add(block);
@@ -364,7 +343,6 @@ public class Game
 
     private bool Validate(List<GameEvent> events, SpawnEvent g)
     {
-        if (!g.success) return true;
         int index = events.FindIndex(g);
         Robot occupant = GetRobot(g.destinationPos);
         if (occupant != null)
@@ -373,7 +351,6 @@ public class Game
             evt.deniedPos = g.destinationPos;
             evt.robotId = g.robotId;
             evt.blockingObject = occupant.name;
-            g.success = false;
             events.Add(evt, index+1);
             return false;
         }
@@ -408,8 +385,8 @@ public class Game
             Robot occupant = GetRobot(g.destinationPos);
             if (occupant != null)
             {
-                bool isAlsoMoving = moveEvents.Any(e => e.robotId == occupant.id && e.success);
-                if (!isAlsoMoving && g.success)
+                bool isAlsoMoving = moveEvents.Any(e => e.robotId == occupant.id);
+                if (!isAlsoMoving)
                 {
                     List<GameEvent> events = idsToWantedEvents.Get(evts => evts.Contains(g));
                     Vector2Int diff = g.destinationPos - g.sourcePos;
@@ -431,7 +408,6 @@ public class Game
                     {
                         Robot r = GetRobot(g.robotId);
                         int index = events.FindIndex(g);
-                        g.success = false;
                         BlockEvent evt = new BlockEvent();
                         evt.deniedPos = g.destinationPos;
                         evt.robotId = g.robotId;
@@ -451,10 +427,10 @@ public class Game
                 Robot r1 = GetRobot(key1);
                 Robot r2 = GetRobot(key2);
                 MoveEvent m1 = evts1.Find((GameEvent g) => {
-                    return g is MoveEvent && ((MoveEvent)g).destinationPos.Equals(r2.position) && g.success;
+                    return g is MoveEvent && ((MoveEvent)g).destinationPos.Equals(r2.position);
                 }) as MoveEvent;
                 MoveEvent m2 = evts2.Find((GameEvent g) => {
-                    return g is MoveEvent && ((MoveEvent)g).destinationPos.Equals(r1.position) && g.success;
+                    return g is MoveEvent && ((MoveEvent)g).destinationPos.Equals(r1.position);
                 }) as MoveEvent;
                 if (m1 != null && m2 != null)
                 {
@@ -479,7 +455,7 @@ public class Game
                 {
                     newspace = ((SpawnEvent)e).destinationPos;
                 }
-                if (!newspace.Equals(Map.NULL_VEC) && e.success)
+                if (!newspace.Equals(Map.NULL_VEC))
                 {
                     if (spaceToIds.Contains(newspace)) spaceToIds.Get(newspace).Add(key);
                     else spaceToIds.Add(newspace, new List<short>(key));

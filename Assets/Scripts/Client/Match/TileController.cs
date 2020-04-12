@@ -31,9 +31,9 @@ public class TileController : Controller
 
     public void LoadBatteryTile(Map.Battery s)
     {
-        BatteryController newBattery = Instantiate(battery, transform);
+        BatteryController newBattery = Instantiate(battery, transform.parent);
         newBattery.transform.localRotation = Quaternion.Euler(Vector3.left * 90);
-        newBattery.transform.localPosition = Vector3.back * 0.5f;
+        newBattery.transform.position = transform.position;
 
         if (s.GetIsPrimary())
         {

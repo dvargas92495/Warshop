@@ -7,6 +7,8 @@ public class ResolveEvent : GameEvent
     public List<Tuple<short, Vector2Int>> robotIdToSpawn;
     public List<Tuple<short, Vector2Int>> robotIdToMove;
     public List<Tuple<short, short>> robotIdToHealth;
+    public bool myBatteryHit;
+    public bool opponentBatteryHit;
 
     public override void Serialize(NetworkWriter writer)
     {
@@ -28,6 +30,8 @@ public class ResolveEvent : GameEvent
             writer.Write(t.GetLeft());
             writer.Write(t.GetRight());
         });
+        writer.Write(myBatteryHit);
+        writer.Write(opponentBatteryHit);
     }
 
     public new static ResolveEvent Deserialize(NetworkReader reader)
@@ -63,6 +67,8 @@ public class ResolveEvent : GameEvent
             short damage = reader.ReadInt16();
             evt.robotIdToHealth.Add(new Tuple<short, short>(robotId, damage));
         }
+        bool myBatteryHit = reader.ReadBoolean();
+        bool opponentBatteryHit = reader.ReadBoolean();
         return evt;
     }
 
@@ -83,5 +89,14 @@ public class ResolveEvent : GameEvent
     public override int GetHashCode()
     {
         return EVENT_ID;
+    }
+
+    public int GetNumResolutions()
+    {
+        return robotIdToSpawn.GetLength() 
+        + robotIdToMove.GetLength() 
+        + robotIdToHealth.GetLength()
+        + (myBatteryHit ? 1 : 0)
+        + (opponentBatteryHit ? 1 : 0);
     }
 }

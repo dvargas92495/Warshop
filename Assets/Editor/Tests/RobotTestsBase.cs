@@ -67,47 +67,47 @@ public class RobotTestsBase
 
     internal static SpawnEvent SuccessSpawnEvent(Vector2Int v, short r, byte p, int pb, int sb)
     {
-        return new SpawnEvent() { destinationPos = v, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = true };
+        return new SpawnEvent() { destinationPos = v, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb};
     }
 
     internal static SpawnEvent FailSpawnEvent(Vector2Int v, short r, byte p, int pb, int sb)
     {
-        return new SpawnEvent() { destinationPos = v, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = false };
+        return new SpawnEvent() { destinationPos = v, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb};
     }
 
     internal static MoveEvent SuccessMoveEvent(Vector2Int vs, Vector2Int vd, short r, byte p, int pb, int sb)
     {
-        return new MoveEvent() { sourcePos = vs, destinationPos = vd, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = true };
+        return new MoveEvent() { sourcePos = vs, destinationPos = vd, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb};
     }
 
     internal static MoveEvent FailMoveEvent(Vector2Int vs, Vector2Int vd, short r, byte p, int pb, int sb)
     {
-        return new MoveEvent() { sourcePos = vs, destinationPos = vd, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = false };
+        return new MoveEvent() { sourcePos = vs, destinationPos = vd, robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb};
     }
 
     internal static AttackEvent SuccessAttackEvent(Vector2Int l, short r, byte p, int pb, int sb)
     {
-        return new AttackEvent() { locs = new List<Vector2Int>(l), robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb, success = true };
+        return new AttackEvent() { locs = new List<Vector2Int>(l), robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb};
     }
 
     internal static MissEvent SuccessMissEvent(Vector2Int l, short r, byte p)
     {
-        return new MissEvent() { locs = new List<Vector2Int>(l), robotId = r, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true };
+        return new MissEvent() { locs = new List<Vector2Int>(l), robotId = r, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0};
     }
 
     internal static BlockEvent SuccessBlockEvent(Vector2Int v, short r, string blocker, byte p)
     {
-        return new BlockEvent() { robotId = r, blockingObject = blocker, deniedPos = v, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true };
+        return new BlockEvent() { robotId = r, blockingObject = blocker, deniedPos = v, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0};
     }
 
     internal static PushEvent SuccessPushEvent(short r, short v, Vector2Int d, byte p)
     {
-        return new PushEvent() {robotId = r, victim = v, direction = d, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = true};
+        return new PushEvent() {robotId = r, victim = v, direction = d, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0};
     }
 
     internal static PushEvent FailPushEvent(short r, short v, Vector2Int d, byte p)
     {
-        return new PushEvent(){robotId = r, victim = v, direction = d, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0, success = false};
+        return new PushEvent(){robotId = r, victim = v, direction = d, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0};
     }
     
     internal static List<GameEvent> SimulateCommands(params Command[] cmds)

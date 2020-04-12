@@ -143,10 +143,11 @@ public abstract class BaseGameManager
         
         boardController.DiffBattery(e.primaryBatteryCost, e.secondaryBatteryCost);
         if (e is ResolveEvent) {
-            List<Tuple<short, Vector2Int>> robotIdToSpawn = ((ResolveEvent)e).robotIdToSpawn;
-            List<Tuple<short, Vector2Int>> robotIdToMove = ((ResolveEvent)e).robotIdToMove;
-            List<Tuple<short, short>> robotIdToHealth = ((ResolveEvent)e).robotIdToHealth;
-            Counter animationsToPlay = new Counter(robotIdToSpawn.GetLength() + robotIdToMove.GetLength() + robotIdToHealth.GetLength());
+            ResolveEvent re = (ResolveEvent)e;
+            List<Tuple<short, Vector2Int>> robotIdToSpawn = re.robotIdToSpawn;
+            List<Tuple<short, Vector2Int>> robotIdToMove = re.robotIdToMove;
+            List<Tuple<short, short>> robotIdToHealth = re.robotIdToHealth;
+            Counter animationsToPlay = new Counter(re.GetNumResolutions());
             UnityAction callback = () => {
                 animationsToPlay.Decrement();
                 if (animationsToPlay.Get() <= 0) {
@@ -168,6 +169,7 @@ public abstract class BaseGameManager
                 RobotController primaryRobot = robotControllers.Get(t.GetLeft());
                 primaryRobot.displayDamage(t.GetRight(), callback);
             });
+            if (re.myBatteryHit) boardController.GetMyBattery().DisplayDamage(re.primaryBatteryCost, callback);
         }
         else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(() => PlayEvent(events, index+1));
         else if (e is MoveEvent) robotControllers.Get(((MoveEvent)e).robotId).displayMoveRequest(((MoveEvent)e).destinationPos, () => PlayEvent(events, index+1));

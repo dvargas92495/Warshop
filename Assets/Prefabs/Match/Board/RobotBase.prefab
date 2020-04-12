@@ -45,14 +45,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20eaf5f3168b0b64c88f58e2660c0e6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animator: {fileID: 95451225254426060}
   animatorHelper: {fileID: 114650362912246978}
   defaultModel: {fileID: 1175896210484362, guid: 0f0c5c7685f77af4fbf6c63bac0e02ae,
     type: 3}
   healthMeshRenderer: {fileID: 23364946913414654}
   attackMeshRenderer: {fileID: 23616210894304974}
-  eventArrow: {fileID: 212940891813466512, guid: 0ec74add9afba8b4cb2c69239a746618,
-    type: 3}
   healthLabel: {fileID: 102736957411386890}
   attackLabel: {fileID: 102573961694724984}
   robotModels:
@@ -230,6 +227,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f27d0e74e04d195438f7f088e9251309, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animator: {fileID: 95451225254426060}
 --- !u!1 &1443252588843480
 GameObject:
   m_ObjectHideFlags: 0
