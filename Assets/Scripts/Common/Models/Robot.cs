@@ -93,6 +93,7 @@ public class Robot
 
     internal virtual List<GameEvent> Spawn(Vector2Int pos, bool isPrimary)
     {
+        if (!position.Equals(Map.NULL_VEC)) return new List<GameEvent>();
         SpawnEvent evt = new SpawnEvent();
         evt.destinationPos = pos;
         evt.robotId = id;
@@ -102,6 +103,7 @@ public class Robot
     }
     internal virtual List<GameEvent> Move(byte dir, bool isPrimary)
     {
+        if (position.Equals(Map.NULL_VEC)) return new List<GameEvent>();
         MoveEvent evt = new MoveEvent();
         evt.sourcePos = position;
         evt.destinationPos = position + Command.DirectionToVector(dir);
@@ -112,6 +114,7 @@ public class Robot
     }
     internal virtual List<GameEvent> Attack(byte dir, bool isPrimary)
     {
+        if (position.Equals(Map.NULL_VEC)) return new List<GameEvent>();
         AttackEvent evt = new AttackEvent();
         evt.locs = GetVictimLocations(dir);
         evt.robotId = id;

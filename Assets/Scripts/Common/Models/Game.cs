@@ -196,9 +196,31 @@ public class Game
                                               if (!resolveEvent.missedAttacks.Contains(v)) resolveEvent.missedAttacks.Add(v);
                                           });
                             });
-                priorityEvents.Add(resolveEvent);
 
-                // CONFLICT RESOLUTION HERE
+                bool valid = false;
+                while (!valid) {
+                    valid = true;
+
+                    // Spawn x Spawn
+                    List<Tuple<Vector2Int, List<short>>> spacesToRobotIds = new List<Tuple<Vector2Int, List<short>>>();
+                    resolveEvent.robotIdToSpawn.ForEach(t => {
+                        Tuple<Vector2Int, List<short>> pair = spacesToRobotIds.Find(s => s.GetLeft().Equals(t.GetRight()));
+                        if (pair == null) {
+                            spacesToRobotIds.Add(new Tuple<Vector2Int, List<short>>(t.GetRight(), new List<short>(t.GetLeft())));
+                        } else {
+                            pair.GetRight().Add(t.GetLeft());
+                        }
+                    });
+                    spacesToRobotIds.Filter(t => t.GetRight().GetLength() > 1).ForEach(t => 
+                        t.GetRight().ForEach(r => {
+                            resolveEvent.robotIdToSpawn.Remove(new Tuple<short, Vector2Int>(r, t.GetLeft()));
+                            resolveEvent.robotIdsBlocked.Add(r);
+                            valid = false;
+                        })
+                    );
+                }
+
+                priorityEvents.Add(resolveEvent);
                 
                 resolveEvent.robotIdToSpawn.ForEach(t => {
                     GetRobot(t.GetLeft()).position = t.GetRight();
@@ -258,17 +280,11 @@ public class Game
         return evts;
     }
 
-    private bool Validate(List<GameEvent> events)
-    {
-        return events.Reduce(true, (valid, g) => valid && Validate(events, g));
-    }
-
     private bool Validate(List<GameEvent> events, GameEvent g)
     {
         if (g is MoveEvent) return Validate(events, (MoveEvent)g);
         else if (g is PushEvent) return Validate(events, (PushEvent)g);
         else if (g is AttackEvent) return Validate(events, (AttackEvent)g);
-        else if (g is SpawnEvent) return Validate(events, (SpawnEvent)g);
         return true;
     }
 
@@ -341,22 +357,6 @@ public class Game
             evt.robotId = g.robotId;
             evt.locs = g.locs;
             events.Add(evt, index + 1);
-        }
-        return true;
-    }
-
-    private bool Validate(List<GameEvent> events, SpawnEvent g)
-    {
-        int index = events.FindIndex(g);
-        Robot occupant = GetRobot(g.destinationPos);
-        if (occupant != null)
-        {
-            BlockEvent evt = new BlockEvent();
-            evt.deniedPos = g.destinationPos;
-            evt.robotId = g.robotId;
-            evt.blockingObject = occupant.name;
-            events.Add(evt, index+1);
-            return false;
         }
         return true;
     }

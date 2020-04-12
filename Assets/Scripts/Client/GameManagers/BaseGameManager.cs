@@ -168,6 +168,7 @@ public abstract class BaseGameManager
             if (re.myBatteryHit) boardController.GetMyBattery().DisplayDamage(callback);
             if (re.opponentBatteryHit) boardController.GetOpponentBattery().DisplayDamage(callback);
             re.missedAttacks.ForEach(v => boardController.DisplayMiss(v, callback));
+            re.robotIdsBlocked.ForEach(r => robotControllers.Get(r).DisplayBlocked(callback));
         }
         else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(Next);
         else if (e is MoveEvent) robotControllers.Get(((MoveEvent)e).robotId).displayMoveRequest(((MoveEvent)e).destinationPos, Next);

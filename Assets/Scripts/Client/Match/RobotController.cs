@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Events;
 
 public class RobotController : Controller
@@ -105,6 +106,11 @@ public class RobotController : Controller
     public void displayMoveRequest(Vector2Int v, UnityAction robotCallback)
     {
         animatorHelper.Animate("MoveRequest" + getDir(v), robotCallback);
+    }
+
+    internal void DisplayBlocked(UnityAction callback)
+    {
+        animatorHelper.Animate("Blocked", callback);
     }
 
     public void displayAttack(Vector2Int v, UnityAction robotCallback)

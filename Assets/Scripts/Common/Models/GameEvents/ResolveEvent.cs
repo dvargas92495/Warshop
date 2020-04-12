@@ -10,6 +10,7 @@ public class ResolveEvent : GameEvent
     public bool myBatteryHit;
     public bool opponentBatteryHit;
     public List<Vector2Int> missedAttacks = new List<Vector2Int>();
+    public List<short> robotIdsBlocked = new List<short>();
 
     public override void Serialize(NetworkWriter writer)
     {
@@ -38,6 +39,8 @@ public class ResolveEvent : GameEvent
             writer.Write(t.x);
             writer.Write(t.y);
         });
+        writer.Write(robotIdsBlocked.GetLength());
+        robotIdsBlocked.ForEach(writer.Write);
     }
 
     public new static ResolveEvent Deserialize(NetworkReader reader)
@@ -83,13 +86,19 @@ public class ResolveEvent : GameEvent
             int y = reader.ReadInt32();
             evt.missedAttacks.Add(new Vector2Int(x, y));
         }
+        int blockedLength = reader.ReadInt32();
+        evt.robotIdsBlocked = new List<short>();
+        for (int i = 0; i < blockedLength; i++)
+        {
+            evt.robotIdsBlocked.Add(reader.ReadInt16());
+        }
         return evt;
     }
 
     public override string ToString()
     {
-        return string.Format("{0}Resolved commands:\nSpawn - {1}\nMove - {2}\nHealth - {3} {4} {5} {6}", 
-          base.ToString(), robotIdToSpawn, robotIdToMove, robotIdToHealth, myBatteryHit, opponentBatteryHit, missedAttacks);
+        return string.Format("{0}Resolved commands:\nSpawn - {1}\nMove - {2}\nHealth - {3} {4} {5} {6}\nBlocked - {7}", 
+          base.ToString(), robotIdToSpawn, robotIdToMove, robotIdToHealth, myBatteryHit, opponentBatteryHit, missedAttacks, robotIdsBlocked);
     }
 
     public override bool Equals(object obj)
@@ -101,7 +110,8 @@ public class ResolveEvent : GameEvent
           && other.robotIdToHealth.Equals(robotIdToHealth) 
           && other.myBatteryHit.Equals(myBatteryHit) 
           && other.opponentBatteryHit.Equals(opponentBatteryHit) 
-          && other.missedAttacks.Equals(missedAttacks);
+          && other.missedAttacks.Equals(missedAttacks) 
+          && other.robotIdsBlocked.Equals(robotIdsBlocked);
     }
 
     public override int GetHashCode()
@@ -116,6 +126,7 @@ public class ResolveEvent : GameEvent
         + robotIdToHealth.GetLength()
         + (myBatteryHit ? 1 : 0)
         + (opponentBatteryHit ? 1 : 0)
-        + missedAttacks.GetLength();
+        + missedAttacks.GetLength()
+        + robotIdsBlocked.GetLength();
     }
 }
