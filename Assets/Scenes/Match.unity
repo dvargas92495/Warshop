@@ -321,6 +321,12 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 8037031718421735220, guid: 433d597c410b9fa48ab33590f14eb351,
+        type: 3}
+      propertyPath: tile
+      value: 
+      objectReference: {fileID: 2481089089959795521, guid: 8cf26a144fe69a34fb03103c015fd34d,
+        type: 3}
     - target: {fileID: 8037031718421735223, guid: 433d597c410b9fa48ab33590f14eb351,
         type: 3}
       propertyPath: m_Name

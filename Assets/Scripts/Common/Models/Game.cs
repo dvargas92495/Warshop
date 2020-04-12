@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Networking;
 
 public class Game
 {
@@ -168,6 +167,7 @@ public class Game
                                                         .Map(e => (MoveEvent)e)
                                                         .Map(e => new Tuple<short, Vector2Int>(e.robotId, e.destinationPos));
                 resolveEvent.robotIdToHealth = new List<Tuple<short, short>>();
+                resolveEvent.missedAttacks = new List<Vector2Int>();
                 priorityEvents.Filter(e => e is AttackEvent)
                             .Map(e => (AttackEvent)e)
                             .ForEach(e => {
@@ -191,6 +191,10 @@ public class Game
                                         resolveEvent.myBatteryHit = resolveEvent.myBatteryHit || isPrimaryBase;
                                         resolveEvent.opponentBatteryHit = resolveEvent.opponentBatteryHit || !isPrimaryBase;
                                     });
+                                    e.locs.Filter(v => !board.IsBattery(v) && !allRobots.Any(r => r.position.Equals(v)))
+                                          .ForEach(v => {
+                                              if (!resolveEvent.missedAttacks.Contains(v)) resolveEvent.missedAttacks.Add(v);
+                                          });
                             });
                 priorityEvents.Add(resolveEvent);
 

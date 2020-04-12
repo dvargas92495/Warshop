@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 
 public class BoardController : Controller
 {
@@ -60,6 +61,11 @@ public class BoardController : Controller
     private TileController FindTile(float x, float y)
     {
         return allLocations.Find(t => t.transform.position.x == x && t.transform.position.y == y);
+    }
+
+    public void DisplayMiss(Vector2Int v, UnityAction callback)
+    {
+        FindTile(v.x, v.y).DisplayMiss(callback);
     }
 
     public BatteryController GetMyBattery()

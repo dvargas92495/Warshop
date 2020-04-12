@@ -4,11 +4,12 @@ using UnityEngine.Networking;
 public class ResolveEvent : GameEvent
 {
     internal const byte EVENT_ID = 12;
-    public List<Tuple<short, Vector2Int>> robotIdToSpawn;
-    public List<Tuple<short, Vector2Int>> robotIdToMove;
-    public List<Tuple<short, short>> robotIdToHealth;
+    public List<Tuple<short, Vector2Int>> robotIdToSpawn = new List<Tuple<short, Vector2Int>>();
+    public List<Tuple<short, Vector2Int>> robotIdToMove = new List<Tuple<short, Vector2Int>>();
+    public List<Tuple<short, short>> robotIdToHealth = new List<Tuple<short, short>>();
     public bool myBatteryHit;
     public bool opponentBatteryHit;
+    public List<Vector2Int> missedAttacks = new List<Vector2Int>();
 
     public override void Serialize(NetworkWriter writer)
     {
@@ -32,6 +33,11 @@ public class ResolveEvent : GameEvent
         });
         writer.Write(myBatteryHit);
         writer.Write(opponentBatteryHit);
+        writer.Write(missedAttacks.GetLength());
+        missedAttacks.ForEach(t => { 
+            writer.Write(t.x);
+            writer.Write(t.y);
+        });
     }
 
     public new static ResolveEvent Deserialize(NetworkReader reader)
@@ -67,14 +73,23 @@ public class ResolveEvent : GameEvent
             short damage = reader.ReadInt16();
             evt.robotIdToHealth.Add(new Tuple<short, short>(robotId, damage));
         }
-        bool myBatteryHit = reader.ReadBoolean();
-        bool opponentBatteryHit = reader.ReadBoolean();
+        evt.myBatteryHit = reader.ReadBoolean();
+        evt.opponentBatteryHit = reader.ReadBoolean();
+        int missedLength = reader.ReadInt32();
+        evt.missedAttacks = new List<Vector2Int>();
+        for (int i = 0; i < missedLength; i++)
+        {
+            int x = reader.ReadInt32();
+            int y = reader.ReadInt32();
+            evt.missedAttacks.Add(new Vector2Int(x, y));
+        }
         return evt;
     }
 
     public override string ToString()
     {
-        return string.Format("{0}Resolved commands:\nSpawn - {1}\nMove - {2}\nHealth - {3}", base.ToString(), robotIdToSpawn, robotIdToMove, robotIdToHealth);
+        return string.Format("{0}Resolved commands:\nSpawn - {1}\nMove - {2}\nHealth - {3} {4} {5} {6}", 
+          base.ToString(), robotIdToSpawn, robotIdToMove, robotIdToHealth, myBatteryHit, opponentBatteryHit, missedAttacks);
     }
 
     public override bool Equals(object obj)
@@ -83,7 +98,10 @@ public class ResolveEvent : GameEvent
         ResolveEvent other = (ResolveEvent)obj;
         return other.robotIdToSpawn.Equals(robotIdToSpawn) 
           && other.robotIdToMove.Equals(robotIdToMove) 
-          && other.robotIdToHealth.Equals(robotIdToHealth);
+          && other.robotIdToHealth.Equals(robotIdToHealth) 
+          && other.myBatteryHit.Equals(myBatteryHit) 
+          && other.opponentBatteryHit.Equals(opponentBatteryHit) 
+          && other.missedAttacks.Equals(missedAttacks);
     }
 
     public override int GetHashCode()
@@ -97,6 +115,7 @@ public class ResolveEvent : GameEvent
         + robotIdToMove.GetLength() 
         + robotIdToHealth.GetLength()
         + (myBatteryHit ? 1 : 0)
-        + (opponentBatteryHit ? 1 : 0);
+        + (opponentBatteryHit ? 1 : 0)
+        + missedAttacks.GetLength();
     }
 }

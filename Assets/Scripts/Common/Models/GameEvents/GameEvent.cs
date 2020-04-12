@@ -60,7 +60,7 @@ public abstract class GameEvent
     }
     public override string ToString()
     {
-        return string.Format("Event({3}) at {0} costing ({1},{2}) - ", priority, primaryBatteryCost, secondaryBatteryCost);
+        return string.Format("Event at {0} costing ({1},{2}) - ", priority, primaryBatteryCost, secondaryBatteryCost);
     }
     public override bool Equals(object obj)
     {

@@ -14,9 +14,8 @@ public class BatteryController : Controller
         scoreMeshRenderer.sortingOrder = 2;
     }
 
-    internal void DisplayDamage(short cost, UnityAction callback)
+    internal void DisplayDamage(UnityAction callback)
     {
-        score.text = (int.Parse(score.text) - cost).ToString();
         animatorHelper.Animate("BatteryDamage", callback);
     }
 }

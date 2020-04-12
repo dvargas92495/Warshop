@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using UnityEngine.Networking;
+﻿using UnityEngine.Networking;
 
 public class Messages {
     public const short START_LOCAL_GAME = MsgType.Highest + 1;

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using TMPro;
+using System;
 
 public class TileController : Controller
 {
@@ -12,6 +13,7 @@ public class TileController : Controller
     public Material opponentCore;
     public MeshRenderer meshRenderer;
     public TMP_Text spawnTileText;
+    public AnimatorHelper animatorHelper;
 
     private Color userColor = Color.blue;
     private Color opponentColor = Color.red;
@@ -52,7 +54,7 @@ public class TileController : Controller
     {
         TMP_Text spawnText = Instantiate(spawnTileText, transform);
         spawnText.text = (s.GetIndex() + 1).ToString();
-        spawnText.transform.localPosition = Vector3.back * 0.501f;
+        spawnText.transform.localPosition = Vector3.back * 0.101f;
         spawnText.outlineColor = s.GetIsPrimary() ? userColor : opponentColor;
     }
 
@@ -64,6 +66,11 @@ public class TileController : Controller
     public void ResetMesh()
     {
         meshRenderer.material = baseTile;
+    }
+
+    internal void DisplayMiss(UnityAction callback)
+    {
+        animatorHelper.Animate("MissAttack", callback);
     }
 
     public Material GetMaterial()
