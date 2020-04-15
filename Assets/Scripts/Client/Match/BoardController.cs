@@ -49,7 +49,7 @@ public class BoardController : Controller
     {
         TileController loc = FindTile(x, y);
         loc.LoadRobotOnTileMesh(robot.isOpponent);
-        robot.transform.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -loc.transform.localScale.z*0.501f);
+        robot.transform.localPosition = new Vector3(loc.transform.localPosition.x, loc.transform.localPosition.y, -loc.transform.localScale.z*0.1f);
     }
 
     public void UnplaceRobot(RobotController robot)

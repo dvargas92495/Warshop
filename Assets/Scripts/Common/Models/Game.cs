@@ -201,23 +201,45 @@ public class Game
                 while (!valid) {
                     valid = true;
 
-                    // Spawn x Spawn
-                    List<Tuple<Vector2Int, List<short>>> spacesToRobotIds = new List<Tuple<Vector2Int, List<short>>>();
+                    // Move x Move
+                    List<Tuple<Vector2Int, List<Tuple<short, bool>>>> spacesToRobotIds = new List<Tuple<Vector2Int, List<Tuple<short, bool>>>>();
                     resolveEvent.robotIdToSpawn.ForEach(t => {
-                        Tuple<Vector2Int, List<short>> pair = spacesToRobotIds.Find(s => s.GetLeft().Equals(t.GetRight()));
+                        Tuple<Vector2Int, List<Tuple<short, bool>>> pair = spacesToRobotIds.Find(s => s.GetLeft().Equals(t.GetRight()));
                         if (pair == null) {
-                            spacesToRobotIds.Add(new Tuple<Vector2Int, List<short>>(t.GetRight(), new List<short>(t.GetLeft())));
+                            spacesToRobotIds.Add(new Tuple<Vector2Int, List<Tuple<short, bool>>>(t.GetRight(), new List<Tuple<short, bool>>(new Tuple<short, bool>(t.GetLeft(), true))));
                         } else {
-                            pair.GetRight().Add(t.GetLeft());
+                            pair.GetRight().Add(new Tuple<short, bool>(t.GetLeft(), true));
+                        }
+                    });
+                    resolveEvent.robotIdToMove.ForEach(t => {
+                        Tuple<Vector2Int, List<Tuple<short, bool>>> pair = spacesToRobotIds.Find(s => s.GetLeft().Equals(t.GetRight()));
+                        if (pair == null) {
+                            spacesToRobotIds.Add(new Tuple<Vector2Int, List<Tuple<short, bool>>>(t.GetRight(), new List<Tuple<short, bool>>(new Tuple<short, bool>(t.GetLeft(), false))));
+                        } else {
+                            pair.GetRight().Add(new Tuple<short, bool>(t.GetLeft(), false));
                         }
                     });
                     spacesToRobotIds.Filter(t => t.GetRight().GetLength() > 1).ForEach(t => 
                         t.GetRight().ForEach(r => {
-                            resolveEvent.robotIdToSpawn.Remove(new Tuple<short, Vector2Int>(r, t.GetLeft()));
-                            resolveEvent.robotIdsBlocked.Add(r);
+                            Tuple<short, Vector2Int> pairToRemove = new Tuple<short, Vector2Int>(r.GetLeft(), t.GetLeft());
+                            if (r.GetRight()) resolveEvent.robotIdToSpawn.Remove(pairToRemove);
+                            else resolveEvent.robotIdToMove.Remove(pairToRemove);
+                            resolveEvent.robotIdsBlocked.Add(r.GetLeft());
                             valid = false;
                         })
                     );
+
+                    // Spawn x Still
+                    List<Tuple<short, Vector2Int>> spawnsToBlock = resolveEvent.robotIdToSpawn.Filter(t => {
+                        Robot other = allRobots.Find(r => r.position.Equals(t.GetRight()));
+                        if (other == null) return false;
+                        return !resolveEvent.robotIdToMove.Any(m => other.id.Equals(m.GetLeft()));
+                    });
+                    spawnsToBlock.ForEach(t => {
+                        resolveEvent.robotIdToSpawn.Remove(t);
+                        resolveEvent.robotIdsBlocked.Add(t.GetLeft());
+                        valid = false;
+                    });
                 }
 
                 priorityEvents.Add(resolveEvent);
