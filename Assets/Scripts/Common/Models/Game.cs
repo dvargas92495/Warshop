@@ -240,6 +240,20 @@ public class Game
                         resolveEvent.robotIdsBlocked.Add(t.GetLeft());
                         valid = false;
                     });
+
+                    // Move x Still/Swap
+                    List<Tuple<short, Vector2Int>> movesToBlock = resolveEvent.robotIdToMove.Filter(t => {
+                        if(board.IsVoid(t.GetRight()) || board.IsBattery(t.GetRight())) return true;
+                        Robot self = allRobots.Find(r => r.id.Equals(t.GetLeft()));
+                        Robot other = allRobots.Find(r => r.position.Equals(t.GetRight()));
+                        if (other == null) return false;
+                        return !resolveEvent.robotIdToMove.Any(m => other.id.Equals(m.GetLeft()) && !self.position.Equals(m.GetRight()));
+                    });
+                    movesToBlock.ForEach(t => {
+                        resolveEvent.robotIdToMove.Remove(t);
+                        resolveEvent.robotIdsBlocked.Add(t.GetLeft());
+                        valid = false;
+                    });
                 }
 
                 priorityEvents.Add(resolveEvent);
@@ -302,215 +316,9 @@ public class Game
         return evts;
     }
 
-    private bool Validate(List<GameEvent> events, GameEvent g)
-    {
-        if (g is MoveEvent) return Validate(events, (MoveEvent)g);
-        else if (g is PushEvent) return Validate(events, (PushEvent)g);
-        else if (g is AttackEvent) return Validate(events, (AttackEvent)g);
-        return true;
-    }
-
-    private bool Validate(List<GameEvent> events, MoveEvent g)
-    {
-        int index = events.FindIndex(g);
-        ReturnAction<string, bool> generateBlockEvent = (string s) =>
-        {
-            Robot r = GetRobot(g.robotId);
-            BlockEvent evt = new BlockEvent();
-            evt.deniedPos = g.destinationPos;
-            evt.robotId = g.robotId;
-            evt.blockingObject = s;
-            events.Add(evt, index+1);
-            return false;
-        };
-        if (board.IsVoid(g.destinationPos))
-        {
-            return generateBlockEvent(BlockEvent.WALL);
-        }
-        if (board.IsBattery(g.destinationPos))
-        {
-            return generateBlockEvent(BlockEvent.BATTERY);
-        }
-        return true;
-    }
-
-    private bool Validate(List<GameEvent> events, PushEvent g)
-    {
-        int index = events.FindIndex(g);
-        if (events.GetLength() > index + 4 && events.Get(index + 4) is BlockEvent)
-        {
-            BlockEvent block = new BlockEvent();
-            block.blockingObject = ((BlockEvent)events.Get(index+4)).blockingObject;
-            MoveEvent original = (MoveEvent)events.Get(index - 1);
-            block.deniedPos = original.destinationPos;
-            block.robotId = original.robotId;
-            events.Add(block);
-            return false;
-        }
-        return true;
-    }
-
-    private bool Validate(List<GameEvent> events, AttackEvent g)
-    {
-        int index = events.FindIndex(g);
-        Robot attacker = GetRobot(g.robotId);
-        bool hitABattery = false;
-        /*
-        g.locs.ForEach(v =>
-        {
-            if (board.IsBattery(v))
-            {
-                bool isPrimaryBase = board.IsPrimary(v);
-                GameEvent.Battery evt = new GameEvent.Battery();
-                evt.isPrimary = isPrimaryBase;
-                evt.damage = attacker.attack;
-                short drain = (short)(GameConstants.DEFAULT_BATTERY_MULTIPLIER * attacker.attack);
-                evt.primaryBatteryCost += isPrimaryBase ? drain : (short)0;
-                evt.secondaryBatteryCost += isPrimaryBase ? (short)0: drain;
-                events.Add(evt, index + 1);
-                hitABattery = true;
-            }
-        });
-        */
-        List<Robot> victims = primary.team.Concat(secondary.team).Filter(robot => g.locs.Contains(robot.position));
-        if (victims.GetLength() == 0 && !hitABattery)
-        {
-            MissEvent evt = new MissEvent();
-            evt.robotId = g.robotId;
-            evt.locs = g.locs;
-            events.Add(evt, index + 1);
-        }
-        return true;
-    }
-
-    private bool AreValidTogether(Dictionary<short, List<GameEvent>> idsToWantedEvents)
-    {
-        bool valid = true;
-        ReturnAction<string, Vector2Int, UnityAction<short>> generateBlockEvent = (string blocker, Vector2Int space) => new UnityAction<short>((short key) =>
-        {
-            List<GameEvent> wanted = idsToWantedEvents.Get(key);
-            BlockEvent block = new BlockEvent();
-            block.blockingObject = blocker;
-            GameEvent original = wanted.Find((GameEvent e) =>
-                (e is MoveEvent && ((MoveEvent)e).destinationPos.Equals(space)) ||
-                (e is SpawnEvent && ((SpawnEvent)e).destinationPos.Equals(space))
-            );
-            block.deniedPos = original is MoveEvent ? ((MoveEvent)original).destinationPos : ((SpawnEvent)original).destinationPos;
-            short originalRobotId = original is MoveEvent ? ((MoveEvent)original).robotId : ((SpawnEvent)original).robotId;
-            block.robotId = originalRobotId;
-            int index = wanted.FindIndex(original);
-            int size = wanted.GetLength() - index;
-            wanted.RemoveAt(index + 1, size - 1);
-            wanted.Add(block);
-        });
-
-        // Check for pushing, what the hell is going on here... 
-        List<MoveEvent> moveEvents = idsToWantedEvents.ToValueList().Reduce(new List<MoveEvent>(), (ms, evts) => ms.Concat(evts.Filter(e => e is MoveEvent).Map(e => (MoveEvent)e)));
-        moveEvents.ForEach(g =>
-        {
-            Robot occupant = GetRobot(g.destinationPos);
-            if (occupant != null)
-            {
-                bool isAlsoMoving = moveEvents.Any(e => e.robotId == occupant.id);
-                if (!isAlsoMoving)
-                {
-                    List<GameEvent> events = idsToWantedEvents.Get(evts => evts.Contains(g));
-                    Vector2Int diff = g.destinationPos - g.sourcePos;
-                    if (g.Equals(events.Get(0)) && !(events.GetLength() > 1 && events.Get(1) is PushEvent))
-                    {
-                        PushEvent push = new PushEvent();
-                        push.robotId = g.robotId;
-                        push.victim = occupant.id;
-                        push.direction = diff;
-                        events.Add(push);
-                        MoveEvent move = new MoveEvent();
-                        move.robotId = occupant.id;
-                        move.sourcePos = g.destinationPos;
-                        move.destinationPos = g.destinationPos + diff;
-                        events.Add(move);
-                        valid = false;
-                    }
-                    else
-                    {
-                        Robot r = GetRobot(g.robotId);
-                        int index = events.FindIndex(g);
-                        BlockEvent evt = new BlockEvent();
-                        evt.deniedPos = g.destinationPos;
-                        evt.robotId = g.robotId;
-                        evt.blockingObject = occupant.name;
-                        events.Add(evt, index + 1);
-                        valid = false;
-                    }
-                }
-            }
-        });
-
-        //First do swapping positions check
-        idsToWantedEvents.ForEach((key1, evts1) =>
-        {
-            idsToWantedEvents.ForEach((key2, evts2) =>
-            {
-                Robot r1 = GetRobot(key1);
-                Robot r2 = GetRobot(key2);
-                MoveEvent m1 = evts1.Find((GameEvent g) => {
-                    return g is MoveEvent && ((MoveEvent)g).destinationPos.Equals(r2.position);
-                }) as MoveEvent;
-                MoveEvent m2 = evts2.Find((GameEvent g) => {
-                    return g is MoveEvent && ((MoveEvent)g).destinationPos.Equals(r1.position);
-                }) as MoveEvent;
-                if (m1 != null && m2 != null)
-                {
-                    generateBlockEvent(r2.name, m1.destinationPos)(key1);
-                    generateBlockEvent(r1.name, m2.destinationPos)(key2);
-                    valid = false;
-                }
-            });
-        });
-
-        //Then do multiple robots contest for one position check
-        Dictionary<Vector2Int, List<short>> spaceToIds = new Dictionary<Vector2Int, List<short>>(board.spaces.Length);
-        idsToWantedEvents.ForEach((key, evts) =>
-        {
-            evts.ForEach((GameEvent e) =>
-            {
-                Vector2Int newspace = Map.NULL_VEC;
-                if (e is MoveEvent)
-                {
-                    newspace = ((MoveEvent)e).destinationPos;
-                } else if (e is SpawnEvent)
-                {
-                    newspace = ((SpawnEvent)e).destinationPos;
-                }
-                if (!newspace.Equals(Map.NULL_VEC))
-                {
-                    if (spaceToIds.Contains(newspace)) spaceToIds.Get(newspace).Add(key);
-                    else spaceToIds.Add(newspace, new List<short>(key));
-                }
-            });
-        });
-        spaceToIds.ForEach((space, idsWantSpace) =>
-        {
-            if (idsWantSpace != null && idsWantSpace.GetLength() > 1)
-            {
-                valid = false;
-                idsWantSpace.ForEach(id => {
-                    List<string> otherRobotNames = idsToWantedEvents.ToKeyListFiltered(k => k != id).Map(k => GetRobot(k).name);
-                    generateBlockEvent(otherRobotNames.ToString(), space)(id);
-                });
-            }
-        });
-
-        return valid;
-    }
-
     private Robot GetRobot(short id)
     {
         return GetRobot(r => r.id == id);
-    }
-
-    private Robot GetRobot(Vector2Int space)
-    {
-        return GetRobot(r => r.position.Equals(space));
     }
 
     private Robot GetRobot(ReturnAction<Robot, bool> callback)
