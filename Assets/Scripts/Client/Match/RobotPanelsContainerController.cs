@@ -47,9 +47,9 @@ public class RobotPanelsContainerController : Controller
         robotIdToPanels.Get(robotId).ClearCommands();
     }
 
-    public void HighlightCommands(byte commandId, byte p)
+    public void HighlightCommands(byte p)
     {
-        robotIdToPanels.ForEachValue(panel => panel.commandSlotContainer.HighlightCommand(commandId, p));
+        robotIdToPanels.ForEachValue(panel => panel.commandSlotContainer.HighlightCommand(p));
     }
 
     public void ColorCommandsSubmitted(short robotId)

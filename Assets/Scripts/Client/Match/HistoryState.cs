@@ -134,8 +134,8 @@ public class HistoryState
         boardController.SetBattery(myScore, opponentScore);
     }
 
-    public bool IsBeforeOrDuring(byte p, byte c)
+    public bool IsBeforeOrDuring(byte p)
     {
-        return p > priority || (p == priority && c <= commandType);
+        return p >= priority;
     }
 }

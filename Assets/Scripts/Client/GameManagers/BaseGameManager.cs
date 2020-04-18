@@ -139,12 +139,16 @@ public abstract class BaseGameManager
             SetupNextTurn();
             return;
         }
-        UnityAction Next = () => PlayEvent(events, index+1);
+        UnityAction Next = () => {
+            Debug.Log("abt to call " + (index+1));
+            PlayEvent(events, index+1);
+        };
         GameEvent e = events[index];
-        
+        Debug.Log(e);
         boardController.DiffBattery(e.primaryBatteryCost, e.secondaryBatteryCost);
         if (e is ResolveEvent) {
             ResolveEvent re = (ResolveEvent)e;
+            uiController.HighlightCommands(re.priority);
             Counter animationsToPlay = new Counter(re.GetNumResolutions());
             UnityAction callback = () => {
                 animationsToPlay.Decrement();
@@ -172,19 +176,36 @@ public abstract class BaseGameManager
         }
         else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(Next);
         else if (e is MoveEvent) robotControllers.Get(((MoveEvent)e).robotId).displayMoveRequest(((MoveEvent)e).destinationPos, Next);
-        else if (e is AttackEvent) ((AttackEvent)e).locs.ForEach(v => robotControllers.Get(((AttackEvent)e).robotId).displayAttack(v, Next));
-        else PlayEvent(events,index + 1);
+        else if (e is AttackEvent) ((AttackEvent)e).locs.ForEach(v => {
+            Debug.Log("attackin: "+v);
+            robotControllers.Get(((AttackEvent)e).robotId).displayAttack(v, Next);
+        });
+        else if (e is EndEvent)
+        {
+            EndEvent evt = (EndEvent)e;
+            Counter animationsToPlay = new Counter((evt.primaryLost ? 1 : 0) + (evt.secondaryLost ? 1 : 0));
+            UnityAction callback = () => {
+                animationsToPlay.Decrement();
+                if (animationsToPlay.Get() <= 0) {
+                    uiController.robotButtonContainer.SetButtons(false);
+                    uiController.statsInterface.Initialize(evt);
+                    gameClient.SendEndGameRequest();
+                }
+            };
+            if (evt.primaryLost) boardController.GetMyBattery().DisplayEnd(callback);
+            if (evt.secondaryLost) boardController.GetOpponentBattery().DisplayEnd(callback);
+        }
+        else PlayEvent(events, index + 1);
     }
 
     protected virtual void PlayEvents(GameEvent[] events)
     {
         uiController.LightUpPanel(true, false);
+        Debug.Log(new List<GameEvent>(events));
         PlayEvent(events, 0);
         /*
             if (e is ResolveEvent)
             {
-                ResolveEvent r = (ResolveEvent)e;
-                uiController.HighlightCommands(r.commandType, r.priority);
                 history.Add(SerializeState(turnNumber, r.priority, r.commandType));
                 eventsThisPriority.ForEach(evt =>
                 {
@@ -196,25 +217,9 @@ public abstract class BaseGameManager
                         primaryRobot.transform.localPosition = dock.PlaceInBelt();
                     });
                 });
-                eventsThisPriority.Clear();
-            }
-            else if (e is GameEvent.End)
-            {
-                GameEvent.End evt = (GameEvent.End)e;
-                if (evt.primaryLost) boardController.GetMyBattery().transform.Rotate(Vector3.down * 90);
-                if (evt.secondaryLost) boardController.GetOpponentBattery().transform.Rotate(Vector3.down * 90);
-                uiController.Splash(evt.primaryLost);
-                uiController.statsInterface.Initialize(evt);
-                gameClient.SendEndGameRequest();
-            }
-            else
-            {
-                if (e is BlockEvent) robotControllers.Get(((BlockEvent)e).robotId).displayEvent(uiController.GetArrow("Collision"), ((BlockEvent)e).deniedPos, callback);
-                else if (e is PushEvent) robotControllers.Get(((PushEvent)e).robotId).displayEvent(uiController.GetArrow("Push"), new Vector2Int((int)robotControllers.Get(((PushEvent)e).robotId).transform.position.x, (int)robotControllers.Get(((PushEvent)e).robotId).transform.position.y) + ((PushEvent)e).direction, callback);
             }
         }
         */
-        
     }
 
     private void SetupNextTurn()
@@ -297,12 +302,12 @@ public abstract class BaseGameManager
     
     private void ForEachPriorityHighlight(HistoryState state, byte p)
     {
-        new List<byte>(Command.TYPES).ForEach(c => ForEachCommandHighlight(state, p, (byte)(c + 1)));
+        new List<byte>(Command.TYPES).ForEach(c => ForEachCommandHighlight(state, p));
     }
 
-    private void ForEachCommandHighlight(HistoryState state, byte p, byte c)
+    private void ForEachCommandHighlight(HistoryState state, byte p)
     {
-        if (state.IsBeforeOrDuring(p, c)) uiController.HighlightCommands(c, p);
+        if (state.IsBeforeOrDuring(p)) uiController.HighlightCommands(p);
     }
 }
 

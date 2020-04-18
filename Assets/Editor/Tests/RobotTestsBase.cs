@@ -90,16 +90,6 @@ public class RobotTestsBase
         return new AttackEvent() { locs = new List<Vector2Int>(l), robotId = r, priority = p, primaryBatteryCost = (short)pb, secondaryBatteryCost = (short)sb};
     }
 
-    internal static MissEvent SuccessMissEvent(Vector2Int l, short r, byte p)
-    {
-        return new MissEvent() { locs = new List<Vector2Int>(l), robotId = r, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0};
-    }
-
-    internal static BlockEvent SuccessBlockEvent(Vector2Int v, short r, string blocker, byte p)
-    {
-        return new BlockEvent() { robotId = r, blockingObject = blocker, deniedPos = v, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0};
-    }
-
     internal static PushEvent SuccessPushEvent(short r, short v, Vector2Int d, byte p)
     {
         return new PushEvent() {robotId = r, victim = v, direction = d, priority = p, primaryBatteryCost = 0, secondaryBatteryCost = 0};

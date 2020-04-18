@@ -163,6 +163,12 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: f4e195ac1e204eff960149d1cb34e18c, type: 2}
+    - target: {fileID: 6757128747316429544, guid: dc48de9fa871dad48b78492b0d2a413e,
+        type: 3}
+      propertyPath: SplashScreen
+      value: 
+      objectReference: {fileID: 8292865670097329905, guid: 276734e7177dde94e905cda8d62b13e9,
+        type: 3}
     - target: {fileID: 6757128747316429545, guid: dc48de9fa871dad48b78492b0d2a413e,
         type: 3}
       propertyPath: m_LocalPosition.x

@@ -30,7 +30,6 @@ public class UIController : Controller
     public StatusModalController statusText;
 
     private RobotController selectedRobotController;
-    // public Image SplashScreen;
 
     void Start()
     {
@@ -207,10 +206,10 @@ public class UIController : Controller
         robotPanelsContainer.ClearCommands(id);
     }
 
-    public void HighlightCommands(byte commandId, byte p)
+    public void HighlightCommands(byte p)
     {
-        myRobots.HighlightCommands(commandId, p);
-        opponentsRobots.HighlightCommands(commandId, p);
+        myRobots.HighlightCommands(p);
+        opponentsRobots.HighlightCommands(p);
     }
 
     public void ColorCommandsSubmitted(short id, bool isOpponent)
@@ -244,14 +243,6 @@ public class UIController : Controller
     public Sprite GetArrow(string eventName)
     {
         return Util.ToList(arrows).Find(s => s.name.Equals(eventName));
-    }
-
-    public void Splash(bool win)
-    {
-        //TODO: Add Calvin's screens
-        //SplashScreen.SetText( = win ? "YOU WIN!" : "YOU LOSE!");
-        //SplashScreen.gameObject.SetActive(true);
-        //SetButtons(false);
     }
 
     public void ChangeToBoardLayer(RobotController r)

@@ -18,4 +18,9 @@ public class BatteryController : Controller
     {
         animatorHelper.Animate("BatteryDamage", callback);
     }
+
+    internal void DisplayEnd(UnityAction callback)
+    {
+        animatorHelper.Animate("EndGame", callback);
+    }
 }

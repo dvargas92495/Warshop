@@ -284,7 +284,7 @@ public class Game
             events.Add(priorityEvents);
             if (primary.battery <= 0 || secondary.battery <= 0)
             {
-                GameEvent.End e = new GameEvent.End();
+                EndEvent e = new EndEvent();
                 e.primaryLost = primary.battery <= 0;
                 e.secondaryLost = secondary.battery <= 0;
                 e.primaryBatteryCost = (short)Math.Max(primary.battery, 0);

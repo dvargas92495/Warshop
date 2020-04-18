@@ -43,13 +43,10 @@ public class CommandSlotContainerController : Controller
         });
     }
 
-    public void HighlightCommand(byte commandId, byte p)
+    public void HighlightCommand(byte p)
     {
         CommandSlotController cmd = commandSlots.Get(GameConstants.MAX_PRIORITY - p);
-        if (cmd.arrow.sprite.name.StartsWith(Command.GetDisplay(commandId)))
-        {
-            cmd.Highlight();
-        }
+        cmd.Highlight();
     }
 
     public void ColorCommandsSubmitted()
