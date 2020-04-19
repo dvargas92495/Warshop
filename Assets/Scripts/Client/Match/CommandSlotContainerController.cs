@@ -45,8 +45,8 @@ public class CommandSlotContainerController : Controller
 
     public void HighlightCommand(byte p)
     {
-        CommandSlotController cmd = commandSlots.Get(GameConstants.MAX_PRIORITY - p);
-        cmd.Highlight();
+        CommandSlotController cmd = commandSlots.Get(p - 1);
+        if (!cmd.Closed()) cmd.Highlight();
     }
 
     public void ColorCommandsSubmitted()

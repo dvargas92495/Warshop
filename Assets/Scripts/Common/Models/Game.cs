@@ -191,10 +191,11 @@ public class Game
                                         resolveEvent.myBatteryHit = resolveEvent.myBatteryHit || isPrimaryBase;
                                         resolveEvent.opponentBatteryHit = resolveEvent.opponentBatteryHit || !isPrimaryBase;
                                     });
-                                    e.locs.Filter(v => !board.IsBattery(v) && !allRobots.Any(r => r.position.Equals(v)))
+                                    e.locs.Filter(v => !board.IsBattery(v) && !allRobots.Any(r => r.position.Equals(v)) && !board.IsVoid(v))
                                           .ForEach(v => {
                                               if (!resolveEvent.missedAttacks.Contains(v)) resolveEvent.missedAttacks.Add(v);
                                           });
+                                    if (e.locs.Any(board.IsVoid)) resolveEvent.robotIdsBlocked.Add(attacker.id);
                             });
 
                 bool valid = false;
@@ -255,8 +256,20 @@ public class Game
                         valid = false;
                     });
                 }
-
                 priorityEvents.Add(resolveEvent);
+
+                List<Tuple<short, short>> delayResolved = resolveEvent.robotIdToHealth.Filter(h => 
+                    resolveEvent.robotIdToMove.Any(m => m.GetLeft().Equals(h.GetLeft()))
+                    || resolveEvent.robotIdsBlocked.Any(b => b.Equals(h.GetLeft()))
+                );
+                if (delayResolved.GetLength() > 0)
+                {
+                    delayResolved.ForEach(t => resolveEvent.robotIdToHealth.Remove(t));
+                    ResolveEvent delayResolveEvent = new ResolveEvent();
+                    delayResolveEvent.robotIdToHealth = delayResolved;
+                    priorityEvents.Add(delayResolveEvent);
+                }
+
                 
                 resolveEvent.robotIdToSpawn.ForEach(t => {
                     GetRobot(t.GetLeft()).position = t.GetRight();
