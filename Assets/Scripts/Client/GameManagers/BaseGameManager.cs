@@ -109,7 +109,7 @@ public abstract class BaseGameManager
         uiController.backToPresent.SetCallback(BackToPresent);
         uiController.stepForwardButton.SetCallback(StepForward);
         uiController.stepBackButton.SetCallback(StepBackward);
-        history.Add(SerializeState(1, GameConstants.MAX_PRIORITY, 0));
+        history.Add(SerializeState(1, GameConstants.MAX_PRIORITY));
     }
 
     protected abstract void SubmitCommands();
@@ -141,6 +141,10 @@ public abstract class BaseGameManager
         }
         UnityAction Next = () => PlayEvent(events, index+1);
         GameEvent e = events[index];
+        if (history.Get(currentHistoryIndex).IsAfter(e.priority)) {
+            history.Add(SerializeState(turnNumber, e.priority));
+            currentHistoryIndex++;
+        }
         boardController.DiffBattery(e.primaryBatteryCost, e.secondaryBatteryCost);
         if (e is ResolveEvent) {
             ResolveEvent re = (ResolveEvent)e;
@@ -203,17 +207,6 @@ public abstract class BaseGameManager
     {
         uiController.LightUpPanel(true, false);
         PlayEvent(events, 0);
-        /*
-            if (e is ResolveEvent)
-            {
-                history.Add(SerializeState(turnNumber, r.priority, r.commandType));
-                eventsThisPriority.ForEach(evt =>
-                {
-                    
-                });
-            }
-        }
-        */
     }
 
     private void SetupNextTurn()
@@ -229,7 +222,7 @@ public abstract class BaseGameManager
 
         currentHistoryIndex = history.GetLength();
         turnNumber += 1;
-        history.Add(SerializeState((byte)(turnNumber), GameConstants.MAX_PRIORITY, 0));
+        history.Add(SerializeState((byte)(turnNumber), GameConstants.MAX_PRIORITY));
     }
 
     private void SetupRobotTurn(RobotController r)
@@ -242,9 +235,9 @@ public abstract class BaseGameManager
         r.commands.Clear();
     }
 
-    private HistoryState SerializeState(byte turn, byte priority, byte commandType)
+    private HistoryState SerializeState(byte turn, byte priority)
     {
-        HistoryState historyState = new HistoryState(turn, priority, commandType);
+        HistoryState historyState = new HistoryState(turn, priority);
         historyState.SerializeRobots(robotControllers);
         historyState.SerializeTiles(boardController.GetAllTiles());
         historyState.SerializeScore(boardController.GetMyBatteryScore(), boardController.GetOpponentBatteryScore());

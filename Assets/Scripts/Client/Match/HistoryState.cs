@@ -5,7 +5,6 @@ public class HistoryState
 {
     byte turnNumber;
     byte priority;
-    byte commandType;
     Dictionary<short, RobotState> robots;
     List<TileState> tiles;
     int myScore;
@@ -39,11 +38,10 @@ public class HistoryState
         public Material material;
     }
 
-    public HistoryState(byte t, byte p, byte c)
+    public HistoryState(byte t, byte p)
     {
         turnNumber = t;
         priority = p;
-        commandType = c;
     }
 
     public void SerializeRobots(Dictionary<short, RobotController> robotControllers)
@@ -136,6 +134,11 @@ public class HistoryState
 
     public bool IsBeforeOrDuring(byte p)
     {
-        return p <= priority;
+        return p >= priority;
+    }
+
+    public bool IsAfter(byte p)
+    {
+        return p < priority;
     }
 }
