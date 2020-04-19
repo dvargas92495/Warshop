@@ -136,6 +136,6 @@ public class HistoryState
 
     public bool IsBeforeOrDuring(byte p)
     {
-        return p >= priority;
+        return p <= priority;
     }
 }

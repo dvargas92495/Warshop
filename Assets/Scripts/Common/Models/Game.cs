@@ -304,7 +304,7 @@ public class Game
             if (r.health <= 0)
             {
                 board.AddToDock(r.id, isPrimary);
-                GameEvent.Death death = new GameEvent.Death();
+                DeathEvent death = new DeathEvent();
                 r.health = death.returnHealth = r.startingHealth;
                 r.position = Map.NULL_VEC;
                 death.robotId = r.id;

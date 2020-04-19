@@ -139,12 +139,8 @@ public abstract class BaseGameManager
             SetupNextTurn();
             return;
         }
-        UnityAction Next = () => {
-            Debug.Log("abt to call " + (index+1));
-            PlayEvent(events, index+1);
-        };
+        UnityAction Next = () => PlayEvent(events, index+1);
         GameEvent e = events[index];
-        Debug.Log(e);
         boardController.DiffBattery(e.primaryBatteryCost, e.secondaryBatteryCost);
         if (e is ResolveEvent) {
             ResolveEvent re = (ResolveEvent)e;
@@ -176,9 +172,14 @@ public abstract class BaseGameManager
         }
         else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(Next);
         else if (e is MoveEvent) robotControllers.Get(((MoveEvent)e).robotId).displayMoveRequest(((MoveEvent)e).destinationPos, Next);
-        else if (e is AttackEvent) ((AttackEvent)e).locs.ForEach(v => {
-            Debug.Log("attackin: "+v);
-            robotControllers.Get(((AttackEvent)e).robotId).displayAttack(v, Next);
+        else if (e is AttackEvent) ((AttackEvent)e).locs.ForEach(v => robotControllers.Get(((AttackEvent)e).robotId).displayAttack(v, Next));
+        else if (e is DeathEvent) robotControllers.Get(((DeathEvent)e).robotId).displayDeath(((DeathEvent)e).returnHealth, (RobotController primaryRobot) =>
+        {
+            boardController.UnplaceRobot(primaryRobot);
+            DockController dock = !primaryRobot.isOpponent ? boardController.myDock : boardController.opponentDock;
+            primaryRobot.transform.parent = dock.transform;
+            primaryRobot.transform.localPosition = dock.PlaceInBelt();
+            Next();
         });
         else if (e is EndEvent)
         {
@@ -201,7 +202,6 @@ public abstract class BaseGameManager
     protected virtual void PlayEvents(GameEvent[] events)
     {
         uiController.LightUpPanel(true, false);
-        Debug.Log(new List<GameEvent>(events));
         PlayEvent(events, 0);
         /*
             if (e is ResolveEvent)
@@ -209,13 +209,7 @@ public abstract class BaseGameManager
                 history.Add(SerializeState(turnNumber, r.priority, r.commandType));
                 eventsThisPriority.ForEach(evt =>
                 {
-                    if (evt is GameEvent.Death) robotControllers.Get(((GameEvent.Death)evt).robotId).displayDeath(((GameEvent.Death)evt).returnHealth, (RobotController primaryRobot) =>
-                    {
-                        boardController.UnplaceRobot(primaryRobot);
-                        DockController dock = !primaryRobot.isOpponent ? boardController.myDock : boardController.opponentDock;
-                        primaryRobot.transform.parent = dock.transform;
-                        primaryRobot.transform.localPosition = dock.PlaceInBelt();
-                    });
+                    
                 });
             }
         }
@@ -240,7 +234,10 @@ public abstract class BaseGameManager
 
     private void SetupRobotTurn(RobotController r)
     {
-        r.gameObject.SetActive(true);
+        if (!r.gameObject.activeSelf) {
+            r.gameObject.SetActive(true);
+            r.animatorHelper.Animate("Reset", () => {});
+        }
         uiController.ClearCommands(r.id, r.isOpponent);
         r.commands.Clear();
     }
@@ -301,11 +298,6 @@ public abstract class BaseGameManager
     }
     
     private void ForEachPriorityHighlight(HistoryState state, byte p)
-    {
-        new List<byte>(Command.TYPES).ForEach(c => ForEachCommandHighlight(state, p));
-    }
-
-    private void ForEachCommandHighlight(HistoryState state, byte p)
     {
         if (state.IsBeforeOrDuring(p)) uiController.HighlightCommands(p);
     }

@@ -99,7 +99,7 @@ public class RobotController : Controller
         animatorHelper.Animate("Move" + getDir(v), () => {
             boardController.UnplaceRobot(this);
             boardController.PlaceRobot(this, v.x, v.y);
-            animatorHelper.Animate("Reset", robotCallback);
+            robotCallback();
         });
     }
 

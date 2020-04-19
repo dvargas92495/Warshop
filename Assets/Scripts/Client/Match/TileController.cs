@@ -44,8 +44,7 @@ public class TileController : Controller
         else
         {
             newBattery.coreRenderer.material = opponentCore;
-            newBattery.transform.Rotate(0, 180, 0);
-            newBattery.score.transform.Rotate(180, 180, 0);
+            newBattery.score.color = Color.red;
             secondaryBatterySetterCallback(newBattery);
         }
     }

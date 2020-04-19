@@ -32,8 +32,8 @@ public abstract class GameEvent
             case PushEvent.EVENT_ID:
                 evt = PushEvent.Deserialize(reader);
                 break;
-            case Death.EVENT_ID:
-                evt = Death.Deserialize(reader);
+            case DeathEvent.EVENT_ID:
+                evt = DeathEvent.Deserialize(reader);
                 break;
             case ResolveEvent.EVENT_ID:
                 evt = ResolveEvent.Deserialize(reader);
@@ -73,32 +73,6 @@ public abstract class GameEvent
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(EVENT_ID);
-        }
-    }
-
-    // OPEN ID AT 8
-
-    public class Death: GameEvent
-    {
-        internal const byte EVENT_ID = 9;
-        internal short robotId;
-        internal short returnHealth;
-        public override void Serialize(NetworkWriter writer)
-        {
-            writer.Write(EVENT_ID);
-            writer.Write(robotId);
-            writer.Write(returnHealth);
-        }
-        public new static Death Deserialize(NetworkReader reader)
-        {
-            Death evt = new Death();
-            evt.robotId = reader.ReadInt16();
-            evt.returnHealth = reader.ReadInt16();
-            return evt;
-        }
-        public override string ToString()
-        {
-            return string.Format("{0}Robot {1} died and returned to {2} health", base.ToString(), robotId, returnHealth);
         }
     }
 }
