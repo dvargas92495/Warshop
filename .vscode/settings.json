@@ -3,7 +3,6 @@
     {
         "**/.DS_Store":true,
         "**/.git":true,
-        "**/.gitignore":true,
         "**/.gitmodules":true,
         "**/*.booproj":true,
         "**/*.pidb":true,
@@ -52,5 +51,8 @@
         "ProjectSettings/":true,
         "temp/":true,
         "Temp/":true
+    },
+    "terminal.integrated.env.windows": {
+      "AWS_PROFILE": "warshop",
     }
 }
