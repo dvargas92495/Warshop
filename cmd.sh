@@ -49,13 +49,13 @@ fleetStatus(){
 }
 
 deployCmd() {
-	BUILD_LINE=$(aws gamelift upload-build --name Z8 --build-version 1.0.0 --build-root $Z8_HOME/ServerBuild --operating-system AMAZON_LINUX | tail -1);
+	BUILD_LINE=$(aws gamelift upload-build --name Warshop --build-version 2020.113.0 --build-root $PWD/ServerBuild --operating-system AMAZON_LINUX | tail -1);
     BUILD_ID=$(echo ${BUILD_LINE:10:42});
 	echo "Build $BUILD_ID Uploaded Successfully";
 	STATUS=$(aws gamelift describe-build --build-id $BUILD_ID  --query "Build.Status" --output text);
 	if [[ $STATUS = "READY"* ]]; then
 	    echo "Build Ready, Creating Fleet...";
-	    RESULT=$(aws gamelift create-fleet --name "Z8_App" --description "Z8 App Server" --build-id $BUILD_ID --ec2-instance-type "c4.large" --runtime-configuration "GameSessionActivationTimeoutSeconds=600, ServerProcesses=[{LaunchPath=/local/game/App.x86_64, ConcurrentExecutions=10}]" --new-game-session-protection-policy "FullProtection" --ec2-inbound-permissions "FromPort=12350,ToPort=12359,IpRange=0.0.0.0/0,Protocol=UDP" --query "FleetAttributes.Status" --output text);
+	    RESULT=$(aws gamelift create-fleet --name "Warshop" --description "Warshop App Server" --build-id $BUILD_ID --ec2-instance-type "c4.large" --runtime-configuration "GameSessionActivationTimeoutSeconds=600, ServerProcesses=[{LaunchPath=/local/game/App.x86_64, ConcurrentExecutions=10}]" --new-game-session-protection-policy "FullProtection" --ec2-inbound-permissions "FromPort=12350,ToPort=12359,IpRange=0.0.0.0/0,Protocol=UDP" --query "FleetAttributes.Status" --output text);
 	    if [[ $RESULT = "NEW"* ]]; then
 		    echo "Fleet Created!";
 		    NEW_FLEET_ID=$(aws gamelift describe-fleet-attributes --query "FleetAttributes[?BuildId=='$BUILD_ID'].FleetId" --output text | head --bytes -2);
