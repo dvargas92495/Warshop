@@ -27,8 +27,12 @@ locals {
 # lambda resource requires either filename or s3... wow
 data "archive_file" "dummy" {
   type        = "zip"
-  output_path = "./Server.zip"
-  source_dir = "../ServerBuild"
+  output_path = "./dummy.zip"
+
+  source {
+    content   = "// TODO IMPLEMENT"
+    filename  = "dummy.cs"
+  }
 }
 
 data "aws_iam_policy_document" "gamelift_assume_role_policy" {
@@ -54,7 +58,7 @@ resource "aws_s3_bucket" "gamelift_builds" {
 resource "aws_s3_bucket_object" "gamelift_build" {
   key        = "warshop_build"
   bucket     = aws_s3_bucket.gamelift_builds.id
-  source     = data.archive_file.dummy.output_path
+  source     = "../server.zip"
 }
 
 data "aws_iam_policy_document" "gamelift_build_policy" {

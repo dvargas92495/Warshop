@@ -86,7 +86,9 @@ openCmd() {
 }
 
 serverCmd() {
-	Unity -quit -batchmode -nographics -buildWindows64Player $PWD/ServerBuild/App.exe -projectPath $PWD -executeMethod BuildServer.Start; 
+	Unity -quit -batchmode -nographics -buildWindows64Player $PWD/ServerBuild/App.exe -projectPath $PWD -executeMethod BuildServer.Start;
+	zip -r server.zip ServerBuild
+	rm -Rf ServerBuild 
 }
 
 noCmd(){
