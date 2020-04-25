@@ -27,11 +27,8 @@ locals {
 # lambda resource requires either filename or s3... wow
 data "archive_file" "dummy" {
   type        = "zip"
-  output_path = "./dummy.zip"
-
-  source {
-    source_dir = "ServerBuild"
-  }
+  output_path = "./Server.zip"
+  source_dir = "../ServerBuild"
 }
 
 data "aws_iam_policy_document" "gamelift_assume_role_policy" {
