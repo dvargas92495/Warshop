@@ -86,7 +86,7 @@ openCmd() {
 }
 
 serverCmd() {
-	unity -quit -batchmode -nographics -buildLinux64Player $Z8_HOME/ServerBuild/App.x86_64 -projectPath $Z8_HOME; 
+	Unity -quit -batchmode -nographics -buildWindows64Player $PWD/ServerBuild/App.exe -projectPath $PWD; 
 }
 
 noCmd(){

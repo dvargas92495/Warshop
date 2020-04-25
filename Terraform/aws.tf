@@ -30,8 +30,7 @@ data "archive_file" "dummy" {
   output_path = "./dummy.zip"
 
   source {
-    content   = "// TODO IMPLEMENT"
-    filename  = "dummy.cs"
+    source_dir = "ServerBuild"
   }
 }
 
@@ -100,7 +99,7 @@ resource "aws_iam_role_policy_attachment" "gamelift_build_attach" {
 
 resource "aws_gamelift_build" "build" {
   name             = "Warshop"
-  operating_system = "AMAZON_LINUX"
+  operating_system = "WINDOWS_2012"
 
   storage_location {
     bucket   = aws_s3_bucket.gamelift_builds.bucket
@@ -127,7 +126,7 @@ resource "aws_gamelift_fleet" "fleet" {
     game_session_activation_timeout_seconds = 600
     server_process {
       concurrent_executions = 10
-      launch_path           = "/local/game/App.x86_64"
+      launch_path           = "C:\\game\\App.exe"
     }
   }
 
@@ -140,6 +139,11 @@ resource "aws_gamelift_fleet" "fleet" {
 
   tags = {
     Application = "Warshop"
+  }
+
+  timeouts {
+    create = "15m"
+    delete = "15m"
   }
 }
 

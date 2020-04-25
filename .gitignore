@@ -10,7 +10,6 @@ Lambda/.vs/*
 Lambda/Lambda/aws-lambda-tools-defaults.json
 Lambda/Lambda/bin/*
 Lambda/Lambda/obj/*
-ServerBuild/*
 Terraform/terraform.exe
 UnityPackageManager/*
 XunitTrace.txt
