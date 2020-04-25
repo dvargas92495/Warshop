@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 PRODUCTION_ALIAS="Z8_App";
 
 helpCmd() {

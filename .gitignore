@@ -1,8 +1,6 @@
 Library/*
 Temp/*
-.vs/*
 obj/*
-*.sln
 *.csproj
 Assets/InitTestScene*
 ClientBuild/*
