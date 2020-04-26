@@ -88,6 +88,7 @@ openCmd() {
 }
 
 serverCmd() {
+	rm server.zip
 	Unity -quit -batchmode -nographics -buildWindows64Player $PWD/ServerBuild/App.exe -projectPath $PWD -executeMethod BuildServer.Start;
 	cd ServerBuild
 	zip -r ../server.zip .

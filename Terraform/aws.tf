@@ -29,6 +29,15 @@ locals {
         lambda => split("/", lambda)[1]
     }
 
+    paths = {
+        for lambda in local.lambdas: 
+        lambda => split("/", lambda)[0]
+    }
+
+    resources = distinct([
+      for lambda in local.lambdas: split("/", lambda)[0]
+    ])
+
     function_handlers = {
         for lambda in local.lambdas: 
         lambda => "${local.function_names[lambda]}::Function::${title(local.methods[lambda])}"
@@ -123,7 +132,7 @@ resource "aws_gamelift_build" "build" {
     Application = "Warshop"
   }
 
-  version    = "2020.113.0"
+  version    = "2020.117.0"
 }
 
 resource "aws_gamelift_fleet" "fleet" {
@@ -239,4 +248,52 @@ resource "aws_lambda_function" "lambda" {
   tags = {
     Application = "Warshop"
   }
+}
+
+resource "aws_api_gateway_rest_api" "rest_api" {
+  name        = var.env_name
+  
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+resource "aws_api_gateway_resource" "resource" {
+  for_each    = toset(local.resources)
+
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  parent_id   = aws_api_gateway_rest_api.rest_api.root_resource_id
+  path_part   = each.value
+}
+
+resource "aws_api_gateway_method" "method" {
+  for_each      = toset(local.lambdas)
+
+  rest_api_id   = aws_api_gateway_rest_api.rest_api.id
+  resource_id   = aws_api_gateway_resource.resource[local.paths[each.value]].id
+  http_method   = upper(local.methods[each.value])
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "integration" {
+  for_each                = toset(local.lambdas)
+
+  rest_api_id             = aws_api_gateway_rest_api.rest_api.id
+  resource_id             = aws_api_gateway_resource.resource[local.lambda_paths[each.value]].id
+  http_method             = upper(local.methods[each.value])
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.lambda[each.value].invoke_arn
+}
+
+resource "aws_lambda_permission" "apigw_lambda" {
+  for_each      = toset(local.lambdas)
+
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_function[each.value].function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
+  source_arn = "arn:aws:execute-api:us-east-1:643537615676:${aws_api_gateway_rest_api.rest_api.id}/*/${upper(local.methods[each.value])}${aws_api_gateway_resource.resource[local.lambda_paths[each.value]].path}"
 }
