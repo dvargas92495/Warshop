@@ -106,7 +106,7 @@ resource "aws_iam_role_policy_attachment" "gamelift_build_attach" {
 
 resource "aws_gamelift_build" "build" {
   name             = "Warshop"
-  operating_system = "WINDOWS_2012"
+  operating_system = "AMAZON_LINUX"
 
   storage_location {
     bucket   = aws_s3_bucket.gamelift_builds.bucket
@@ -133,7 +133,7 @@ resource "aws_gamelift_fleet" "fleet" {
     game_session_activation_timeout_seconds = 600
     server_process {
       concurrent_executions = 1
-      launch_path           = "C:\\game\\ServerBuild\\App.exe"
+      launch_path           = "C:\\Game\\App.exe"
     }
   }
 
