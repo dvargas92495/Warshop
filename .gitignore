@@ -4,12 +4,12 @@ bin
 obj
 *.csproj
 Assets/InitTestScene*
+Backend/terraform.exe
 ClientBuild/*
 Lambda/.vs/*
 Lambda/Lambda/aws-lambda-tools-defaults.json
 Lambda/Lambda/bin/*
 Lambda/Lambda/obj/*
-Terraform/terraform.exe
 UnityPackageManager/*
 XunitTrace.txt
 Z8.userprefs
