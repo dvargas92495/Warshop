@@ -26,7 +26,7 @@ locals {
 
     methods = {
         for lambda in local.lambdas: 
-        lambda => split(lambda, "/")[1]
+        lambda => split("/", lambda)[1]
     }
 
     function_handlers = {
