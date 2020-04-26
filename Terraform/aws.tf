@@ -127,7 +127,7 @@ resource "aws_gamelift_fleet" "fleet" {
     game_session_activation_timeout_seconds = 600
     server_process {
       concurrent_executions = 10
-      launch_path           = "C:\\game\\App.exe"
+      launch_path           = "C:\\game\\ServerBuild\\App.exe"
     }
   }
 
