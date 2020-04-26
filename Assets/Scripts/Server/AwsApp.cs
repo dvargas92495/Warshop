@@ -5,8 +5,7 @@ using Aws.GameLift.Server;
 
 public class AwsApp : App
 {
-    private const int MIN_PORT = 12350;
-    private const int MAX_PORT = 12360;
+    private const int PORT = 12345;
     private static readonly Logger log = new Logger(typeof(AwsApp).ToString());
 
     public AwsApp()
@@ -21,21 +20,17 @@ public class AwsApp : App
                 Messages.START_GAME, Messages.SUBMIT_COMMANDS, Messages.END_GAME,
             };
             Util.ToList(messageTypes).ForEach(messageType => NetworkServer.RegisterHandler(messageType, GetHandler(messageType)));
-            int port = MIN_PORT;
-            for (; port < MAX_PORT; port++)
-            {
-                if (NetworkServer.Listen(port)) break;
-            }
+            NetworkServer.Listen(PORT);
             LogParameters paths = new LogParameters();
             paths.LogPaths.Add(GameConstants.APP_LOG_DIR);
             GameLiftServerAPI.ProcessReady(new ProcessParameters(
                 OnGameSession,
                 OnProcessTerminate,
                 OnHealthCheck,
-                port,
+                PORT,
                 paths
             ));
-            log.Info("Listening on: " + port);
+            log.Info("Listening on: " + PORT);
         }
         else
         {

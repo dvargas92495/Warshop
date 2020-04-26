@@ -2,7 +2,7 @@
 
 public class AwsAppController : MonoBehaviour 
 {
-    private void Awake()
+    public void Awake()
     {
         App.StartServer();
     }

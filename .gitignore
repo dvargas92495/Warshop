@@ -1,6 +1,7 @@
 Library/*
 Temp/*
-obj/*
+bin
+obj
 *.csproj
 Assets/InitTestScene*
 ClientBuild/*

@@ -19,9 +19,15 @@ locals {
         "join/post"
     ]
 
-    function_names = [
-        for lambda in local.lambdas: replace(title(replace(lambda, "/", " ")), " ","")
-    ]
+    function_names = {
+        for lambda in local.lambdas: 
+        lambda => replace(title(replace(lambda, "/", " ")), " ","")
+    }
+
+    function_handlers = {
+        for lambda in local.lambdas: 
+        lambda => replace(title(replace(lambda, "/", " ")), " ","::")
+    }
 }
 
 # lambda resource requires either filename or s3... wow
@@ -126,14 +132,13 @@ resource "aws_gamelift_fleet" "fleet" {
   runtime_configuration {
     game_session_activation_timeout_seconds = 600
     server_process {
-      concurrent_executions = 10
+      concurrent_executions = 1
       launch_path           = "C:\\game\\ServerBuild\\App.exe"
     }
   }
 
   ec2_inbound_permission {
-    from_port = 12350
-    to_port   = 12359
+    from_port = 12345
     ip_range  = "0.0.0.0/0"
     protocol  = "UDP"
   }
@@ -145,6 +150,21 @@ resource "aws_gamelift_fleet" "fleet" {
   timeouts {
     create = "15m"
     delete = "15m"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_gamelift_alias" "alias" {
+  name        = "WarshopServer"
+  description = "Alias for the Warshop Server Fleet"
+
+  routing_strategy {
+    message = "WarshopServer"
+    type    = "TERMINAL"
+    fleet_id - aws_gamelift_fleet.fleet.id
   }
 }
 
@@ -201,12 +221,12 @@ resource "aws_iam_role_policy_attachment" "lambda_attach" {
 }
 
 resource "aws_lambda_function" "lambda" {
-  for_each      = toset(local.function_names)
+  for_each      = toset(local.lambdas)
 
-  filename      = data.archive_file.dummy.output_path
-  function_name = "Warshop${each.value}"
+  filename      = each.value === "games/get" ? "../Lambda/GamesGet/GamesGet.zip" : data.archive_file.dummy.output_path
+  function_name = "Warshop${local.function_names[each.value]}"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "Lambda.WarshopLambda.Handler"
+  handler       = "WarshopLambda.${local.function_handlers[each.value]}"
 
   runtime = "dotnetcore3.1"
 

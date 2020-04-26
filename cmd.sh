@@ -93,6 +93,13 @@ serverCmd() {
 	rm -Rf ServerBuild 
 }
 
+lambdaCmd() {
+	cd Lambda/$1
+	dotnet build $1.csproj
+	cd bin/Debug/netcoreapp3.1
+	zip -r ../../../$1.zip .
+}
+
 noCmd(){
     echo "No command entered.";
 	helpCmd;
@@ -117,6 +124,8 @@ elif [[ $1 = "open" ]]; then
     openCmd;
 elif [[ $1 = "server" ]]; then
     serverCmd;
+elif [[ $1 = "lambda" ]]; then
+    lambdaCmd $2;
 elif [[ $1 = "" ]]; then
     noCmd;
 else
