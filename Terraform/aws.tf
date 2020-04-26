@@ -139,6 +139,7 @@ resource "aws_gamelift_fleet" "fleet" {
 
   ec2_inbound_permission {
     from_port = 12345
+    to_port   = 12345
     ip_range  = "0.0.0.0/0"
     protocol  = "UDP"
   }
@@ -164,7 +165,7 @@ resource "aws_gamelift_alias" "alias" {
   routing_strategy {
     message = "WarshopServer"
     type    = "TERMINAL"
-    fleet_id - aws_gamelift_fleet.fleet.id
+    fleet_id = aws_gamelift_fleet.fleet.id
   }
 }
 
@@ -223,10 +224,10 @@ resource "aws_iam_role_policy_attachment" "lambda_attach" {
 resource "aws_lambda_function" "lambda" {
   for_each      = toset(local.lambdas)
 
-  filename      = each.value === "games/get" ? "../Lambda/GamesGet/GamesGet.zip" : data.archive_file.dummy.output_path
+  filename      = each.value == "games/get" ? "../Lambda/GamesGet/GamesGet.zip" : data.archive_file.dummy.output_path
   function_name = "Warshop${local.function_names[each.value]}"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "WarshopLambda.${local.function_handlers[each.value]}"
+  handler       = "Lambda.${local.function_handlers[each.value]}"
 
   runtime = "dotnetcore3.1"
 
