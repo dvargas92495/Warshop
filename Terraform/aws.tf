@@ -24,9 +24,14 @@ locals {
         lambda => replace(title(replace(lambda, "/", " ")), " ","")
     }
 
+    methods = {
+        for lambda in local.lambdas: 
+        lambda => split(lambda, "/")[1]
+    }
+
     function_handlers = {
         for lambda in local.lambdas: 
-        lambda => replace(title(replace(lambda, "/", " ")), " ","::")
+        lambda => "${local.function_names[lambda]}::Function::${title(local.methods[lambda])}"
     }
 }
 
@@ -106,7 +111,7 @@ resource "aws_iam_role_policy_attachment" "gamelift_build_attach" {
 
 resource "aws_gamelift_build" "build" {
   name             = "Warshop"
-  operating_system = "AMAZON_LINUX"
+  operating_system = "WINDOWS_2012"
 
   storage_location {
     bucket   = aws_s3_bucket.gamelift_builds.bucket
@@ -224,10 +229,10 @@ resource "aws_iam_role_policy_attachment" "lambda_attach" {
 resource "aws_lambda_function" "lambda" {
   for_each      = toset(local.lambdas)
 
-  filename      = each.value == "games/get" ? "../Lambda/GamesGet/GamesGet.zip" : data.archive_file.dummy.output_path
+  filename      = "../Lambda/GamesGet/GamesGet.zip"
   function_name = "Warshop${local.function_names[each.value]}"
   role          = aws_iam_role.lambda_role.arn
-  handler       = "Lambda.${local.function_handlers[each.value]}"
+  handler       = local.function_handlers[each.value]
 
   runtime = "dotnetcore3.1"
 
