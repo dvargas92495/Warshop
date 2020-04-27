@@ -78,8 +78,8 @@ resource "aws_s3_bucket" "gamelift_builds" {
 resource "aws_s3_bucket_object" "gamelift_build" {
   key        = "warshop_build"
   bucket     = aws_s3_bucket.gamelift_builds.id
-  source     = "../server.zip"
-  etag       = filemd5("../server.zip")
+  source     = "App.zip"
+  etag       = filemd5("App.zip")
 }
 
 data "aws_iam_policy_document" "gamelift_build_policy" {
@@ -133,7 +133,7 @@ resource "aws_gamelift_build" "build" {
     Application = "Warshop"
   }
 
-  version    = "2020.117.0"
+  version    = "2020.117.1"
 }
 
 resource "aws_gamelift_fleet" "fleet" {
@@ -164,8 +164,8 @@ resource "aws_gamelift_fleet" "fleet" {
   }
 
   timeouts {
-    create = "15m"
-    delete = "15m"
+    create = "30m"
+    delete = "30m"
   }
 
   lifecycle {

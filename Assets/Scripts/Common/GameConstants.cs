@@ -23,6 +23,6 @@
     internal const string IM_WAITING = "Waiting for opponent to submit moves...";
     internal const string OPPONENT_WAITING = "Opponent is waiting for you to submit your moves...";
 
-    internal const string APP_LOG_DIR = "/local/game/logs";
+    internal const string APP_LOG_DIR = "C:\\Game\\logs";
     internal const string GATEWAY_URL = "https://o29y7usfvd.execute-api.us-west-2.amazonaws.com/PROD";
 }

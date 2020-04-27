@@ -88,12 +88,11 @@ openCmd() {
 }
 
 serverCmd() {
-	rm server.zip
-	Unity -quit -batchmode -nographics -buildWindows64Player $PWD/ServerBuild/App.exe -projectPath $PWD -executeMethod BuildServer.Start;
-	cd ServerBuild
-	zip -r ../server.zip .
-	cd ..
-	rm -Rf ServerBuild 
+	cd Backend/Server
+	rm -f App.zip
+	dotnet build App.csproj
+	cd bin/Debug/netcoreapp3.1
+	zip -r ../../../App.zip .
 }
 
 lambdaCmd() {
