@@ -78,8 +78,8 @@ resource "aws_s3_bucket" "gamelift_builds" {
 resource "aws_s3_bucket_object" "gamelift_build" {
   key        = "warshop_build"
   bucket     = aws_s3_bucket.gamelift_builds.id
-  source     = "App.zip"
-  etag       = filemd5("App.zip")
+  source     = "Server/App.zip"
+  etag       = filemd5("Server/App.zip")
 }
 
 data "aws_iam_policy_document" "gamelift_build_policy" {
