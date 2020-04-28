@@ -29,6 +29,7 @@ cleanCmd(){
     done
 }
 
+# https://docs.aws.amazon.com/gamelift/latest/developerguide/fleets-remote-access.html
 connectCmd(){
     rm -f MyPrivateKey.pem;
 	ALIAS_ID=$(aws gamelift list-aliases --query "Aliases[?Name=='$PRODUCTION_ALIAS'].AliasId" --output text | head --bytes -2);
