@@ -90,16 +90,24 @@ openCmd() {
 serverCmd() {
 	cd Backend/Server
 	rm -f App.zip
-	dotnet build App.csproj
-	cd bin/Debug/netcoreapp3.1
-	zip -r ../../../App.zip .
+	dotnet publish App.csproj --self-contained
+	cd bin/Debug/netcoreapp3.1/win-x64/publish
+	zip -r ../../../../../App.zip .
 }
 
 lambdaCmd() {
-	cd Lambda/$1
-	dotnet build $1.csproj
-	cd bin/Debug/netcoreapp3.1
-	zip -r ../../../$1.zip .
+	if [[ $1 = "all" ]]; then
+	    lambdaCmd GamesGet
+		lambdaCmd GamePost
+		lambdaCmd JoinPost
+	else
+		cd Backend/Lambda/$1
+		rm -f Function.zip
+		dotnet build Function.csproj
+		cd bin/Debug/netcoreapp3.1
+		zip -r ../../../Function.zip .
+		cd ../../../../../..
+	fi
 }
 
 noCmd(){

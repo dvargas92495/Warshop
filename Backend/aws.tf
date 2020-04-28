@@ -239,7 +239,7 @@ resource "aws_iam_role_policy_attachment" "lambda_attach" {
 resource "aws_lambda_function" "lambda" {
   for_each      = toset(local.lambdas)
 
-  filename      = "../Lambda/GamesGet/GamesGet.zip"
+  filename      = "Lambda/${each.value}/Function.zip"
   function_name = "Warshop${local.function_names[each.value]}"
   role          = aws_iam_role.lambda_role.arn
   handler       = local.function_handlers[each.value]

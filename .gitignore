@@ -3,6 +3,7 @@ Temp/*
 bin
 obj
 *.csproj
+msbuild.log
 Assets/InitTestScene*
 Backend/terraform.exe
 ClientBuild/*
