@@ -47,6 +47,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityEditor.SpatialTracking
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity.TextMeshPro.Editor", "Unity.TextMeshPro.Editor.csproj", "{f41cc7ed-d323-a9ac-53d9-e7b85fb8cf6d}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{23BD9EC0-232C-41CA-973A-7097F0CA4FA3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lambda", "Lambda", "{CAEF674A-8E16-4B5D-B2E9-7057DAD3F6A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Function", "Backend\Lambda\GamesGet\Function.csproj", "{EC244E9E-714E-4721-8ADA-47CF3DB60273}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,8 +104,14 @@ Global
 		{950a79e7-9f59-dc9a-4f14-91f8e8c8d824}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{f41cc7ed-d323-a9ac-53d9-e7b85fb8cf6d}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{f41cc7ed-d323-a9ac-53d9-e7b85fb8cf6d}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC244E9E-714E-4721-8ADA-47CF3DB60273}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC244E9E-714E-4721-8ADA-47CF3DB60273}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CAEF674A-8E16-4B5D-B2E9-7057DAD3F6A0} = {23BD9EC0-232C-41CA-973A-7097F0CA4FA3}
+		{EC244E9E-714E-4721-8ADA-47CF3DB60273} = {CAEF674A-8E16-4B5D-B2E9-7057DAD3F6A0}
 	EndGlobalSection
 EndGlobal

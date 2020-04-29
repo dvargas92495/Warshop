@@ -104,10 +104,10 @@ lambdaCmd() {
 	else
 		cd Backend/Lambda/$1
 		rm -f Function.zip
-		dotnet build Function.csproj
-		cd bin/Debug/netcoreapp3.1
-		zip -r ../../../Function.zip .
-		cd ../../../../../..
+		dotnet publish
+		cd bin/Debug/netcoreapp3.1/publish
+		zip -r ../../../../Function.zip .
+		cd ../../../../../../..
 	fi
 }
 
