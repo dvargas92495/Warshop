@@ -1,11 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
-using Amazon.Lambda.APIGatewayEvents;
 using Amazon.GameLift;
 using Amazon.GameLift.Model;
 

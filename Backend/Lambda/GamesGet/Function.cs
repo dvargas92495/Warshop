@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 using Amazon.Lambda.Core;
 using Amazon.Lambda.APIGatewayEvents;
@@ -18,23 +18,26 @@ namespace GamesGet
     {
         public Function(){}
 
-        public APIGatewayProxyResponse Get(APIGatewayProxyRequest request, ILambdaContext context)
+        public async Task<APIGatewayProxyResponse> Get(ILambdaContext context)
         {
-            Console.WriteLine("Servicing: " + request.ToString());
+            Console.WriteLine("Starting to GET");
             AmazonGameLiftClient amazonClient = new AmazonGameLiftClient(Amazon.RegionEndpoint.USEast1);
+            Console.WriteLine("Initialized client");
             
             ListAliasesRequest aliasReq = new ListAliasesRequest();
             aliasReq.Name = "WarshopServer";
-            Alias aliasRes = amazonClient.ListAliasesAsync(aliasReq).Result.Aliases[0];
+            Console.WriteLine("Sending Alias");
+            Alias aliasRes = (await amazonClient.ListAliasesAsync(aliasReq)).Aliases[0];
+            Console.WriteLine("Found Alias " + aliasRes.AliasId);
             DescribeAliasRequest describeAliasReq = new DescribeAliasRequest();
             describeAliasReq.AliasId = aliasRes.AliasId;
-            string fleetId =  amazonClient.DescribeAliasAsync(describeAliasReq.AliasId).Result.Alias.RoutingStrategy.FleetId;
+            string fleetId = (await amazonClient.DescribeAliasAsync(describeAliasReq.AliasId)).Alias.RoutingStrategy.FleetId;
             Console.WriteLine("Got fleet id: " + fleetId);
             
             DescribeGameSessionsRequest describeReq = new DescribeGameSessionsRequest();
             describeReq.FleetId = fleetId;
             describeReq.StatusFilter = GameSessionStatus.ACTIVE;
-            DescribeGameSessionsResponse describeRes = amazonClient.DescribeGameSessionsAsync(describeReq).Result;
+            DescribeGameSessionsResponse describeRes = await amazonClient.DescribeGameSessionsAsync(describeReq);
             List<Tuple<string,string,string>> gameSessions = describeRes.GameSessions
                 .FindAll((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount)
                 .ConvertAll((GameSession g) => new Tuple<string,string,string>(
@@ -47,7 +50,7 @@ namespace GamesGet
             return new APIGatewayProxyResponse
             {
                 StatusCode = (int)HttpStatusCode.OK,
-                Body = gameSessions.ToString(),
+                Body = JsonSerializer.Serialize(gameSessions),
                 Headers = new Dictionary<string, string> { { "Content-Type", "text/plain" } }
             };
         }
