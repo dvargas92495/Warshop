@@ -20,6 +20,7 @@ namespace GamesGet
 
         public APIGatewayProxyResponse Get(APIGatewayProxyRequest request, ILambdaContext context)
         {
+            Console.WriteLine("Servicing: " + request.ToString());
             AmazonGameLiftClient amazonClient = new AmazonGameLiftClient(Amazon.RegionEndpoint.USEast1);
             
             ListAliasesRequest aliasReq = new ListAliasesRequest();
@@ -28,6 +29,7 @@ namespace GamesGet
             DescribeAliasRequest describeAliasReq = new DescribeAliasRequest();
             describeAliasReq.AliasId = aliasRes.AliasId;
             string fleetId =  amazonClient.DescribeAliasAsync(describeAliasReq.AliasId).Result.Alias.RoutingStrategy.FleetId;
+            Console.WriteLine("Got fleet id: " + fleetId);
             
             DescribeGameSessionsRequest describeReq = new DescribeGameSessionsRequest();
             describeReq.FleetId = fleetId;
@@ -40,6 +42,7 @@ namespace GamesGet
                     g.CreatorId,
                     g.GameProperties.Find((GameProperty gp) => gp.Key.Equals("IsPrivate")).Value
                  ));
+            Console.WriteLine("Received game sessions: " + gameSessions.ToString());
 
             return new APIGatewayProxyResponse
             {

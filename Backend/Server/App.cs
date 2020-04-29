@@ -54,6 +54,7 @@ namespace Server
         {
             GameLiftServerAPI.ProcessEnding();
             GameLiftServerAPI.Destroy();
+            System.Environment.Exit(0);
         }
 
         private static bool OnHealthCheck()
