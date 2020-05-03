@@ -18,40 +18,41 @@ namespace GamesGet
     {
         public Function(){}
 
+        [Serializable]
+        public class GameResponse { 
+            public string gameSessionId;
+            public string creatorId;
+            public bool isPrivate;
+        }
+
         public async Task<APIGatewayProxyResponse> Get(ILambdaContext context)
         {
-            Console.WriteLine("Starting to GET");
             AmazonGameLiftClient amazonClient = new AmazonGameLiftClient(Amazon.RegionEndpoint.USEast1);
-            Console.WriteLine("Initialized client");
             
             ListAliasesRequest aliasReq = new ListAliasesRequest();
             aliasReq.Name = "WarshopServer";
-            Console.WriteLine("Sending Alias");
             Alias aliasRes = (await amazonClient.ListAliasesAsync(aliasReq)).Aliases[0];
-            Console.WriteLine("Found Alias " + aliasRes.AliasId);
             DescribeAliasRequest describeAliasReq = new DescribeAliasRequest();
             describeAliasReq.AliasId = aliasRes.AliasId;
             string fleetId = (await amazonClient.DescribeAliasAsync(describeAliasReq.AliasId)).Alias.RoutingStrategy.FleetId;
-            Console.WriteLine("Got fleet id: " + fleetId);
             
             DescribeGameSessionsRequest describeReq = new DescribeGameSessionsRequest();
             describeReq.FleetId = fleetId;
             describeReq.StatusFilter = GameSessionStatus.ACTIVE;
             DescribeGameSessionsResponse describeRes = await amazonClient.DescribeGameSessionsAsync(describeReq);
-            List<Tuple<string,string,string>> gameSessions = describeRes.GameSessions
+            List<GameResponse> gameSessions = describeRes.GameSessions
                 .FindAll((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount)
-                .ConvertAll((GameSession g) => new Tuple<string,string,string>(
-                    g.GameSessionId,
-                    g.CreatorId,
-                    g.GameProperties.Find((GameProperty gp) => gp.Key.Equals("IsPrivate")).Value
-                 ));
-            Console.WriteLine("Received game sessions: " + gameSessions.ToString());
+                .ConvertAll((GameSession g) => new GameResponse(){
+                    gameSessionId = g.GameSessionId,
+                    creatorId = g.CreatorId,
+                    isPrivate = "true" == g.GameProperties.Find((GameProperty gp) => gp.Key.Equals("IsPrivate")).Value
+                });
 
             return new APIGatewayProxyResponse
             {
                 StatusCode = (int)HttpStatusCode.OK,
                 Body = JsonSerializer.Serialize(gameSessions),
-                Headers = new Dictionary<string, string> { { "Content-Type", "text/plain" } }
+                Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
             };
         }
     }
