@@ -3,6 +3,7 @@ using System;
 using Amazon.Lambda.Core;
 using Amazon.GameLift;
 using Amazon.GameLift.Model;
+using System.Threading.Tasks;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.LambdaJsonSerializer))]
@@ -31,16 +32,16 @@ namespace GamePost
             public int port;
         }
 
-        public CreateGameResponse Post(CreateGameRequest request, ILambdaContext context)
+        public async Task<CreateGameResponse> Post(CreateGameRequest request, ILambdaContext context)
         {
             AmazonGameLiftClient amazonClient = new AmazonGameLiftClient(Amazon.RegionEndpoint.USEast1);
 
             ListAliasesRequest aliasReq = new ListAliasesRequest();
             aliasReq.Name = "WarshopServer";
-            Alias aliasRes = amazonClient.ListAliasesAsync(aliasReq).Result.Aliases[0];
+            Alias aliasRes = (await amazonClient.ListAliasesAsync(aliasReq)).Aliases[0];
             DescribeAliasRequest describeAliasReq = new DescribeAliasRequest();
             describeAliasReq.AliasId = aliasRes.AliasId;
-            string fleetId =  amazonClient.DescribeAliasAsync(describeAliasReq.AliasId).Result.Alias.RoutingStrategy.FleetId;
+            string fleetId = (await amazonClient.DescribeAliasAsync(describeAliasReq.AliasId)).Alias.RoutingStrategy.FleetId;
 
             CreateGameSessionRequest req = new CreateGameSessionRequest();
             req.MaximumPlayerSessionCount = 2;
@@ -58,7 +59,7 @@ namespace GamePost
             });
             try
             {
-                CreateGameSessionResponse res = amazonClient.CreateGameSessionAsync(req).Result;
+                CreateGameSessionResponse res = await amazonClient.CreateGameSessionAsync(req);
                 
                 GameSession gameSession = res.GameSession;
                 int retries = 0;
@@ -66,14 +67,14 @@ namespace GamePost
                 {
                     DescribeGameSessionsRequest describeReq = new DescribeGameSessionsRequest();
                     describeReq.GameSessionId = res.GameSession.GameSessionId;
-                    gameSession = amazonClient.DescribeGameSessionsAsync(describeReq).Result.GameSessions[0];
+                    gameSession = (await amazonClient.DescribeGameSessionsAsync(describeReq)).GameSessions[0];
                     retries++;
                 }
 
                 CreatePlayerSessionRequest playerSessionRequest = new CreatePlayerSessionRequest();
                 playerSessionRequest.PlayerId = request.playerId;
                 playerSessionRequest.GameSessionId = gameSession.GameSessionId;
-                CreatePlayerSessionResponse playerSessionResponse = amazonClient.CreatePlayerSessionAsync(playerSessionRequest).Result;
+                CreatePlayerSessionResponse playerSessionResponse = await amazonClient.CreatePlayerSessionAsync(playerSessionRequest);
                 
                 return new CreateGameResponse {
                     playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId,

@@ -178,7 +178,6 @@ resource "aws_gamelift_alias" "alias" {
   description = "Alias for the Warshop Server Fleet"
 
   routing_strategy {
-    message = "WarshopServer"
     type    = "SIMPLE"
     fleet_id = aws_gamelift_fleet.fleet.id
   }
