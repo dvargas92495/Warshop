@@ -4,6 +4,10 @@ using Amazon.Lambda.Core;
 using Amazon.GameLift;
 using Amazon.GameLift.Model;
 using System.Threading.Tasks;
+using Amazon.Lambda.APIGatewayEvents;
+using System.Net;
+using System.Text.Json;
+using System.Collections.Generic;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.LambdaJsonSerializer))]
@@ -25,14 +29,12 @@ namespace GamePost
         [Serializable]
         public class CreateGameResponse
         {
-            public bool IsError;
-            public string ErrorMessage;
             public string playerSessionId;
             public string ipAddress;
             public int port;
         }
 
-        public async Task<CreateGameResponse> Post(CreateGameRequest request, ILambdaContext context)
+        public async Task<APIGatewayProxyResponse> Post(CreateGameRequest request, ILambdaContext context)
         {
             AmazonGameLiftClient amazonClient = new AmazonGameLiftClient(Amazon.RegionEndpoint.USEast1);
 
@@ -55,7 +57,7 @@ namespace GamePost
             req.GameProperties.Add(new GameProperty()
             {
                 Key = "Password",
-                Value = request.password
+                Value = request.password == null ? "" : request.password
             });
             try
             {
@@ -76,34 +78,40 @@ namespace GamePost
                 playerSessionRequest.GameSessionId = gameSession.GameSessionId;
                 CreatePlayerSessionResponse playerSessionResponse = await amazonClient.CreatePlayerSessionAsync(playerSessionRequest);
                 
-                return new CreateGameResponse {
+                CreateGameResponse response =  new CreateGameResponse {
                     playerSessionId = playerSessionResponse.PlayerSession.PlayerSessionId,
                     ipAddress = playerSessionResponse.PlayerSession.IpAddress,
                     port = playerSessionResponse.PlayerSession.Port
                 };
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = (int)HttpStatusCode.OK,
+                    Body = JsonSerializer.Serialize(response),
+                    Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
+                };
             }
             catch (NotFoundException e)
             {
-                return new CreateGameResponse
+                return new APIGatewayProxyResponse
                 {
-                    IsError = true,
-                    ErrorMessage = "Your game is out of date! Download the newest version\n"+e.Message,
+                    StatusCode = (int)HttpStatusCode.NotFound,
+                    Body = "Your game is out of date! Download the newest version\n"+e.Message,
                 };
             }
             catch (FleetCapacityExceededException e)
             {
-                return new CreateGameResponse
+                return new APIGatewayProxyResponse
                 {
-                    IsError = true,
-                    ErrorMessage = "No more processes available to reserve a fleet\n" + e.Message,
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
+                    Body = "No more processes available to reserve a fleet\n" + e.Message,
                 };
             }
             catch (Exception e)
             {
-                return new CreateGameResponse
+                return new APIGatewayProxyResponse
                 {
-                    IsError = true,
-                    ErrorMessage = "An unexpected error occurred! Please notify the developers.\n" + e.Message,
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
+                    Body = "An unexpected error occurred! Please notify the developers.\n" + e.Message,
                 };
             }
         }
