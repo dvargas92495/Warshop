@@ -20,9 +20,9 @@ namespace GamesGet
 
         [Serializable]
         public class GameResponse { 
-            public string gameSessionId;
-            public string creatorId;
-            public bool isPrivate;
+            public string gameSessionId { get; set; }
+            public string creatorId { get; set; }
+            public bool isPrivate { get; set; }
         }
 
         public async Task<APIGatewayProxyResponse> Get(ILambdaContext context)
@@ -45,7 +45,7 @@ namespace GamesGet
                 .ConvertAll((GameSession g) => new GameResponse(){
                     gameSessionId = g.GameSessionId,
                     creatorId = g.CreatorId,
-                    isPrivate = "true" == g.GameProperties.Find((GameProperty gp) => gp.Key.Equals("IsPrivate")).Value
+                    isPrivate = true.ToString() == g.GameProperties.Find((GameProperty gp) => gp.Key.Equals("IsPrivate")).Value
                 });
 
             return new APIGatewayProxyResponse

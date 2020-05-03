@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Aws.GameLift;
@@ -12,6 +11,8 @@ namespace Server
     public class App 
     {
         private const int PORT = 12345;
+        private static string gameSessionId;
+        private static int healthChecks = 0;
         public App() {}
 
         static void Main(string[] args)
@@ -47,6 +48,7 @@ namespace Server
             string boardFile = "8 5\nA W W W W W W a\nB W W W W W W b\nW P W W W W p W\nC W W W W W W c\nD W W W W W W d";
             appgame.board = new Map(boardFile);
             appgame.gameSessionId = gameSession.GameSessionId;*/
+            gameSessionId = gameSession.GameSessionId;
             GameLiftServerAPI.ActivateGameSession();
         }
 
@@ -58,18 +60,20 @@ namespace Server
         }
 
         private static bool OnHealthCheck()
-        {/*
+        {
+            healthChecks++;
             DescribePlayerSessionsOutcome result =  GameLiftServerAPI.DescribePlayerSessions(new DescribePlayerSessionsRequest
             {
-                GameSessionId = appgame.gameSessionId
+                //GameSessionId = appgame.gameSessionId
+                GameSessionId = gameSessionId
             });
             bool timedOut = result.Result.PlayerSessions.Count > 0;
             foreach (PlayerSession ps in result.Result.PlayerSessions)
             {
                 timedOut = timedOut && (ps.Status == PlayerSessionStatus.TIMEDOUT);
             }
-            if (timedOut) EndGame();
-            */
+            if (timedOut) GameLiftServerAPI.TerminateGameSession();
+            if (healthChecks == 10 && result.Result.PlayerSessions.Count == 0) GameLiftServerAPI.TerminateGameSession();
             return true;
         }
 

@@ -21,21 +21,22 @@ namespace GamePost
         [Serializable]
         public class CreateGameRequest
         {
-            public string playerId;
-            public bool isPrivate;
-            public string password;
+            public string playerId { get; set; }
+            public bool isPrivate { get; set; }
+            public string password { get; set; }
         }
 
         [Serializable]
         public class CreateGameResponse
         {
-            public string playerSessionId;
-            public string ipAddress;
-            public int port;
+            public string playerSessionId { get; set; }
+            public string ipAddress { get; set; }
+            public int port { get; set; }
         }
 
-        public async Task<APIGatewayProxyResponse> Post(CreateGameRequest request, ILambdaContext context)
+        public async Task<APIGatewayProxyResponse> Post(APIGatewayProxyRequest request, ILambdaContext context)
         {
+            CreateGameRequest body = JsonSerializer.Deserialize<CreateGameRequest>(request.Body);
             AmazonGameLiftClient amazonClient = new AmazonGameLiftClient(Amazon.RegionEndpoint.USEast1);
 
             ListAliasesRequest aliasReq = new ListAliasesRequest();
@@ -48,16 +49,16 @@ namespace GamePost
             CreateGameSessionRequest req = new CreateGameSessionRequest();
             req.MaximumPlayerSessionCount = 2;
             req.FleetId = fleetId;
-            req.CreatorId = request.playerId;
+            req.CreatorId = body.playerId;
             req.GameProperties.Add(new GameProperty()
             {
                 Key = "IsPrivate",
-                Value = request.isPrivate.ToString()
+                Value = body.isPrivate.ToString()
             });
             req.GameProperties.Add(new GameProperty()
             {
                 Key = "Password",
-                Value = request.password == null ? "" : request.password
+                Value = body.password == null ? "" : body.password
             });
             try
             {
@@ -74,7 +75,7 @@ namespace GamePost
                 }
 
                 CreatePlayerSessionRequest playerSessionRequest = new CreatePlayerSessionRequest();
-                playerSessionRequest.PlayerId = request.playerId;
+                playerSessionRequest.PlayerId = body.playerId;
                 playerSessionRequest.GameSessionId = gameSession.GameSessionId;
                 CreatePlayerSessionResponse playerSessionResponse = await amazonClient.CreatePlayerSessionAsync(playerSessionRequest);
                 
@@ -103,7 +104,7 @@ namespace GamePost
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = (int)HttpStatusCode.InternalServerError,
-                    Body = "No more processes available to reserve a fleet\n" + e.Message,
+                    Body = "Our game servers are too busy right now, come back later!\n" + e.Message,
                 };
             }
             catch (Exception e)
