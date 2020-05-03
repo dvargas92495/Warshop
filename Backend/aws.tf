@@ -120,7 +120,7 @@ resource "aws_iam_role_policy_attachment" "gamelift_build_attach" {
 }
 
 resource "aws_gamelift_build" "build" {
-  name             = "Warshop"
+  name             = "WarshopServer"
   operating_system = "WINDOWS_2012"
 
   storage_location {
@@ -133,7 +133,7 @@ resource "aws_gamelift_build" "build" {
     Application = "Warshop"
   }
 
-  version    = "2020.117.1"
+  version    = "2020.124.0"
 }
 
 resource "aws_gamelift_fleet" "fleet" {
