@@ -1,4 +1,5 @@
-﻿using UnityEngine.Events;
+﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Networking;
 
 public class AwsGameClient : GameClient
@@ -7,7 +8,6 @@ public class AwsGameClient : GameClient
     private string ip;
     private int port;
     private string playerSessionId;
-    private Logger log = new Logger(typeof(AwsGameClient).ToString());
 
     internal AwsGameClient(string psid, string ipAddress, int p)
     {
@@ -28,11 +28,11 @@ public class AwsGameClient : GameClient
             client.RegisterHandler(MsgType.Connect, OnConnect);
             client.RegisterHandler(MsgType.Disconnect, OnDisconnect);
             client.Connect(ip, port);
-            log.Info("Attempting to connect to " + ip + ":" + port);
+            Debug.Log("Attempting to connect to " + ip + ":" + port);
         }
         catch(ZException e)
         {
-            log.Fatal(e);
+            Debug.LogError(e);
             errorCallback("An unexpected error occurred! Please notify the developers.");
         }
     }
@@ -57,7 +57,7 @@ public class AwsGameClient : GameClient
 
     private void OnConnect(NetworkMessage netMsg)
     {
-        log.Info("Connected");
+        Debug.Log("Connected");
 
         Messages.AcceptPlayerSessionMessage msg = new Messages.AcceptPlayerSessionMessage();
         msg.playerSessionId = playerSessionId;
@@ -66,7 +66,7 @@ public class AwsGameClient : GameClient
 
     private void OnDisconnect(NetworkMessage netMsg)
     {
-        log.Info("Disconnected");
+        Debug.Log("Disconnected");
         client.Connect(ip, port);
     }
 

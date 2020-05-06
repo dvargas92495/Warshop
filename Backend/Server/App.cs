@@ -15,6 +15,7 @@ namespace Server
         private static readonly Logger log = new Logger(typeof(App).ToString());
         private const int PORT = 12345;
         private static string gameSessionId;
+        private static Game appgame;
         private static int healthChecks = 0;
         public App() {}
 
@@ -53,11 +54,11 @@ namespace Server
 
         private static void OnGameSession(GameSession gameSession)
         {
-            /*Logger.ConfigureNewGame(gameSession.GameSessionId);
+            log.ConfigureNewGame(gameSession.GameSessionId);
             appgame = new Game();
             string boardFile = "8 5\nA W W W W W W a\nB W W W W W W b\nW P W W W W p W\nC W W W W W W c\nD W W W W W W d";
             appgame.board = new Map(boardFile);
-            appgame.gameSessionId = gameSession.GameSessionId;*/
+            appgame.gameSessionId = gameSession.GameSessionId;
             gameSessionId = gameSession.GameSessionId;
             GameLiftServerAPI.ActivateGameSession();
         }
@@ -75,8 +76,7 @@ namespace Server
             log.Info("Heartbeat - " + healthChecks);
             DescribePlayerSessionsOutcome result =  GameLiftServerAPI.DescribePlayerSessions(new DescribePlayerSessionsRequest
             {
-                //GameSessionId = appgame.gameSessionId
-                GameSessionId = gameSessionId
+                GameSessionId = appgame.gameSessionId
             });
             bool timedOut = result.Result.PlayerSessions.Count > 0;
             foreach (PlayerSession ps in result.Result.PlayerSessions)

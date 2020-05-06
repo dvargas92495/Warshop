@@ -111,6 +111,12 @@ lambdaCmd() {
 	fi
 }
 
+commonCmd() {
+	dotnet build Backend/Common/Common.csproj
+	cp Backend/Common/bin/Debug/netcoreapp3.1/Common.dll Backend/Server/Library/
+	cp Backend/Common/bin/Debug/netcoreapp3.1/Common.dll Assets/Library/
+}
+
 noCmd(){
     echo "No command entered.";
 	helpCmd;
@@ -135,6 +141,8 @@ elif [[ $1 = "open" ]]; then
     openCmd;
 elif [[ $1 = "server" ]]; then
     serverCmd;
+elif [[ $1 = "common" ]]; then
+    commonCmd;
 elif [[ $1 = "lambda" ]]; then
     lambdaCmd $2;
 elif [[ $1 = "" ]]; then

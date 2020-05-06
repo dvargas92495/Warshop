@@ -1,11 +1,11 @@
-﻿using UnityEngine.Events;
+﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Networking;
 
 public abstract class GameClient
 {
     protected UnityAction<List<Robot>, List<Robot>, string, Map> gameReadyCallback;
     protected UnityAction<GameEvent[]> onTurnCallback;
-    private static Logger log = new Logger(typeof(GameClient).ToString());
 
     protected abstract void Send(short msgType, MessageBase message);
 
@@ -30,24 +30,24 @@ public abstract class GameClient
 
     protected void OnUnsupportedMessage(NetworkMessage netMsg)
     {
-        log.Info("Unsupported message type: " + netMsg.msgType);
+        Debug.Log("Unsupported message type: " + netMsg.msgType);
     }
 
     protected static void OnNetworkError(NetworkMessage netMsg)
     {
-        log.Info("Network Error");
+        Debug.Log("Network Error");
     }
 
     internal void OnGameReady(NetworkMessage netMsg)
     {
         Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
-        log.Info("Received Game Information");
+        Debug.Log("Received Game Information");
         gameReadyCallback(Util.ToList(msg.myTeam), Util.ToList(msg.opponentTeam), msg.opponentname, msg.board);
     }
 
     protected void OnTurnEvents(NetworkMessage netMsg)
     {
-        log.Info("Received Turn Events");
+        Debug.Log("Received Turn Events");
         Messages.TurnEventsMessage msg = netMsg.ReadMessage<Messages.TurnEventsMessage>();
         onTurnCallback(msg.events);
     }
@@ -60,7 +60,7 @@ public abstract class GameClient
     protected void OnServerError(NetworkMessage netMsg)
     {
         Messages.ServerErrorMessage msg = netMsg.ReadMessage<Messages.ServerErrorMessage>();
-        log.Fatal(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
+        Debug.LogError(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
     }
     
     internal void SendSubmitCommands (Command[] commands, string owner, UnityAction<GameEvent[]> callback) {

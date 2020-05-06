@@ -3,17 +3,13 @@ using UnityEngine.Networking;
 
 public class LocalGameClient : GameClient
 {
-    LocalApp localApp;
 
     protected override void Send(short msgType, MessageBase message)
     {
-        localApp.Receive(msgType, message);
     }
 
     internal void ConnectToGameServer()
     {
-        localApp = new LocalApp(this);
-        localApp.Receive(MsgType.Connect, Messages.EMPTY);
     }
 
     internal void Receive(short msgType, MessageBase message)
