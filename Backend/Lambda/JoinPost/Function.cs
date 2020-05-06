@@ -21,17 +21,17 @@ namespace JoinPost
         [Serializable]
         public class JoinGameRequest
         {
-            public string playerId;
-            public string gameSessionId;
-            public string password;
+            public string playerId {get; set; }
+            public string gameSessionId  {get; set; }
+            public string password  {get; set; }
         }
 
         [Serializable]
         public class JoinGameResponse
         {
-            public string playerSessionId;
-            public string ipAddress;
-            public int port;
+            public string playerSessionId {get; set; }
+            public string ipAddress  {get; set; }
+            public int port  {get; set; }
         }
 
         public async Task<APIGatewayProxyResponse> Post(APIGatewayProxyRequest request, ILambdaContext context)

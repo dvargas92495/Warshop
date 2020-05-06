@@ -9,27 +9,27 @@ namespace WarshopCommon {
     {
         internal ILog log;
 
-        internal Logger(string t)
+        public Logger(string t)
         {
             log = LogManager.GetLogger("Warshop", t);
         }
 
-        internal void Info(object message)
+        public void Info(object message)
         {
             log.Info(message);
         }
 
-        internal void Error(object message)
+        public void Error(object message)
         {
             log.Error(message);
         }
 
-        internal void Fatal(object message)
+        public void Fatal(object message)
         {
             log.Fatal(message);
         }
 
-        internal void Setup()
+        public void Setup()
         {
             PatternLayout fileLayout = new PatternLayout
             {
@@ -51,7 +51,7 @@ namespace WarshopCommon {
             BasicConfigurator.Configure(log.Logger.Repository);
         }
 
-        internal void ConfigureNewGame(string gameSessionId)
+        public void ConfigureNewGame(string gameSessionId)
         {
             PatternLayout layout = new PatternLayout
             {
@@ -69,7 +69,7 @@ namespace WarshopCommon {
             BasicConfigurator.Configure(log.Logger.Repository);
         }
 
-        internal static void RemoveGame()
+        public static void RemoveGame()
         {
             IAppender[] apps = LogManager.GetRepository("Warshop").GetAppenders();
             foreach(IAppender app in apps)
