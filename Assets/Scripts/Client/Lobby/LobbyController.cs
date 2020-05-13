@@ -1,5 +1,6 @@
 ﻿using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class LobbyController : Controller
 {
@@ -23,7 +24,7 @@ public class LobbyController : Controller
 
     void FindAvailableGamesCallback(string[] gameSessionIds, string[] creatorIds, bool[] isPrivate)
     {
-        gameSessionUIs = Util.Map(gameSessionIds, creatorIds, isPrivate, CreateGameSessionUi);
+        gameSessionUIs = Enumerable.Range(0, gameSessionIds.Count()).ToList().ConvertAll(i => CreateGameSessionUi(gameSessionIds[i], creatorIds[i], isPrivate[i])).ToArray();
     }
 
     GameSessionUiController CreateGameSessionUi(string gameSessionId, string creatorId, bool isPrivate)
@@ -59,7 +60,7 @@ public class LobbyController : Controller
     void DeactivateButtons()
     {
         newGameSessionUI.DeactivateButton();
-        Util.ToList(gameSessionUIs).ForEach(g => g.DeactivateButton());
+        gameSessionUIs.ToList().ForEach(g => g.DeactivateButton());
     }
 
     void LoadInitial()

@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
+using WarshopCommon;
 
 public class AwsLambdaClient
 {
-    private static Logger log = new Logger(typeof(AwsLambdaClient).ToString());
-
     public static void SendCreateGameRequest(bool isPriv, string username, string pass, UnityAction<string, string, int> callback)
     {
         Messages.CreateGameRequest request = new Messages.CreateGameRequest
@@ -22,19 +21,12 @@ public class AwsLambdaClient
     {
         if (www.isNetworkError || www.isHttpError)
         {
-            log.Fatal("Error creating new game: \n" + www.downloadHandler.text);
+            Debug.LogError("Error creating new game: \n" + www.downloadHandler.text);
         }
         else
         {
             Messages.CreateGameResponse res = JsonUtility.FromJson<Messages.CreateGameResponse>(www.downloadHandler.text);
-            if (res.IsError)
-            {
-                //BaseGameManager.ErrorString = res.ErrorMessage;
-            }
-            else
-            {
-                callback(res.playerSessionId, res.ipAddress, res.port);
-            }
+            callback(res.playerSessionId, res.ipAddress, res.port);
         }
         www.Dispose();
     }
@@ -56,19 +48,12 @@ public class AwsLambdaClient
     {
         if (www.isNetworkError || www.isHttpError)
         {
-            log.Fatal("Error joining game: \n" + www.downloadHandler.text);
+            Debug.LogError("Error joining game: \n" + www.downloadHandler.text);
         }
         else
         {
             Messages.JoinGameResponse res = JsonUtility.FromJson<Messages.JoinGameResponse>(www.downloadHandler.text);
-            if (res.IsError)
-            {
-                //BaseGameManager.ErrorString = res.ErrorMessage;
-            }
-            else
-            {
-                callback(res.playerSessionId, res.ipAddress, res.port);
-            }
+            callback(res.playerSessionId, res.ipAddress, res.port);
         }
         www.Dispose();
     }
@@ -83,19 +68,12 @@ public class AwsLambdaClient
     {
         if (www.isNetworkError || www.isHttpError)
         {
-            log.Fatal("Error finding available games: \n" + www.downloadHandler.text);
+            Debug.LogError("Error finding available games: \n" + www.downloadHandler.text);
         }
         else
         {
             Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse>(www.downloadHandler.text);
-            if (res.IsError)
-            {
-                //BaseGameManager.ErrorString = res.ErrorMessage;
-            }
-            else
-            {
-                callback(res.gameSessionIds, res.creatorIds, res.isPrivate);
-            }
+            callback(res.gameSessionIds, res.creatorIds, res.isPrivate);
         }
         www.Dispose();
     }

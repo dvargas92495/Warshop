@@ -112,9 +112,9 @@ lambdaCmd() {
 }
 
 commonCmd() {
-	dotnet build Backend/Common/Common.csproj
-	cp Backend/Common/bin/Debug/netcoreapp3.1/Common.dll Backend/Server/Library/
-	cp Backend/Common/bin/Debug/netcoreapp3.1/Common.dll Assets/Library/
+	dotnet publish Backend/Common/Common.csproj
+	cp Backend/Common/bin/Debug/netcoreapp3.1/publish/* Backend/Server/Library/
+	cp Backend/Common/bin/Debug/netcoreapp3.1/publish/* Assets/Library/
 }
 
 noCmd(){

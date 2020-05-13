@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
 
 public class ButtonContainerController : Controller 
@@ -9,7 +10,7 @@ public class ButtonContainerController : Controller
 
     public void EachMenuItem(UnityAction<MenuItemController> a)
     {
-        Util.ToList(menuItems).ForEach(a);
+        menuItems.ToList().ForEach(m => a(m));
     }
 
     public void EachMenuItemSet(UnityAction<MenuItemController> a)
@@ -45,6 +46,6 @@ public class ButtonContainerController : Controller
 
     public MenuItemController GetByName(string name)
     {
-        return Util.ToList(menuItems).Find(m => m.name.Equals(name));
+        return menuItems.ToList().Find(m => m.name.Equals(name));
     }
 }

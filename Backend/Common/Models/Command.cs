@@ -14,14 +14,14 @@ namespace WarshopCommon {
         public const byte ATTACK_COMMAND_ID = 2;
         public const byte SPECIAL_COMMAND_ID = 3;
 
-        internal static byte[] limit = new byte[]
+        public static byte[] limit = new byte[]
         {
             GameConstants.DEFAULT_SPAWN_LIMIT,
             GameConstants.DEFAULT_MOVE_LIMIT,
             GameConstants.DEFAULT_ATTACK_LIMIT,
             GameConstants.DEFAULT_SPECIAL_LIMIT
         };
-        internal static byte[] power = new byte[]
+        public static byte[] power = new byte[]
         {
             GameConstants.DEFAULT_SPAWN_POWER,
             GameConstants.DEFAULT_MOVE_POWER,
@@ -29,16 +29,16 @@ namespace WarshopCommon {
             GameConstants.DEFAULT_SPECIAL_POWER
         };
 
-        internal static byte[] TYPES = new byte[] {
+        public static byte[] TYPES = new byte[] {
             SPAWN_COMMAND_ID,
             MOVE_COMMAND_ID,
             ATTACK_COMMAND_ID,
             SPECIAL_COMMAND_ID
         };
 
-        internal static string[] byteToDirectionString = new string[]{"Up", "Left", "Down", "Right"};
+        public static string[] byteToDirectionString = new string[]{"Up", "Left", "Down", "Right"};
         
-        internal static Tuple<int, int> DirectionToVector(byte dir)
+        public static Tuple<int, int> DirectionToVector(byte dir)
         {
             switch (dir)
             {
@@ -54,7 +54,7 @@ namespace WarshopCommon {
                     return new Tuple<int, int>(0, 0);
             }
         }
-        internal static string GetDisplay(byte commandId)
+        public static string GetDisplay(byte commandId)
         {
             switch (commandId)
             {
@@ -73,7 +73,7 @@ namespace WarshopCommon {
 
         public short robotId { get; set; }
         public string owner { get; set; }
-        protected internal string display { get; protected set; }
+        public string display { get; set; }
         public byte direction { get; set; }
         public byte commandId { get; set; }
         public Command(byte dir, byte id)
@@ -129,7 +129,7 @@ namespace WarshopCommon {
             public Attack(byte dir) : base(dir, ATTACK_COMMAND_ID) { }
         }
 
-        internal class Special : Command
+        public class Special : Command
         {
             public Special(byte dir) : base(dir, SPECIAL_COMMAND_ID) { }
         }

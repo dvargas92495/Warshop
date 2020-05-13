@@ -303,3 +303,15 @@ resource "aws_lambda_permission" "apigw_lambda" {
   # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
   source_arn = "arn:aws:execute-api:us-east-1:643537615676:${aws_api_gateway_rest_api.rest_api.id}/*/${upper(local.methods[each.value])}${aws_api_gateway_resource.resource[local.paths[each.value]].path}"
 }
+
+resource "aws_api_gateway_deployment" "production" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  stage_name  = "production"
+  stage_description = "2020.133.1"
+
+  depends_on  = [
+    aws_api_gateway_integration.integration,
+    aws_api_gateway_method.method,
+    aws_lambda_permission.apigw_lambda
+  ]
+}

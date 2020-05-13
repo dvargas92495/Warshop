@@ -37,7 +37,7 @@ namespace WarshopCommon {
             return "Robot: " + name + " - " + description + " (" + attack + "," + health + ")";
         }
 
-        internal static Robot create(string robotName)
+        public static Robot create(string robotName)
         {
             switch(robotName)
             {

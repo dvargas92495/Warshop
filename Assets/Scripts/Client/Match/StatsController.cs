@@ -1,4 +1,5 @@
 ﻿using UnityEngine.UI;
+using WarshopCommon;
 
 public class StatsController : Controller
 {

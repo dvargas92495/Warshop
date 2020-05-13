@@ -1,5 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
+using WarshopCommon;
 
 public class BoardController : Controller
 {
@@ -21,7 +24,7 @@ public class BoardController : Controller
 
     public void InitializeBoard(Map board)
     {
-        allLocations = Util.ToList(board.spaces).Map(InitializeTile);
+        allLocations = board.spaces.ToList().ConvertAll(InitializeTile);
 
         InitializeLights(board.width, board.height);
     }

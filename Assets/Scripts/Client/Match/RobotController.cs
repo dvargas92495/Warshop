@@ -1,5 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
+using WarshopCommon;
 
 public class RobotController : Controller
 {
@@ -46,13 +50,13 @@ public class RobotController : Controller
 
     internal void ShowMenuOptions(ButtonContainerController m)
     {
-        if (!isSpawned && commands.GetLength() == 0)
+        if (!isSpawned && commands.Count == 0)
         {
-            Util.ToList(Command.TYPES).ForEach(t => m.GetByName(Command.GetDisplay(t)).SetActive(t == Command.SPAWN_COMMAND_ID));
+            Command.TYPES.ToList().ForEach(t => m.GetByName(Command.GetDisplay(t)).SetActive(t == Command.SPAWN_COMMAND_ID));
         }
         else
         {
-            Util.ToList(Command.TYPES).ForEach(t =>
+            Command.TYPES.ToList().ForEach(t =>
             {
                 int num = GetNumCommandType(t);
                 bool active = num < Command.limit[t] && !t.Equals(typeof(Command.Spawn));
@@ -87,7 +91,7 @@ public class RobotController : Controller
         animatorHelper.Animate("SpawnRequest", robotCallback);
     }
 
-    public void displaySpawn(Vector2Int v, UnityAction robotCallback)
+    public void displaySpawn(UnityAction robotCallback)
     {
         isSpawned = true;
         animatorHelper.Animate("Spawn", robotCallback);

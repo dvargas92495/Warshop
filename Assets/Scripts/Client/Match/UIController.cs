@@ -2,6 +2,10 @@
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using WarshopCommon;
+using System.Linq;
+using System;
+using System.Collections.Generic;
 
 public class UIController : Controller
 {
@@ -120,7 +124,7 @@ public class UIController : Controller
 
     void SetPlayerPanel(Game.Player player, RobotPanelsContainerController container, LayerMask layer)
     {
-        container.Initialize(player.team.GetLength());
+        container.Initialize(player.team.Count);
         player.team.ForEach(container.AddPanel);
         ChangeLayer(container.gameObject, layer);
     }
@@ -132,9 +136,9 @@ public class UIController : Controller
         robotButton.SetSprite(container.GetSprite(robotId));
         robotButton.SetCallback(() => RobotButtonCallback(robotButton, robotController, robotId));
         robotButton.gameObject.SetActive(!robotController.isOpponent);
-        int teamLength = Util.ToList(robotButtonContainer.menuItems).Count(m => m.gameObject.activeInHierarchy == !robotController.isOpponent);
+        int teamLength = robotButtonContainer.menuItems.ToList().Count(m => m.gameObject.activeInHierarchy == !robotController.isOpponent);
         robotButton.transform.localPosition = Vector3.right * (teamLength % 4 * 3 - 4.5f);
-        robotButtonContainer.menuItems = Util.Add(robotButtonContainer.menuItems, robotButton);
+        robotButtonContainer.menuItems = robotButtonContainer.menuItems.ToList().Concat(new List<MenuItemController>(){ robotButton }).ToArray();
 
         container.BindCommandClickCallback(robotController, CommandSlotClickCallback);
     }
@@ -167,7 +171,7 @@ public class UIController : Controller
     private void EachDirectionButton(MenuItemController directionButton, MenuItemController robotButton, RobotController robotController, string commandName)
     {
         bool isSpawn = commandName.Equals(Command.GetDisplay(Command.SPAWN_COMMAND_ID));
-        byte dir = (byte) Util.ToList(Command.byteToDirectionString).FindIndex(directionButton.name);
+        byte dir = (byte) Command.byteToDirectionString.ToString().IndexOf(directionButton.name);
         directionButton.SetSprite(isSpawn ? queueSprites[dir] : GetArrow(commandName));
         directionButton.SetCallback(() => DirectionButtonCallback(robotButton, robotController, commandName, dir));
         directionButton.spriteRenderer.transform.localRotation = Quaternion.Euler(Vector3.up * 180 + (isSpawn ? Vector3.zero : Vector3.forward * dir * 90));
@@ -184,7 +188,7 @@ public class UIController : Controller
     private void CommandSlotClickCallback(RobotController r, int index)
     {
         ClearCommands(r.id, r.isOpponent);
-        if (r.commands.Get(index) is Command.Spawn)
+        if (r.commands[index] is Command.Spawn)
         {
             r.commands.Clear();
         }
@@ -242,7 +246,7 @@ public class UIController : Controller
 
     public Sprite GetArrow(string eventName)
     {
-        return Util.ToList(arrows).Find(s => s.name.Equals(eventName));
+        return arrows.ToList().Find(s => s.name.Equals(eventName));
     }
 
     public void ChangeToBoardLayer(RobotController r)
@@ -257,13 +261,13 @@ public class UIController : Controller
 
     private void ChangeLayer(GameObject g, int l)
     {
-        ChangeLayerHelper(g, Math.Log2(l));
+        ChangeLayerHelper(g, (int)Math.Log(l));
     }
 
     private void ChangeLayerHelper(GameObject g, int l)
     {
         g.layer = l;
-        Util.ToIntList(g.transform.childCount).ForEach(i => ChangeLayerHelper(g.transform.GetChild(i).gameObject, l));
+        Enumerable.Range(0, g.transform.childCount).ToList().ForEach(i => ChangeLayerHelper(g.transform.GetChild(i).gameObject, l));
     }
 
 }

@@ -1,5 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
+using WarshopCommon;
 
 public class CommandSlotContainerController : Controller
 {
@@ -10,7 +14,7 @@ public class CommandSlotContainerController : Controller
 
     public void Initialize(short robotId, byte robotPriority)
     {
-        commandSlots = Util.ToIntList(GameConstants.MAX_PRIORITY).Map(c => InitializeCommand(c, robotId, robotPriority));
+        commandSlots = Enumerable.Range(0, GameConstants.MAX_PRIORITY).ToList().ConvertAll(c => InitializeCommand(c, robotId, robotPriority));
     }
 
     private CommandSlotController InitializeCommand(int c, short robotId, byte robotPriority)
@@ -25,13 +29,13 @@ public class CommandSlotContainerController : Controller
     public void BindCommandClickCallback(RobotController r, UnityAction<RobotController, int> clickCallback)
     {
         int offset = commandSlots.FindIndex(c => c.IsNext());
-        Util.ToIntList(commandSlots.GetLength()).ForEach(i => commandSlots.Get(i).BindClickCallback(defaultArrow, () => clickCallback(r, offset - i)));
+        commandSlots.ForEach(c => c.BindClickCallback(defaultArrow, () => clickCallback(r, offset - commandSlots.IndexOf(c))));
     }
 
     public void ClearCommands()
     {
         bool clickable = true;
-        commandSlots.Reverse().ForEach(child => {
+        commandSlots.AsEnumerable().Reverse().ToList().ForEach(child => {
             child.deletable = false;
             child.arrow.sprite = defaultArrow;
             if (!child.Closed())
@@ -45,7 +49,7 @@ public class CommandSlotContainerController : Controller
 
     public void HighlightCommand(byte p)
     {
-        CommandSlotController cmd = commandSlots.Get(p - 1);
+        CommandSlotController cmd = commandSlots[p - 1];
         if (!cmd.Closed()) cmd.Highlight();
     }
 
@@ -60,12 +64,12 @@ public class CommandSlotContainerController : Controller
     public int AddSubmittedCommandAndReturnPowerConsumed(Command cmd, Sprite s)
     {
         bool setNext = false;
-        return commandSlots.Reverse().Reduce(0, (powerConsumed, child) =>
+        return commandSlots.AsEnumerable().Reverse().Aggregate(0, (powerConsumed, child) =>
         {
             if (child.Closed()) return powerConsumed;
             else if (child.Opened() && child.deletable)
             {
-                byte commandId = Util.ToList(Command.TYPES).Find(id => child.arrow.sprite.name.Equals(Command.GetDisplay(id)));
+                byte commandId = Command.TYPES.ToList().Find(id => child.arrow.sprite.name.Equals(Command.GetDisplay(id)));
                 return powerConsumed + Command.power[commandId];
             }
             else if (child.IsNext())

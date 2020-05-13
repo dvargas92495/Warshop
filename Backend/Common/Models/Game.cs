@@ -63,7 +63,7 @@ namespace WarshopCommon {
 
         public class Player
         {
-            internal string name;
+            public string name {get; set;}
             public short battery = GameConstants.POINTS_TO_WIN;
             public List<Robot> team;
             internal bool ready;
@@ -71,7 +71,7 @@ namespace WarshopCommon {
             internal List<Command> commands;
             internal int connectionId;
             internal Player(){}
-            internal Player(Robot[] t, string n)
+            public Player(Robot[] t, string n)
             {
                 team = new List<Robot>(t);
                 name = n;

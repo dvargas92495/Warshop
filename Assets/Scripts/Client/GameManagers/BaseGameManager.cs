@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
+using WarshopCommon;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public abstract class BaseGameManager
 {
@@ -18,8 +22,6 @@ public abstract class BaseGameManager
     protected int currentHistoryIndex;
     protected List<HistoryState> history = new List<HistoryState>();
     protected Map board;
-
-    private static Logger log = new Logger(typeof(BaseGameManager).ToString());
 
     public static void InitializeLocal()
     {
@@ -76,7 +78,7 @@ public abstract class BaseGameManager
 
     private void InitializeRobots()
     {
-        robotControllers = new Dictionary<short, RobotController>(myPlayer.team.GetLength() + opponentPlayer.team.GetLength());
+        robotControllers = new Dictionary<short, RobotController>(myPlayer.team.Count + opponentPlayer.team.Count);
         InitializePlayerRobots(myPlayer, boardController.myDock);
         InitializePlayerRobots(opponentPlayer, boardController.opponentDock);
     }
@@ -104,7 +106,7 @@ public abstract class BaseGameManager
     {
         uiController = ui;
         uiController.InitializeUI(myPlayer, opponentPlayer);
-        robotControllers.ForEach(uiController.BindUiToRobotController);
+        robotControllers.Keys.ToList().ForEach(k => uiController.BindUiToRobotController(k, robotControllers[k]));
         uiController.submitCommands.SetCallback(SubmitCommands);
         uiController.backToPresent.SetCallback(BackToPresent);
         uiController.stepForwardButton.SetCallback(StepForward);
@@ -117,20 +119,19 @@ public abstract class BaseGameManager
     protected Command[] GetSubmittedCommands(List<RobotController> robotsToSubmit)
     {
         uiController.LightUpPanel(true, true);
-        List<Command> commands = robotsToSubmit.Reduce(new List<Command>(), AddCommands);
+        List<Command> commands = robotsToSubmit.ConvertAll(AddCommands).SelectMany(x => x).ToList();
         uiController.commandButtonContainer.SetButtons(false);
         uiController.directionButtonContainer.SetButtons(false);
         uiController.submitCommands.Deactivate();
         return commands.ToArray();
     }
 
-    private List<Command> AddCommands(List<Command> commands, RobotController robot)
+    private List<Command> AddCommands(RobotController robot)
     {
         robot.commands.ForEach(c => c.robotId = robot.id);
-        List<Command> returnCommands = commands.Concat(robot.commands);
         uiController.ColorCommandsSubmitted(robot.id, robot.isOpponent);
         uiController.ChangeToBoardLayer(robot);
-        return returnCommands;
+        return robot.commands;
     }
 
     protected virtual void PlayEvent(GameEvent[] events, int index) 
@@ -141,7 +142,7 @@ public abstract class BaseGameManager
         }
         UnityAction Next = () => PlayEvent(events, index+1);
         GameEvent e = events[index];
-        if (history.Get(currentHistoryIndex).IsAfter(e.priority)) {
+        if (history[currentHistoryIndex].IsAfter(e.priority)) {
             history.Add(SerializeState(turnNumber, e.priority));
             currentHistoryIndex++;
         }
@@ -155,29 +156,29 @@ public abstract class BaseGameManager
                 if (animationsToPlay.Get() <= 0) Next();
             };
             re.robotIdToSpawn.ForEach(p => {
-                RobotController primaryRobot = robotControllers.Get(p.GetLeft());
+                RobotController primaryRobot = robotControllers[p.Item1];
                 (primaryRobot.isOpponent ? boardController.opponentDock : boardController.myDock).RemoveFromBelt(primaryRobot.transform.localPosition);
                 primaryRobot.transform.parent = boardController.transform;
-                boardController.PlaceRobot(primaryRobot, p.GetRight().x, p.GetRight().y);
-                primaryRobot.displaySpawn(p.GetRight(), callback);
+                boardController.PlaceRobot(primaryRobot, p.Item2.Item1, p.Item2.Item2);
+                primaryRobot.displaySpawn(callback);
             });
             re.robotIdToMove.ForEach(p => {
-                RobotController primaryRobot = robotControllers.Get(p.GetLeft());
-                primaryRobot.displayMove(p.GetRight(), boardController, callback);
+                RobotController primaryRobot = robotControllers[p.Item1];
+                primaryRobot.displayMove(ToVector(p.Item2), boardController, callback);
             });
             re.robotIdToHealth.ForEach(t => {
-                RobotController primaryRobot = robotControllers.Get(t.GetLeft());
-                primaryRobot.displayDamage(t.GetRight(), callback);
+                RobotController primaryRobot = robotControllers[t.Item1];
+                primaryRobot.displayDamage(t.Item2, callback);
             });
             if (re.myBatteryHit) boardController.GetMyBattery().DisplayDamage(callback);
             if (re.opponentBatteryHit) boardController.GetOpponentBattery().DisplayDamage(callback);
-            re.missedAttacks.ForEach(v => boardController.DisplayMiss(v, callback));
-            re.robotIdsBlocked.ForEach(r => robotControllers.Get(r).DisplayBlocked(callback));
+            re.missedAttacks.ConvertAll(ToVector).ForEach(v => boardController.DisplayMiss(v, callback));
+            re.robotIdsBlocked.ForEach(r => robotControllers[r].DisplayBlocked(callback));
         }
-        else if (e is SpawnEvent) robotControllers.Get(((SpawnEvent)e).robotId).displaySpawnRequest(Next);
-        else if (e is MoveEvent) robotControllers.Get(((MoveEvent)e).robotId).displayMoveRequest(((MoveEvent)e).destinationPos, Next);
-        else if (e is AttackEvent) ((AttackEvent)e).locs.ForEach(v => robotControllers.Get(((AttackEvent)e).robotId).displayAttack(v, Next));
-        else if (e is DeathEvent) robotControllers.Get(((DeathEvent)e).robotId).displayDeath(((DeathEvent)e).returnHealth, (RobotController primaryRobot) =>
+        else if (e is SpawnEvent) robotControllers[((SpawnEvent)e).robotId].displaySpawnRequest(Next);
+        else if (e is MoveEvent) robotControllers[((MoveEvent)e).robotId].displayMoveRequest(ToVector(((MoveEvent)e).destinationPos), Next);
+        else if (e is AttackEvent) ((AttackEvent)e).locs.ConvertAll(ToVector).ForEach(v => robotControllers[((AttackEvent)e).robotId].displayAttack(v, Next));
+        else if (e is DeathEvent) robotControllers[((DeathEvent)e).robotId].displayDeath(((DeathEvent)e).returnHealth, (RobotController primaryRobot) =>
         {
             boardController.UnplaceRobot(primaryRobot);
             DockController dock = !primaryRobot.isOpponent ? boardController.myDock : boardController.opponentDock;
@@ -211,16 +212,16 @@ public abstract class BaseGameManager
 
     private void SetupNextTurn()
     {
-        robotControllers.ForEachValue(SetupRobotTurn);
+        robotControllers.Values.ToList().ForEach(SetupRobotTurn);
 
         uiController.submitCommands.Deactivate();
         uiController.backToPresent.Deactivate();
         uiController.stepForwardButton.Deactivate();
-        uiController.stepBackButton.SetActive(history.GetLength() != 0);
+        uiController.stepBackButton.SetActive(history.Count != 0);
         uiController.robotButtonContainer.SetButtons(true);
         uiController.LightUpPanel(false, false);
 
-        currentHistoryIndex = history.GetLength();
+        currentHistoryIndex = history.Count;
         turnNumber += 1;
         history.Add(SerializeState((byte)(turnNumber), GameConstants.MAX_PRIORITY));
     }
@@ -259,31 +260,31 @@ public abstract class BaseGameManager
 
     public void BackToPresent()
     {
-        GoTo(history.Get(history.GetLength() - 1));
+        GoTo(history[history.Count - 1]);
     }
 
     public void StepForward()
     {
-        GoTo(history.Get(++currentHistoryIndex));
+        GoTo(history[++currentHistoryIndex]);
     }
 
     public void StepBackward()
     {
-        GoTo(history.Get(--currentHistoryIndex));
+        GoTo(history[--currentHistoryIndex]);
     }
 
     private void GoTo(HistoryState historyState)
     {
         DeserializeState(historyState);
-        robotControllers.ForEachValue(RefillCommands);
-        Util.ToIntList(GameConstants.MAX_PRIORITY).ForEach(p => ForEachPriorityHighlight(historyState, (byte)(p + 1)));
-        robotControllers.ForEachValue(uiController.ChangeToBoardLayer);
+        robotControllers.Values.ToList().ForEach(RefillCommands);
+        Enumerable.Range(0, GameConstants.MAX_PRIORITY).ToList().ForEach(p => ForEachPriorityHighlight(historyState, (byte)(p + 1)));
+        robotControllers.Values.ToList().ForEach(uiController.ChangeToBoardLayer);
 
-        bool isPresent = currentHistoryIndex == history.GetLength() - 1;
-        uiController.submitCommands.SetActive(isPresent && robotControllers.AnyValue(r => r.commands.GetLength() > 0));
-        uiController.stepForwardButton.SetActive(currentHistoryIndex < history.GetLength() - 1);
+        bool isPresent = currentHistoryIndex == history.Count - 1;
+        uiController.submitCommands.SetActive(isPresent && robotControllers.Values.ToList().Any(r => r.commands.Count > 0));
+        uiController.stepForwardButton.SetActive(currentHistoryIndex < history.Count - 1);
         uiController.stepBackButton.SetActive(currentHistoryIndex > 0);
-        uiController.backToPresent.SetActive(currentHistoryIndex < history.GetLength() - 1);
+        uiController.backToPresent.SetActive(currentHistoryIndex < history.Count - 1);
 
         uiController.robotButtonContainer.SetButtons(isPresent);
         uiController.commandButtonContainer.SetButtons(false);
@@ -293,6 +294,10 @@ public abstract class BaseGameManager
     private void ForEachPriorityHighlight(HistoryState state, byte p)
     {
         if (state.IsBeforeOrDuring(p)) uiController.HighlightCommands(p);
+    }
+
+    private Vector2Int ToVector(Tuple<int, int> t) {
+        return new Vector2Int(t.Item1, t.Item2);
     }
 }
 

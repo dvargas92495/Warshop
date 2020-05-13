@@ -1,5 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
+using WarshopCommon;
 
 public class RobotPanelsContainerController : Controller
 {
@@ -15,7 +18,7 @@ public class RobotPanelsContainerController : Controller
 
     public bool Contains(short id)
     {
-        return robotIdToPanels.Contains(id);
+        return robotIdToPanels.ContainsKey(id);
     }
 
     public void AddPanel(Robot r)
@@ -28,42 +31,44 @@ public class RobotPanelsContainerController : Controller
         panel.commandSlotContainer.Initialize(r.id, r.priority);
 
         robotIdToPanels.Add(r.id, panel);
-        int i = robotIdToPanels.GetIndex(r.id);
-        panel.transform.localPosition = Vector3.right * (1.0f/robotIdToPanels.GetLength() * (i + 0.5f) - 0.5f);
+        List<short> robotIds = robotIdToPanels.Keys.ToList();
+        robotIds.Sort();
+        int i = robotIds.IndexOf(r.id);
+        panel.transform.localPosition = Vector3.right * (1.0f/robotIdToPanels.Count * (i + 0.5f) - 0.5f);
     }
 
     public void BindCommandClickCallback(RobotController r, UnityAction<RobotController, int> clickCallback)
     {
-        robotIdToPanels.Get(r.id).commandSlotContainer.BindCommandClickCallback(r, clickCallback);
+        robotIdToPanels[r.id].commandSlotContainer.BindCommandClickCallback(r, clickCallback);
     }
 
     public Sprite GetSprite(short robotId)
     {
-        return robotIdToPanels.Get(robotId).GetSprite();
+        return robotIdToPanels[robotId].GetSprite();
     }
 
     public void ClearCommands(short robotId)
     {
-        robotIdToPanels.Get(robotId).ClearCommands();
+        robotIdToPanels[robotId].ClearCommands();
     }
 
     public void HighlightCommands(byte p)
     {
-        robotIdToPanels.ForEachValue(panel => panel.commandSlotContainer.HighlightCommand(p));
+        robotIdToPanels.Values.ToList().ForEach(panel => panel.commandSlotContainer.HighlightCommand(p));
     }
 
     public void ColorCommandsSubmitted(short robotId)
     {
-        robotIdToPanels.Get(robotId).commandSlotContainer.ColorCommandsSubmitted();
+        robotIdToPanels[robotId].commandSlotContainer.ColorCommandsSubmitted();
     }
 
     public void AddSubmittedCommand(Command cmd, short robotId, Sprite s)
     {
-        robotIdToPanels.Get(robotId).AddSubmittedCommand(cmd, s);
+        robotIdToPanels[robotId].AddSubmittedCommand(cmd, s);
     }
 
     public void DestroyCommandMenu()
     {
-        robotIdToPanels.ForEachValue(p => p.commandSlotContainer.DestroyCommandMenu());
+        robotIdToPanels.Values.ToList().ForEach(p => p.commandSlotContainer.DestroyCommandMenu());
     }
 }

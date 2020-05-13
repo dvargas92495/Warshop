@@ -13,7 +13,6 @@ public class InitialController : Controller
 
     void Start ()
     {
-        Logger.Setup(false);
         enterLobbyButton.onClick.AddListener(EnterLobby);
         enterLocalMatchButton.onClick.AddListener(EnterLocalMatch);
         profileButton.onClick.AddListener(EnterProfile);

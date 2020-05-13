@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using System.Collections.Generic;
 
 public class SquadPanelController : Controller
 {
@@ -29,11 +30,11 @@ public class SquadPanelController : Controller
 
     public string[] GetSquadRobotNames()
     {
-        return squadRobots.Map(r => r.GetName()).ToArray();
+        return squadRobots.ConvertAll(r => r.GetName()).ToArray();
     }
 
     public int GetNumRobots()
     {
-        return squadRobots.GetLength();
+        return squadRobots.Count;
     }
 }

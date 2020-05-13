@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using TMPro;
+using WarshopCommon;
 
 public class TileController : Controller
 {
@@ -23,7 +24,8 @@ public class TileController : Controller
     {
         primaryBatterySetterCallback = primaryCallback;
         secondaryBatterySetterCallback = secondaryCallback;
-        s.accept(this);
+        if (s is Map.Battery) LoadBatteryTile((Map.Battery)s);
+        else if (s is Map.Queue) LoadQueueTile((Map.Queue)s);
     }
 
     public void LoadBlankTile(Map.Blank s)

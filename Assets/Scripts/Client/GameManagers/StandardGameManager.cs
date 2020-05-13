@@ -1,4 +1,7 @@
-﻿public class StandardGameManager : BaseGameManager
+﻿using System.Linq;
+using WarshopCommon;
+
+public class StandardGameManager : BaseGameManager
 {
     internal StandardGameManager(string playerSessionId, string ipAddress, int port)
     {
@@ -20,7 +23,7 @@
 
     protected override void SubmitCommands()
     {
-        Command[] commands = GetSubmittedCommands(robotControllers.ToValueList());
+        Command[] commands = GetSubmittedCommands(robotControllers.Values.ToList());
         uiController.actionButtonContainer.SetButtons(false);
         uiController.robotButtonContainer.SetButtons(false);
         gameClient.SendSubmitCommands(commands, myPlayer.name, PlayEvents);

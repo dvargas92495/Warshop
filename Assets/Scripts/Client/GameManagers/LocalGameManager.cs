@@ -1,4 +1,8 @@
-﻿public class LocalGameManager : BaseGameManager
+﻿using System.Collections.Generic;
+using System.Linq;
+using WarshopCommon;
+
+public class LocalGameManager : BaseGameManager
 {
     private bool myturn;
     private const string opponentName = "Opponent";
@@ -28,7 +32,7 @@
 
     protected override void SubmitCommands()
     {
-        List<RobotController> robotsToSubmit = robotControllers.ToValueListFiltered(r => r.isOpponent == !myturn);
+        List<RobotController> robotsToSubmit = robotControllers.Values.ToList().FindAll(r => r.isOpponent == !myturn);
         Command[] commands = GetSubmittedCommands(robotsToSubmit);
         uiController.robotButtonContainer.EachMenuItem(m => m.gameObject.SetActive(!m.gameObject.activeInHierarchy));
         string username = myturn ? myPlayer.name : opponentPlayer.name;

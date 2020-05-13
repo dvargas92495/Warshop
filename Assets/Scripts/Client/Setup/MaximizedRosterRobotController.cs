@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using WarshopCommon;
+using System.Linq;
 
 public class MaximizedRosterRobotController : Controller
 {
@@ -25,7 +27,7 @@ public class MaximizedRosterRobotController : Controller
         healthField.SetText(robot.health.ToString());
         descriptionField.SetText(robot.description);
         rating = (byte)robot.rating;
-        Util.ToIntList(ratingGroup.transform.childCount).ForEach(SetRating);
+        Enumerable.Range(0, ratingGroup.transform.childCount).ToList().ForEach(SetRating);
     }
 
     public Sprite GetRobotSprite()

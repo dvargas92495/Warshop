@@ -1,5 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
+using WarshopCommon;
 
 public class HistoryState 
 {
@@ -46,8 +49,8 @@ public class HistoryState
 
     public void SerializeRobots(Dictionary<short, RobotController> robotControllers)
     {
-        robots = new Dictionary<short, RobotState>(robotControllers.GetLength());
-        robotControllers.ForEachValue(SerializeRobot);
+        robots = new Dictionary<short, RobotState>(robotControllers.Count);
+        robotControllers.Values.ToList().ForEach(SerializeRobot);
     }
 
     private void SerializeRobot(RobotController r)
@@ -57,8 +60,8 @@ public class HistoryState
         state.rotation = r.transform.rotation.eulerAngles;
         state.health = r.GetHealth();
         state.attack = r.GetAttack();
-        state.currentEvents = r.currentEvents.Map(SerializeCurrentEvent);
-        state.commands = r.commands.Map(SerializeCmd);
+        state.currentEvents = r.currentEvents.ConvertAll(SerializeCurrentEvent);
+        state.commands = r.commands.ConvertAll(SerializeCmd);
         robots.Add(r.id, state);
     }
 
@@ -81,7 +84,7 @@ public class HistoryState
 
     public void SerializeTiles(TileController[] tileControllers)
     {
-        tiles = new List<TileController>(tileControllers).Map(SerializeTile);
+        tiles = new List<TileController>(tileControllers).ConvertAll(SerializeTile);
     }
 
     private TileState SerializeTile(TileController t)
@@ -99,7 +102,7 @@ public class HistoryState
 
     public void DeserializeRobots(Dictionary<short, RobotController> robotControllers, UnityAction<Command, short, bool> addCommandCallback)
     {
-        robots.ForEach((id, state) => DeserializeRobot(robotControllers.Get(id), state, addCommandCallback));
+        robots.Keys.ToList().ForEach((id) => DeserializeRobot(robotControllers[id], robots[id], addCommandCallback));
     }
 
     private void DeserializeRobot(RobotController r, RobotState state, UnityAction<Command, short, bool> addCommandCallback)
@@ -119,7 +122,7 @@ public class HistoryState
 
     public void DeserializeTiles(TileController[] tileControllers)
     {
-        new List<TileController>(tileControllers).ForEach(tiles, DeserializeTile);
+        Enumerable.Range(0, tileControllers.Length).ToList().ForEach(i => DeserializeTile(tileControllers[i], tiles[i]));
     }
 
     private void DeserializeTile(TileController t, TileState state)

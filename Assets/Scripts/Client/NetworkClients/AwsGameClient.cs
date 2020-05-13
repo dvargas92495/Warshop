@@ -1,6 +1,10 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
+using WarshopCommon;
 
 public class AwsGameClient : GameClient
 {
@@ -24,20 +28,20 @@ public class AwsGameClient : GameClient
             short[] messageTypes = new short[] {
                 MsgType.Connect, MsgType.Disconnect, MsgType.Error, Messages.GAME_READY, Messages.TURN_EVENTS, Messages.WAITING_COMMANDS, Messages.SERVER_ERROR,
             };
-            Util.ToList(messageTypes).ForEach(messageType => client.RegisterHandler(messageType, GetHandler(messageType)));
+            messageTypes.ToList().ForEach(messageType => client.RegisterHandler(messageType, GetHandler(messageType)));
             client.RegisterHandler(MsgType.Connect, OnConnect);
             client.RegisterHandler(MsgType.Disconnect, OnDisconnect);
             client.Connect(ip, port);
             Debug.Log("Attempting to connect to " + ip + ":" + port);
         }
-        catch(ZException e)
+        catch(Exception e)
         {
             Debug.LogError(e);
             errorCallback("An unexpected error occurred! Please notify the developers.");
         }
     }
 
-    protected override void Send(short msgType, MessageBase message)
+    protected void Send(short msgType, MessageBase message)
     {
         client.Send(msgType, message);
     }
@@ -51,7 +55,7 @@ public class AwsGameClient : GameClient
             case MsgType.Disconnect:
                 return OnDisconnect;
             default:
-                return base.GetHandler(messageType);
+                return default(NetworkMessageDelegate);
         }
     }
 
@@ -61,7 +65,7 @@ public class AwsGameClient : GameClient
 
         Messages.AcceptPlayerSessionMessage msg = new Messages.AcceptPlayerSessionMessage();
         msg.playerSessionId = playerSessionId;
-        Send(Messages.ACCEPT_PLAYER_SESSION, msg);
+   //     Send(Messages.ACCEPT_PLAYER_SESSION, msg);
     }
 
     private void OnDisconnect(NetworkMessage netMsg)
@@ -76,6 +80,6 @@ public class AwsGameClient : GameClient
         msg.myName = myname;
         msg.myRobots = myRobots;
         gameReadyCallback = readyCallback;
-        Send(Messages.START_GAME, msg);
+    //    Send(Messages.START_GAME, msg);
     }
 }

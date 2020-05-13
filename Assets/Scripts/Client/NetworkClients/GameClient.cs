@@ -1,32 +1,14 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Networking;
+using WarshopCommon;
 
 public abstract class GameClient
 {
     protected UnityAction<List<Robot>, List<Robot>, string, Map> gameReadyCallback;
     protected UnityAction<GameEvent[]> onTurnCallback;
-
-    protected abstract void Send(short msgType, MessageBase message);
-
-    protected NetworkMessageDelegate GetHandler(short messageType)
-    {
-        switch(messageType)
-        {
-            case MsgType.Error:
-                return OnNetworkError;
-            case Messages.GAME_READY:
-                return OnGameReady;
-            case Messages.TURN_EVENTS:
-                return OnTurnEvents;
-            case Messages.WAITING_COMMANDS:
-                return OnOpponentWaiting;
-            case Messages.SERVER_ERROR:
-                return OnServerError;
-            default:
-                return OnUnsupportedMessage;
-        }
-    }
 
     protected void OnUnsupportedMessage(NetworkMessage netMsg)
     {
@@ -40,16 +22,16 @@ public abstract class GameClient
 
     internal void OnGameReady(NetworkMessage netMsg)
     {
-        Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
+        // Messages.GameReadyMessage msg = netMsg.ReadMessage<Messages.GameReadyMessage>();
         Debug.Log("Received Game Information");
-        gameReadyCallback(Util.ToList(msg.myTeam), Util.ToList(msg.opponentTeam), msg.opponentname, msg.board);
+        // gameReadyCallback(msg.myTeam.ToList(), msg.opponentTeam.ToList(), msg.opponentname, msg.board);
     }
 
     protected void OnTurnEvents(NetworkMessage netMsg)
     {
         Debug.Log("Received Turn Events");
-        Messages.TurnEventsMessage msg = netMsg.ReadMessage<Messages.TurnEventsMessage>();
-        onTurnCallback(msg.events);
+       // Messages.TurnEventsMessage msg = netMsg.ReadMessage<Messages.TurnEventsMessage>();
+       // onTurnCallback(msg.events);
     }
 
     protected void OnOpponentWaiting(NetworkMessage netMsg)
@@ -59,8 +41,8 @@ public abstract class GameClient
 
     protected void OnServerError(NetworkMessage netMsg)
     {
-        Messages.ServerErrorMessage msg = netMsg.ReadMessage<Messages.ServerErrorMessage>();
-        Debug.LogError(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
+       // Messages.ServerErrorMessage msg = netMsg.ReadMessage<Messages.ServerErrorMessage>();
+       // Debug.LogError(msg.serverMessage + ": " + msg.exceptionType + " - " + msg.exceptionMessage);
     }
     
     internal void SendSubmitCommands (Command[] commands, string owner, UnityAction<GameEvent[]> callback) {
@@ -68,12 +50,12 @@ public abstract class GameClient
         msg.commands = commands;
         msg.owner = owner;
         onTurnCallback = callback;
-        Send(Messages.SUBMIT_COMMANDS, msg);
+      //  Send(Messages.SUBMIT_COMMANDS, msg);
     }
 
     internal void SendEndGameRequest ()
     {
-        Send(Messages.END_GAME, new Messages.EndGameMessage());
+      //  Send(Messages.END_GAME, new Messages.EndGameMessage());
     }
 
     internal LocalGameClient AsLocal()

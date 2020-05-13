@@ -2,6 +2,8 @@
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using WarshopCommon;
+using System.Linq;
 
 public class SetupController : Controller
 {
@@ -26,7 +28,7 @@ public class SetupController : Controller
         mySquadPanel.SetAddCallback(AddSelectedToMySquad);
         startGameButton.onClick.AddListener(StartGame);
         robotRosterPanel.SetMaximizeCallback(maximizeSelection);
-        Util.ToList(robotDir).ForEach(robotRosterPanel.AddRobotImage);
+        robotDir.ToList().ForEach(robotRosterPanel.AddRobotImage);
     }
 
     public void EnterLobby()
