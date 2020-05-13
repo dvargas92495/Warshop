@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.Json;
 
 namespace WarshopCommon {
     public abstract class GameEvent
@@ -9,9 +8,7 @@ namespace WarshopCommon {
         public short secondaryBatteryCost {get; set;}
         public byte type { get; set; }
 
-        public string Serialize() {
-            return JsonSerializer.Serialize(this);
-        }
+        /*
         public static GameEvent Deserialize(string msg)
         {
             byte eventId = JsonSerializer.Deserialize<GameEvent>(msg).type;
@@ -44,6 +41,7 @@ namespace WarshopCommon {
             }
             return evt;
         }
+        */
         public override string ToString()
         {
             return string.Format("Event at {0} costing ({1},{2}) - ", priority, primaryBatteryCost, secondaryBatteryCost);

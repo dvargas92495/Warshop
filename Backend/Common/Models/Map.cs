@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 
 namespace WarshopCommon {
     public class Map
@@ -37,14 +36,6 @@ namespace WarshopCommon {
                     spaces[y * width + x].y = y;
                 }
             }
-        }
-        public string Serialize()
-        {
-            return JsonSerializer.Serialize(this);
-        }
-        public static Map Deserialize(string msg)
-        {
-            return JsonSerializer.Deserialize<Map>(msg);
         }
 
         public Space VecToSpace(Tuple<int, int> v)
@@ -149,10 +140,7 @@ namespace WarshopCommon {
                 }
             }
 
-            public string Serialize() {
-                return JsonSerializer.Serialize(this);
-            }
-
+/*
             public static Space Deserialize(string msg)
             {
                 byte s = JsonSerializer.Deserialize<Space>(msg).type;
@@ -175,6 +163,7 @@ namespace WarshopCommon {
                     return new Void();
                 }
             }
+            */
         }
 
         public abstract class PlayerSpace : Space

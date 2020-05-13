@@ -20,6 +20,7 @@ public class InitialController : Controller
         usernameField.text = ProfileController.username;
         OnUsernameFieldEdit(usernameField.text);
         usernameField.onValueChanged.AddListener(OnUsernameFieldEdit);
+        usernameField.Select();
     }
 
     void OnUsernameFieldEdit(string newValue)

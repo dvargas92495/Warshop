@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.Json;
 
 namespace WarshopCommon {
     public abstract class Command
@@ -82,10 +81,8 @@ namespace WarshopCommon {
             commandId = id;
             display = GetDisplay(commandId);
         }
-        public string Serialize()
-        {
-            return JsonSerializer.Serialize(this);
-        }
+        
+        /*
         public static Command Deserialize(string msg)
         {
             Command cmd = JsonSerializer.Deserialize<Command>(msg);
@@ -108,6 +105,7 @@ namespace WarshopCommon {
             }
             return cmd;
         }
+        */
 
         public override string ToString()
         {

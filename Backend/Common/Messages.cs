@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace WarshopCommon {
+﻿namespace WarshopCommon {
     public class Messages {
         public const short START_LOCAL_GAME = 1;
         public const short START_GAME = 2;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.Json;
 
 namespace WarshopCommon {
     public class Robot
@@ -53,14 +52,6 @@ namespace WarshopCommon {
                     log.Error("Invalid Robot name: " + robotName);
                     return null;
             }
-        }
-        public string Serialize()
-        {
-            return JsonSerializer.Serialize(this);
-        }
-        public static Robot Deserialize(string msg)
-        {
-            return JsonSerializer.Deserialize<Robot>(msg);
         }
         public enum Rating
         {
