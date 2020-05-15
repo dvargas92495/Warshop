@@ -25,6 +25,5 @@
         public const string OPPONENT_WAITING = "Opponent is waiting for you to submit your moves...";
 
         public const string APP_LOG_DIR = "C:\\Game\\logs";
-        public const string GATEWAY_URL = "https://l1o387pdnb.execute-api.us-east-1.amazonaws.com/PROD";
     }
 }

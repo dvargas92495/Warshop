@@ -1,4 +1,6 @@
-﻿namespace WarshopCommon {
+﻿using System;
+
+namespace WarshopCommon {
     public class Messages {
         public const short START_LOCAL_GAME = 1;
         public const short START_GAME = 2;
@@ -66,11 +68,17 @@
             public string gameSessionId {get; set;}
             public string password {get; set;}
         }
-        public class GetGamesResponse
-        {
-            public string[] gameSessionIds {get; set;}
-            public string[] creatorIds {get; set;}
-            public bool[] isPrivate {get; set;}
+
+        [Serializable]
+        public class GameView { 
+            public string gameSessionId { get; set; }
+            public string creatorId { get; set; }
+            public bool isPrivate { get; set; }
+        }
+
+        [Serializable]
+        public class GetGamesResponse {
+            public GameView[] gameViews { get; set; }
         }
 
         public class GameSessionResponse

@@ -5,6 +5,7 @@ using WarshopCommon;
 
 public class AwsLambdaClient
 {
+    public const string GATEWAY_URL = "https://l1o387pdnb.execute-api.us-east-1.amazonaws.com/production";
     public static void SendCreateGameRequest(bool isPriv, string username, string pass, UnityAction<string, string, int> callback)
     {
         Messages.CreateGameRequest request = new Messages.CreateGameRequest
@@ -13,7 +14,7 @@ public class AwsLambdaClient
             isPrivate = isPriv,
             password = isPriv ? pass : "NONE"
         };
-        UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
+        UnityWebRequest www = UnityWebRequest.Put(GATEWAY_URL + "/games", JsonUtility.ToJson(request));
         www.SendWebRequest().completed += (op) => CreateGameResponse(www, callback);
     }
 
@@ -39,7 +40,7 @@ public class AwsLambdaClient
             gameSessionId = gId,
             password = pass
         };
-        UnityWebRequest www = UnityWebRequest.Put(GameConstants.GATEWAY_URL + "/games", JsonUtility.ToJson(request));
+        UnityWebRequest www = UnityWebRequest.Put(GATEWAY_URL + "/games", JsonUtility.ToJson(request));
         www.method = "POST"; //LOL you freaking suck Unity
         www.SendWebRequest().completed += (op) => JoinGameResponse(www, callback);
     }
@@ -60,7 +61,7 @@ public class AwsLambdaClient
 
     public static void SendFindAvailableGamesRequest(UnityAction<string[], string[], bool[]> callback)
     {
-        UnityWebRequest www = UnityWebRequest.Get(GameConstants.GATEWAY_URL + "/games");
+        UnityWebRequest www = UnityWebRequest.Get(GATEWAY_URL + "/games");
         www.SendWebRequest().completed += (op) => FindAvailableGamesResponse(www, callback);
     }
 
@@ -72,7 +73,7 @@ public class AwsLambdaClient
         }
         else
         {
-            Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse>(www.downloadHandler.text);
+            Messages.GetGamesResponse res = JsonUtility.FromJson<Messages.GetGamesResponse[]>(www.downloadHandler.text);
             callback(res.gameSessionIds, res.creatorIds, res.isPrivate);
         }
         www.Dispose();

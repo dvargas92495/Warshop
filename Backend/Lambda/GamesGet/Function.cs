@@ -19,10 +19,15 @@ namespace GamesGet
         public Function(){}
 
         [Serializable]
-        public class GameResponse { 
+        public class GameView { 
             public string gameSessionId { get; set; }
             public string creatorId { get; set; }
             public bool isPrivate { get; set; }
+        }
+
+        [Serializable]
+        public class GetGamesResponse {
+            public GameView[] gameViews { get; set; }
         }
 
         public async Task<APIGatewayProxyResponse> Get(ILambdaContext context)
@@ -40,18 +45,22 @@ namespace GamesGet
             describeReq.FleetId = fleetId;
             describeReq.StatusFilter = GameSessionStatus.ACTIVE;
             DescribeGameSessionsResponse describeRes = await amazonClient.DescribeGameSessionsAsync(describeReq);
-            List<GameResponse> gameSessions = describeRes.GameSessions
+            List<GameView> gameViews = describeRes.GameSessions
                 .FindAll((GameSession g) => g.CurrentPlayerSessionCount < g.MaximumPlayerSessionCount)
-                .ConvertAll((GameSession g) => new GameResponse(){
+                .ConvertAll((GameSession g) => new GameView(){
                     gameSessionId = g.GameSessionId,
                     creatorId = g.CreatorId,
                     isPrivate = true.ToString() == g.GameProperties.Find((GameProperty gp) => gp.Key.Equals("IsPrivate")).Value
                 });
 
+            GetGamesResponse response = new GetGamesResponse() {
+                gameViews = gameViews.ToArray()
+            };
+
             return new APIGatewayProxyResponse
             {
                 StatusCode = (int)HttpStatusCode.OK,
-                Body = JsonSerializer.Serialize(gameSessions),
+                Body = JsonSerializer.Serialize(response),
                 Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
             };
         }
